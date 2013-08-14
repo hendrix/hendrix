@@ -1,2 +1,7 @@
 *.pyc
 .project
+.pydevproject
+build
+dist
+hendrix.egg-info
+twisted/plugins/dropin.cache

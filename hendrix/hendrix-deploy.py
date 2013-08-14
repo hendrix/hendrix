@@ -49,7 +49,7 @@ def start():
                      'hendrix',
                      '--port',
                      PORT,
-                     '--DEPLOYMENT_TYPE',
+                     '--deployment_type',
                      DEPLOYMENT_TYPE
                      ])
 
