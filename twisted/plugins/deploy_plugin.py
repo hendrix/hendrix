@@ -6,7 +6,7 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 
-from deploy_functions import get_hendrix_resource
+from hendrix.deploy_functions import get_hendrix_resource
 
 
 class Options(usage.Options):
