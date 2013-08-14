@@ -6,7 +6,6 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 README = read('README.md')
-# CHANGES = read('CHANGES.md')
 
 setup(
     name = "hendrix",
@@ -14,7 +13,7 @@ setup(
     version = "0.1",
     url = "https://github.com/hangarunderground/hendrix",
     description = "A deployment module for Django that uses Twisted.",
-    long_description = "\n\n".join([README, CHANGES]),
+    long_description = "\n\n".join([README]),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Framework :: Django',
