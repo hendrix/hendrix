@@ -5,7 +5,6 @@ from raven.contrib.django.raven_compat.middleware.wsgi import Sentry
 from twisted.web.wsgi import WSGIResource
 from twisted.python.threadpool import ThreadPool
 from twisted.internet import reactor
-from django.core.handlers.wsgi import WSGIHandler
 from twisted.application import internet, service
 from twisted.web import server, resource, static
 from twisted.web.resource import ForbiddenResource
@@ -13,26 +12,10 @@ from twisted.web.resource import ForbiddenResource
 from path_settings import PROJECT_ROOT, DEVELOPMENT_ADMIN_MEDIA, PRODUCTION_STATIC, set_path
 set_path()  # Puts project and apps directories on path
 
+print "settings %s as PROJECT ROOT" % PROJECT_ROOT
+
 # Only used if no logger is passed from plugin.
 DEFAULT_LOGGER = logging.getLogger(__name__)
-
-
-class HendrixWSGIHandler(WSGIHandler):
-
-    def __init__(self, deployment_type, *args, **kwargs):
-        self.deployment_type = deployment_type
-        return super(HendrixWSGIHandler, self).__init__(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        response = super(HendrixWSGIHandler, self).__call__(*args, **kwargs)
-        if self.deployment_type == "development":
-            print '%s - %s %s %s' % (
-                response.status_code,
-                args[0]['REMOTE_ADDR'],
-                args[0]['REQUEST_METHOD'],
-                args[0]['PATH_INFO'],
-            )
-        return response
 
 
 class ThreadPoolService(service.Service):
@@ -77,13 +60,13 @@ class MediaService(static.File):
         return ForbiddenResource()
 
 
-def get_hendrix_resource(deployment_type, port, logger=DEFAULT_LOGGER):
+def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOGGER):
     '''
     Pseudo factory that returns the proper Resource object.
     Takes a deployment type and (for development) a port number.
     Returns a tuple (Twisted Resource, Twisted Application, Twisted Server)
     '''
-
+    
     logger.info("Hendrix will deploy %s on port:%s" % (deployment_type, port))
 
     # Create and start a thread pool,
@@ -104,12 +87,12 @@ def get_hendrix_resource(deployment_type, port, logger=DEFAULT_LOGGER):
     
     # TODO: Allow them to pass a WSGIHandler of their choice.
 
-    sentry_application = Sentry(HendrixWSGIHandler(deployment_type=deployment_type))
+    
 
     # Use django's WSGIHandler to create the resource.
     hendrix_django_resource = WSGIResource(
         reactor, tps.pool,
-        HendrixWSGIHandler(deployment_type=deployment_type)
+        wsgi_handler,
     )
     root = Root(hendrix_django_resource)
 
@@ -118,7 +101,7 @@ def get_hendrix_resource(deployment_type, port, logger=DEFAULT_LOGGER):
 
     if deployment_type == "development":
         admin_static = MediaService(os.path.join(os.path.abspath("."), DEVELOPMENT_ADMIN_MEDIA))
-        staticrsrc = MediaService(os.path.join(os.path.abspath("."), "%s/static" % PROJECT_ROOT))
+        staticrsrc = MediaService(os.path.join(os.path.abspath("."), "%s/static" % PROJECT_ROOT)) # TODO: Unhardcode /static
     else:
         # Maybe we want to hardcode production and staging paths.  Maybe we don't.
         admin_static = MediaService(os.path.join(os.path.abspath("."), DEVELOPMENT_ADMIN_MEDIA))

@@ -24,5 +24,5 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords = ["django", "twisted", "async", "logging"],
-    scripts = ['hendrix/hendrix-deploy.py'],
+    scripts = ['hendrix/hendrix-deploy.py', 'hendrix/hendrix-devserver.py'],
 )

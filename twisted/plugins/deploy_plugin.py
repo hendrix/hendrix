@@ -7,10 +7,13 @@ from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 
 from hendrix.deploy_functions import get_hendrix_resource
+import imp
 
 
 class Options(usage.Options):
-    optParameters = [["port", "p", None, "The port number to listen on."],
+    optParameters = [
+                     ["wsgi", "w", None, "A python module that contains a WSGIHandler instance called wsgi_handler"],
+                     ["port", "p", None, "The port number to listen on."],
                      ["deployment_type", "dt", None, "The type of deployment instance to launch."],
                      ]
 
@@ -21,6 +24,8 @@ class HendrixServiceMaker(object):
     options = Options
 
     def makeService(self, options):
+        wsgi_module = imp.load_source('wsgi', options['wsgi'])
+        
         deployment_type = options['deployment_type']
         os.environ['DJANGO_SETTINGS_MODULE'] = settings_mod_string = "settings.%s" % deployment_type
 
@@ -42,6 +47,7 @@ class HendrixServiceMaker(object):
         logger.debug("using python binary: %s" % sys.executable)
         
         resource, application, server = get_hendrix_resource(
+                                            wsgi_handler=wsgi_module.get_wsgi_handler(deployment_type),
                                             deployment_type=deployment_type, 
                                             port=int(options['port']),
                                             logger=logger,
