@@ -3,7 +3,7 @@ import subprocess
 import sys, os, errno
 import logging
 from path import path
-from path_settings import set_path, LOG_DIRECTORY, VIRTUALENV
+from hendrix.path_settings import set_path, LOG_DIRECTORY, VIRTUALENV
 set_path()  # So that private is on path.
 logger = logging.getLogger(__name__)
 
