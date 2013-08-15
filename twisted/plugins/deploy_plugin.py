@@ -17,6 +17,7 @@ class Options(usage.Options):
                      ["deployment_type", "dt", None, "The type of deployment instance to launch."],
                      ]
 
+
 class HendrixServiceMaker(object):
     implements(IServiceMaker, IPlugin)
     tapname = "hendrix"
@@ -46,7 +47,7 @@ class HendrixServiceMaker(object):
             logger = DEFAULT_LOGGER
         logger.debug("using python binary: %s" % sys.executable)
         
-        resource, application, server = get_hendrix_resource(
+        resource, server = get_hendrix_resource(
                                             wsgi_handler=wsgi_module.get_wsgi_handler(deployment_type),
                                             deployment_type=deployment_type, 
                                             port=int(options['port']),

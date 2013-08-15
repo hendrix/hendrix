@@ -69,22 +69,12 @@ def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOG
     # Create and start a thread pool,
     wsgiThreadPool = ThreadPool()
 
-    application = service.Application('hendrix in %s' % deployment_type)
-
     # The pool will stop when the reactor shuts down
     reactor.addSystemEventTrigger('after', 'shutdown', wsgiThreadPool.stop)
 
     hendrix_server = service.MultiService()
     tps = ThreadPoolService(wsgiThreadPool)
-    tps.setServiceParent(hendrix_server)
-
-    # We want to wrap our WSGIHandler with sentry so that we can detect 
-    # behavior in the WSGI process.  This is the only way we can 
-    # log to Sentry from threads other than the blocking one.
-    
-    # TODO: Allow them to pass a WSGIHandler of their choice.
-
-    
+    tps.setServiceParent(hendrix_server)    
 
     # Use django's WSGIHandler to create the resource.
     hendrix_django_resource = WSGIResource(
@@ -102,7 +92,7 @@ def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOG
     else:
         # Maybe we want to hardcode production and staging paths.  Maybe we don't.
         admin_static = MediaService(os.path.join(os.path.abspath("."), DEVELOPMENT_ADMIN_MEDIA))
-        staticrsrc = MediaService(os.path.join(os.path.abspath("."), PRODUCTION_STATIC))
+        staticrsrc = MediaService(os.path.join(os.path.abspath("."), "%s/static" % wsgi_handler.application.project_root))
 
     logger.debug("Adding admin static path: %s" % admin_static)
     # Now that we have the static media locations, add them to the root.
@@ -114,4 +104,4 @@ def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOG
     main_site = server.Site(root)
     internet.TCPServer(port, main_site).setServiceParent(hendrix_server)
 
-    return hendrix_django_resource, application, hendrix_server
+    return hendrix_django_resource, hendrix_server

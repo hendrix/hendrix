@@ -5,3 +5,4 @@ build
 dist
 hendrix.egg-info
 twisted/plugins/dropin.cache
+hendrix/pids

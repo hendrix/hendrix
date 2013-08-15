@@ -3,14 +3,13 @@ import subprocess
 import sys, os, errno
 import logging
 from path import path
-from hendrix.path_settings import set_path, LOG_DIRECTORY, VIRTUALENV
-set_path()  # So that private is on path.
+from hendrix.path_settings import LOG_DIRECTORY, VIRTUALENV
 logger = logging.getLogger(__name__)
 
 deployment_directory = path(__file__).abspath().dirname()
 
 def exit_show_usage():
-    exit('Usage: deploy.py <start / stop / restart> <DEPLOYMENT_TYPE> <PORT> ')
+    exit('Usage: deploy.py <start / stop / restart> <DEPLOYMENT_TYPE> <wsgi.py> <PORT>')
 
 try:
     ACTION = sys.argv[1]
@@ -18,14 +17,15 @@ try:
         exit_show_usage()
         
     DEPLOYMENT_TYPE = sys.argv[2]
+    WSGI = sys.argv[3]
 except IndexError:
         exit_show_usage()
 
-if ACTION == "start":
+if ACTION != "stop":
     try:
-        PORT = sys.argv[3]
+        PORT = sys.argv[4]
     except IndexError:
-        exit('Usage: deploy.py start <port>)')
+        exit('Usage: deploy.py (re)start <port>)')
 
 # For now, PID files will live in ./pids.  Later, we'll develop a smarter place.
 PID_DIRECTORY = '%s/pids' % deployment_directory
@@ -33,12 +33,12 @@ PID_DIRECTORY = '%s/pids' % deployment_directory
 # Let's make sure that the directory exists.
 try:
     os.makedirs(PID_DIRECTORY)
-except OSError as exc: # Python >2.5
+except OSError as exc:
     if exc.errno == errno.EEXIST and os.path.isdir(PID_DIRECTORY):
         pass
     else: raise
-    
-    
+
+
 PID_FILE = '%s/%s.pid' % (PID_DIRECTORY, DEPLOYMENT_TYPE)
 
 
@@ -50,7 +50,9 @@ def start():
                      '--port',
                      PORT,
                      '--deployment_type',
-                     DEPLOYMENT_TYPE
+                     DEPLOYMENT_TYPE,
+                     '--wsgi',
+                     WSGI,
                      ])
 
 
@@ -62,21 +64,16 @@ def stop():
         if result:
             print "\nThere is no server currently running with process ID %s." % pid
         else:
-            exit(0)
+            print "Stopped process %s" % pid
     except IOError:
         print "No pid file called %s " % PID_FILE
-    print "\nDid you mean to 'start' the server?\n  Let's try that."
-    start()
 
 if ACTION == "start":
     start()
-    logger.debug('twisted started!')
 
 if ACTION == "stop":
     stop()
-    logger.debug('twisted stoped!')
 
 if ACTION == "restart":
     stop()
     start()
-    logger.debug('twisted restarted!')

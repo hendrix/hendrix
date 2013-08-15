@@ -8,7 +8,7 @@ from hendrix.deploy_functions import get_hendrix_resource
 from hendrix.path_settings import * #Just to set the appropriate sys.path
 from twisted.internet.error import CannotListenError
 
-print sys.path
+print "Here's your sys.path: %s" % sys.path
 
 try:
     PORT = int(sys.argv[2])
@@ -18,7 +18,7 @@ except IndexError:
 
 wsgi = WSGI.get_wsgi_handler('local')
 
-resource, application, server = get_hendrix_resource(wsgi, DEPLOYMENT_TYPE, port=PORT)
+resource, server = get_hendrix_resource(wsgi, DEPLOYMENT_TYPE, port=PORT)
 
 try:
     server.startService()
