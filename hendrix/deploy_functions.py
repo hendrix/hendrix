@@ -9,10 +9,7 @@ from twisted.application import internet, service
 from twisted.web import server, resource, static
 from twisted.web.resource import ForbiddenResource
 
-from path_settings import PROJECT_ROOT, DEVELOPMENT_ADMIN_MEDIA, PRODUCTION_STATIC, set_path
-set_path()  # Puts project and apps directories on path
-
-print "settings %s as PROJECT ROOT" % PROJECT_ROOT
+from path_settings import DEVELOPMENT_ADMIN_MEDIA, PRODUCTION_STATIC
 
 # Only used if no logger is passed from plugin.
 DEFAULT_LOGGER = logging.getLogger(__name__)
@@ -99,9 +96,9 @@ def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOG
     # Now we need to handle static media.
     # Servce Django media files off of /media:
 
-    if deployment_type == "development":
+    if deployment_type == "local":
         admin_static = MediaService(os.path.join(os.path.abspath("."), DEVELOPMENT_ADMIN_MEDIA))
-        staticrsrc = MediaService(os.path.join(os.path.abspath("."), "%s/static" % PROJECT_ROOT)) # TODO: Unhardcode /static
+        staticrsrc = MediaService(os.path.join(os.path.abspath("."), "%s/static" % wsgi_handler.application.project_root)) # TODO: Unhardcode /static
     else:
         # Maybe we want to hardcode production and staging paths.  Maybe we don't.
         admin_static = MediaService(os.path.join(os.path.abspath("."), DEVELOPMENT_ADMIN_MEDIA))
