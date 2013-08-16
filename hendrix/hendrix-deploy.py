@@ -58,7 +58,8 @@ Alternatively you could restart the process by excuting:\n\
     cmd = twisted_part + hendrix_part
     
     # Execute the command
-    subprocess.call(cmd)
+    subprocess.check_call(cmd)
+    print "Hendrix server started..."
 
 
 # All any function should need is the port and the deployment type to kill an
@@ -71,13 +72,11 @@ def stop(port, deployment_type):
     try:
         pid_file = open(_PID_FILE)
         pid = pid_file.read()
-        result = subprocess.call(['kill', pid])
-        if result:
-            raise SystemExit("\nThere is no server currently running %s with process ID %s." % (pid_file, pid))
-        else:
-            print "Stopped process %s" % pid
-            # clean up the file
-            os.remove(_PID_FILE)
+        subprocess.check_call(['kill', pid])
+        os.remove(_PID_FILE)  # clean up the file
+        print "Stopped process %s" % pid
+    except subprocess.CalledProcessError as e:
+        raise subprocess.CalledProcessError("\nThere is no server currently running %s with process ID %s. Return status [%S]" % (pid_file, pid, e.returncode))
     except IOError: 
         raise IOError("\nNo pid file called %s\n" % _PID_FILE)
 
@@ -89,7 +88,7 @@ def restart(port, deployment_type, wsgi):
     try:
         stop(port, deployment_type)
         start(port, deployment_type, wsgi)
-    except (IOError, SystemExit) as e:
+    except (IOError, subprocess.CalledProcessError) as e:
         print e
 
 ################################################################################
