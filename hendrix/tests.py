@@ -40,12 +40,12 @@ class ServiceTests(unittest.TestCase):
      service_maker = deploy_plugin_module.HendrixServiceMaker()
      
      def test_hendrix_service_maker_makes_hendrix_server(self):
-         options = {'port': "2000", 'deployment_type': "test", "wsgi": WSGI_FILE}
+         options = {'port': "2000", 'settings': "test", "wsgi": WSGI_FILE}
          server = self.service_maker.makeService(options)
          self.assertIsInstance(server, service.MultiService)
      
-     def test_no_settings_matching_deployment_type_raises_runtime_error(self):
-         options = {'port': "2000", "deployment_type": "i_didnt_ask_for_santana_abraxas", "wsgi": WSGI_FILE}
+     def test_no_settings_matching_settings_raises_runtime_error(self):
+         options = {'port': "2000", "settings": "i_didnt_ask_for_santana_abraxas", "wsgi": WSGI_FILE}
          self.assertRaises(RuntimeError, self.service_maker.makeService, options)
      
      '''
@@ -56,13 +56,13 @@ class ServiceTests(unittest.TestCase):
      '''
      @expectedFailure
      def test_no_logging_setting_causes_default_logger(self):
-         options = {'port': "2000", 'deployment_type': "test", "wsgi": WSGI_FILE}
+         options = {'port': "2000", 'settings': "test", "wsgi": WSGI_FILE}
          server = self.service_maker.makeService(options)
          self.fail()
 
      @expectedFailure
      def test_no_logging_setting_causes_warning(self):
-        options = {'port': "2000", "deployment_type": "i_didnt_ask_for_santana_abraxas", "wsgi": WSGI_FILE}
+        options = {'port': "2000", "settings": "i_didnt_ask_for_santana_abraxas", "wsgi": WSGI_FILE}
         #If the setting module has no LOGGING, we warn them and question of the action they are about to take.
         self.fail()
      

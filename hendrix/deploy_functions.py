@@ -57,14 +57,14 @@ class MediaService(static.File):
         return ForbiddenResource()
 
 
-def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOGGER):
+def get_hendrix_resource(wsgi_handler, settings, port, logger=DEFAULT_LOGGER):
     '''
     Pseudo factory that returns the proper Resource object.
     Takes a deployment type and (for development) a port number.
     Returns a tuple (Twisted Resource, Twisted Application, Twisted Server)
     '''
     
-    logger.info("Hendrix will deploy %s on port:%s" % (deployment_type, port))
+    logger.info("Hendrix will deploy %s on port:%s" % (settings, port))
 
     # Create and start a thread pool,
     wsgiThreadPool = ThreadPool()
@@ -86,7 +86,7 @@ def get_hendrix_resource(wsgi_handler, deployment_type, port, logger=DEFAULT_LOG
     # Now we need to handle static media.
     # Servce Django media files off of /media:
 
-    if deployment_type == "local":
+    if settings == "local":
         admin_static = MediaService(os.path.join(os.path.abspath("."), DEVELOPMENT_ADMIN_MEDIA))
         staticrsrc = MediaService(os.path.join(os.path.abspath("."), "%s/static" % wsgi_handler.application.project_root)) # TODO: Unhardcode /static
     else:

@@ -25,7 +25,7 @@ hendrix_directory = path(__file__).abspath().dirname()
 _PID_DIRECTORY = '%s/pids' % hendrix_directory
 # The following aren't currently in use...
 _PORT = 80
-_DEPLOYMENT_TYPE = 'test'  # not sure how useful this will be... Needs to be checked for existance
+_SETTINGS = 'test'  # not sure how useful this will be... Needs to be checked for existance
 _WSGI = './wsgi.py'
 
 ################################################################################
@@ -33,28 +33,28 @@ _WSGI = './wsgi.py'
 # Main functions
 #
 ################################################################################
-def start(port, deployment_type, wsgi):
+def start(port, settings, wsgi):
     """
     Method to start a twisted daemon using the hendrix plugin.
     """
     if not is_port_free(port):
         specs_dict = dict(list_taken_specs())
-        deployment_type = specs_dict[port]
+        settings = specs_dict[port]
         exit(
             '\n\
 Port %(port)s is already in use. Please choose a different port.\n\
 Alternatively you could restart the process by excuting:\n\
     hendix-deploy.py restart %(dt)s ./wsgi %(port)s\n' % {
                 'port': port,
-                'dt': deployment_type
+                'dt': settings
             }
         )
 
-    _PID_FILE = pid_ref(port, deployment_type)
+    _PID_FILE = pid_ref(port, settings)
 
     # Parts of the command list to pass to subprocess.call
     twisted_part = ['%s/bin/twistd' % VIRTUALENV, '--pidfile', _PID_FILE]
-    hendrix_part = ['hendrix', '--port', port, '--deployment_type', deployment_type, '--wsgi', wsgi]
+    hendrix_part = ['hendrix', '--port', port, '--settings', settings, '--wsgi', wsgi]
     cmd = twisted_part + hendrix_part
     
     # Execute the command
@@ -64,11 +64,11 @@ Alternatively you could restart the process by excuting:\n\
 
 # All any function should need is the port and the deployment type to kill an
 # existing twisted process
-def stop(port, deployment_type):
+def stop(port, settings):
     """
     Method used to kill a given twisted process.
     """
-    _PID_FILE = pid_ref(port, deployment_type)
+    _PID_FILE = pid_ref(port, settings)
     try:
         pid_file = open(_PID_FILE)
         pid = pid_file.read()
@@ -76,18 +76,18 @@ def stop(port, deployment_type):
         os.remove(_PID_FILE)  # clean up the file
         print "Stopped process %s" % pid
     except subprocess.CalledProcessError as e:
-        raise subprocess.CalledProcessError("\nThere is no server currently running %s with process ID %s. Return status [%S]" % (pid_file, pid, e.returncode))
+        raise subprocess.CalledProcessError("\nThere is no server currently running %s with process ID %s. Return status [%s]" % (pid_file, pid, e.returncode))
     except IOError: 
         raise IOError("\nNo pid file called %s\n" % _PID_FILE)
 
 
-def restart(port, deployment_type, wsgi):
+def restart(port, settings, wsgi):
     """
     Method used to restart a given twisted process
     """
     try:
-        stop(port, deployment_type)
-        start(port, deployment_type, wsgi)
+        stop(port, settings)
+        start(port, settings, wsgi)
     except (IOError, subprocess.CalledProcessError) as e:
         print e
 
@@ -97,15 +97,15 @@ def restart(port, deployment_type, wsgi):
 #
 ################################################################################
 def exit_show_usage():
-    exit('Usage: hendix-deploy.py <start / stop / restart> <DEPLOYMENT_TYPE> <wsgi.py> <PORT>')
+    exit('Usage: hendix-deploy.py <start / stop / restart> <settings> <wsgi.py> <PORT>')
 
 
-def pid_ref(port, deployment_type):
+def pid_ref(port, settings):
     """
     """
     # Having the port as the first variable in the pid file name makes it easier
     # turn the running services into a dictionary later on.
-    return '%s/%s-%s.pid' % (_PID_DIRECTORY, port, deployment_type)
+    return '%s/%s-%s.pid' % (_PID_DIRECTORY, port, settings)
 
 
 def list_files(directory):
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         # I understand that this is a very rigid way of handling the script args
         # but it's good enough for now.
         ACTION = sys.argv[1]    
-        DEPLOYMENT_TYPE = sys.argv[2]
+        SETTINGS = sys.argv[2]
         WSGI = sys.argv[3]
         PORT = sys.argv[4]
 
@@ -167,10 +167,10 @@ if __name__ == "__main__":
         else: raise
 
     if ACTION == "start":
-        start(PORT, DEPLOYMENT_TYPE, WSGI)
+        start(PORT, SETTINGS, WSGI)
 
     if ACTION == "stop":
-        stop(PORT, DEPLOYMENT_TYPE)
+        stop(PORT, SETTINGS)
 
     if ACTION == "restart":
-        restart(PORT, DEPLOYMENT_TYPE, WSGI)
+        restart(PORT, SETTINGS, WSGI)

@@ -12,13 +12,13 @@ sys.path.append(where_are_we)
 
 class HendrixWSGIHandler(WSGIHandler):
 
-    def __init__(self, deployment_type, *args, **kwargs):
-        self.deployment_type = deployment_type
+    def __init__(self, settings, *args, **kwargs):
+        self.settings = settings
         return super(HendrixWSGIHandler, self).__init__(*args, **kwargs)
 
     def __call__(self, *args, **kwargs):
         response = super(HendrixWSGIHandler, self).__call__(*args, **kwargs)
-        if self.deployment_type == "local":
+        if self.settings == "local":
             print '%s - %s %s %s' % (
                 response.status_code,
                 args[0]['REMOTE_ADDR'],
@@ -27,5 +27,5 @@ class HendrixWSGIHandler(WSGIHandler):
             )
         return response
 
-def get_wsgi_handler(deployment_type):
-    return Sentry(HendrixWSGIHandler(deployment_type=deployment_type))
+def get_wsgi_handler(settings):
+    return Sentry(HendrixWSGIHandler(settings=settings))

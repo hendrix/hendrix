@@ -18,7 +18,7 @@ except IndexError:
 
 wsgi = WSGI.get_wsgi_handler('local')
 
-resource, server = get_hendrix_resource(wsgi, DEPLOYMENT_TYPE, port=PORT)
+resource, server = get_hendrix_resource(wsgi, 'settings.'+DEPLOYMENT_TYPE, port=PORT)
 
 try:
     server.startService()

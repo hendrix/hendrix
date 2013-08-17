@@ -12,10 +12,10 @@ import imp
 
 class Options(usage.Options):
     optParameters = [
-                     ["wsgi", "w", None, "A python module that contains a WSGIHandler instance called wsgi_handler"],
-                     ["port", "p", None, "The port number to listen on."],
-                     ["deployment_type", "dt", None, "The type of deployment instance to launch."],
-                     ]
+        ["wsgi", "w", None, "A python module that contains a WSGIHandler instance called wsgi_handler"],
+        ["port", "p", None, "The port number to listen on."],
+        ["settings", "s", None, "The settings to use for launch."],
+    ]
 
 
 class HendrixServiceMaker(object):
@@ -27,14 +27,14 @@ class HendrixServiceMaker(object):
     def makeService(self, options):
         wsgi_module = imp.load_source('wsgi', options['wsgi'])
         
-        deployment_type = options['deployment_type']
-        os.environ['DJANGO_SETTINGS_MODULE'] = settings_mod_string = "settings.%s" % deployment_type
+        settings = options['settings']
+        os.environ['DJANGO_SETTINGS_MODULE'] = settings_mod_string = settings
 
         # Use the logger defined in the settings file.
         try:
             settings_module = importlib.import_module(settings_mod_string)
         except ImportError:
-            raise RuntimeError('You must have a settings file that matches the deployment type.  (In this case, %s).' % deployment_type)
+            raise RuntimeError("Could not find '%s'." % settings)
         
         try:
             logging.config.dictConfig(settings_module.LOGGING)
@@ -48,11 +48,11 @@ class HendrixServiceMaker(object):
         logger.debug("using python binary: %s" % sys.executable)
         
         resource, server = get_hendrix_resource(
-                                            wsgi_handler=wsgi_module.get_wsgi_handler(deployment_type),
-                                            deployment_type=deployment_type, 
-                                            port=int(options['port']),
-                                            logger=logger,
-                                        )
+            wsgi_handler=wsgi_module.get_wsgi_handler(settings),
+            settings=settings, 
+            port=int(options['port']),
+            logger=logger,
+        )
         return server
 
 serviceMaker = HendrixServiceMaker()
