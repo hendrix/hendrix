@@ -8,8 +8,6 @@ from hendrix.deploy_functions import get_hendrix_resource
 from hendrix.path_settings import * #Just to set the appropriate sys.path
 from twisted.internet.error import CannotListenError
 
-print "Here's your sys.path: %s" % sys.path
-
 try:
     PORT = int(sys.argv[2])
     WSGI = imp.load_source('wsgi', sys.argv[1])
