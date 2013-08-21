@@ -48,7 +48,7 @@ class HendrixServiceMaker(object):
         logger.debug("using python binary: %s" % sys.executable)
         
         resource, server = get_hendrix_resource(
-            wsgi_handler=wsgi_module.get_wsgi_handler(settings),
+            wsgi_handler=wsgi_module.application,
             settings=settings, 
             port=int(options['port']),
             logger=logger,
