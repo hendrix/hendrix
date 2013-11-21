@@ -1,31 +1,49 @@
-from hendrix.path_settings import * #Just to set the appropriate sys.path
-
-import os, sys
+import os
+import sys
 import imp
-# import autoreload
+import importlib
 
-DEPLOYMENT_TYPE = "local"
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings.local' #If the try block above did not cause exit, we know that this module exists.
+from path import path
+
+from hendrix import DevWSGIHandler
+from hendrix.core import get_hendrix_resource
 
 from twisted.internet import reactor
-from hendrix.deploy_functions import get_hendrix_resource
 from twisted.internet.error import CannotListenError
+
 
 try:
     PORT = int(sys.argv[2])
-    WSGI = imp.load_source('wsgi', sys.argv[1])
+    WSGI = sys.argv[1]
+    wsgi_path = path(WSGI).abspath()
+    if not wsgi_path.exists():
+        raise RuntimeError('%s does not exist' % wsgi_path)
+    wsgi_filename = wsgi_path.basename().splitext()[0]
+    wsgi_dir = wsgi_path.parent
+    try:
+        _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
+        wsgi_module = imp.load_module(wsgi_filename, _file, pathname, desc)
+        _file.close()
+    except ImportError:
+        raise RuntimeError('Could not import %s' % wsgi_path)
 except IndexError:
-    exit("usage: devserver.py <wsgi_module> <PORT>")
+    exit("Usage: devserver.py <wsgi_module> <PORT>")
 
-wsgi = WSGI.get_wsgi_handler('local')
+# If the user has wrapped the wsgi application in a Sentry instance then the
+# django WSGIHandler instance will be hidden under the application attr.
+wsgi = wsgi_module.application
+wsgi.application = DevWSGIHandler()
 
-resource, server = get_hendrix_resource(wsgi, 'settings.'+DEPLOYMENT_TYPE, port=PORT)
+settings = 'settings.local'
+os.environ['DJANGO_SETTINGS_MODULE'] = settings
+settings_module = importlib.import_module(settings)
+
+resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT)
 
 try:
     server.startService()
     print ("Listening on port %s" % PORT)
     reactor.run()
-    # autoreload.main(reactor.run())
 except CannotListenError, e:
     thread_pool = server.services[0].pool
     thread_pool.stop()
