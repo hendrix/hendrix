@@ -1,5 +1,5 @@
 from path import path
-from twisted.application import internet, service
+from twisted.application import service
 from unittest import expectedFailure
 import imp, importlib
 import mock

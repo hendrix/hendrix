@@ -4,6 +4,8 @@ from django.core.handlers.wsgi import WSGIHandler
 
 
 empty = object()
+HENDRIX_DIR = path(__file__).abspath().dirname()
+VIRTUALENV = path(sys.executable).parent.parent
 
 
 def isempty(obj):
@@ -31,6 +33,3 @@ class DevWSGIHandler(WSGIHandler):
             args[0]['PATH_INFO'],
         )
         return response
-
-HENDRIX_DIR = path(__file__).abspath().dirname()
-VIRTUALENV = path(sys.executable).parent.parent
