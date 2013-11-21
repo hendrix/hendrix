@@ -27,14 +27,17 @@ try:
     except ImportError:
         raise RuntimeError('Could not import %s' % wsgi_path)
 except IndexError:
-    exit("Usage: devserver.py <wsgi_module> <PORT>")
+    exit("Usage: hendrix-devserver.py <WSGI> <PORT> [<SETTINGS>]")
 
 # If the user has wrapped the wsgi application in a Sentry instance then the
 # django WSGIHandler instance will be hidden under the application attr.
 wsgi = wsgi_module.application
 wsgi.application = DevWSGIHandler()
 
-settings = 'settings.local'
+try:
+    settings = sys.argv[3]
+except KeyError:
+    settings = 'settings.local'
 os.environ['DJANGO_SETTINGS_MODULE'] = settings
 settings_module = importlib.import_module(settings)
 
