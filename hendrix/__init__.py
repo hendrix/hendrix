@@ -35,6 +35,7 @@ class DevWSGIHandler(WSGIHandler):
         )
         return response
 
+
 def import_wsgi(wsgi_path):
     _path = path(wsgi_path).abspath()
     if not _path.exists():
