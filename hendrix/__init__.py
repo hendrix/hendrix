@@ -1,3 +1,4 @@
+import imp
 import sys
 from path import path
 from django.core.handlers.wsgi import WSGIHandler
@@ -33,3 +34,17 @@ class DevWSGIHandler(WSGIHandler):
             args[0]['PATH_INFO'],
         )
         return response
+
+def import_wsgi(wsgi_path):
+    _path = path(wsgi_path).abspath()
+    if not _path.exists():
+        raise RuntimeError('%s does not exist' % _path)
+    wsgi_filename = _path.basename().splitext()[0]
+    wsgi_dir = _path.parent
+    try:
+        _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
+        wsgi_module = imp.load_module(wsgi_filename, _file, pathname, desc)
+        _file.close()
+    except ImportError:
+        raise RuntimeError('Could not import %s' % _path)
+    return wsgi_module

@@ -1,11 +1,8 @@
 import os
 import sys
-import imp
 import importlib
 
-from path import path
-
-from hendrix import DevWSGIHandler
+from hendrix import DevWSGIHandler, import_wsgi
 from hendrix.core import get_hendrix_resource
 
 from twisted.internet import reactor
@@ -15,17 +12,7 @@ from twisted.internet.error import CannotListenError
 try:
     PORT = int(sys.argv[2])
     WSGI = sys.argv[1]
-    wsgi_path = path(WSGI).abspath()
-    if not wsgi_path.exists():
-        raise RuntimeError('%s does not exist' % wsgi_path)
-    wsgi_filename = wsgi_path.basename().splitext()[0]
-    wsgi_dir = wsgi_path.parent
-    try:
-        _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
-        wsgi_module = imp.load_module(wsgi_filename, _file, pathname, desc)
-        _file.close()
-    except ImportError:
-        raise RuntimeError('Could not import %s' % wsgi_path)
+    wsgi_module = import_wsgi(WSGI)
 except IndexError:
     exit("Usage: hendrix-devserver.py <WSGI> <PORT> [<SETTINGS>]")
 

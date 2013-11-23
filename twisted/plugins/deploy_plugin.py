@@ -9,6 +9,7 @@ from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 
 from hendrix.core import get_hendrix_resource
+from hendrix import import_wsgi
 
 
 class Options(usage.Options):
@@ -26,18 +27,7 @@ class HendrixServiceMaker(object):
     options = Options
 
     def makeService(self, options):
-        wsgi_path = path(options['wsgi']).abspath()
-        if not wsgi_path.exists():
-            raise RuntimeError('%s does not exist' % wsgi_path)
-        wsgi_filename = wsgi_path.basename().splitext()[0]
-        wsgi_dir = wsgi_path.parent
-        try:
-            _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
-            wsgi_module = imp.load_module(wsgi_filename, _file, pathname, desc)
-            _file.close()
-        except ImportError:
-            raise RuntimeError('Could not import %s' % wsgi_path)
-
+        wsgi_module = import_wsgi(options['wsgi'])
         settings = options['settings']
         os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
