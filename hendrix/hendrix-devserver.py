@@ -2,8 +2,9 @@ import os
 import sys
 import importlib
 
-from hendrix import DevWSGIHandler, import_wsgi
+from hendrix import import_wsgi
 from hendrix.core import get_hendrix_resource
+from hendrix.contrib.django import DevWSGIHandler
 
 from twisted.internet import reactor
 from twisted.internet.error import CannotListenError
