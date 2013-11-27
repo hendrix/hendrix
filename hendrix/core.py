@@ -81,17 +81,22 @@ class Root(resource.Resource):
     A wrapper that overrides the getChild method on Resource so to only serve
     the WSGIResource
     """
+
     def __init__(self, wsgi_resource):
         resource.Resource.__init__(self)
         self.wsgi_resource = wsgi_resource
 
     def getChild(self, name, request):
         """
-        twisted web uses getChild to parse the URL. At each segment of the URL
-        twisted web will check if the resource has attribute isLeaf = True.
-        Without this method override only the PROJECT_ROOT is served.
+        Here getChild is only evaluated once. Prepath must be an empty list
+        otherwise the WSGIRequest path variable is the combination of the
+        prepath and postpath lists. Postpath needs to contain all segments of
+        the url, if it is incomplete then that incomplete url with be passed on
+        to the child resource (in this case our wsgi application).
         """
+        request.prepath = []
         request.postpath.insert(0, name)
+
         return self.wsgi_resource
 
 
