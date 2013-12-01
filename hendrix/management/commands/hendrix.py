@@ -44,13 +44,13 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option(
             '--port',
-            action='store_const',
+            action='store',
             dest='port',
             default='8000',
             help='Set the web server port'),
         make_option(
             '--wsgi',
-            action='store_const',
+            action='store',
             dest='wsgi',
             default='./wsgi.py',
             help='Set the wsgi file path'),
@@ -60,9 +60,6 @@ class Command(BaseCommand):
         port = options['port']
         wsgi = options['wsgi']
         settings = options['settings']
-        # process = subprocess.Popen(
-        #     ['hendrix-devserver.py', wsgi, port, settings]
-        # )
         event_handler = Reload(wsgi, port, settings)
         observer = Observer()
         observer.schedule(event_handler, path='.', recursive=True)
