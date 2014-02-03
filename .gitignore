@@ -6,3 +6,5 @@ dist
 hendrix.egg-info
 twisted/plugins/dropin.cache
 hendrix/pids
+*~
+.DS_Store

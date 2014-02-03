@@ -1,22 +1,36 @@
-import os, sys
-import imp
-DEPLOYMENT_TYPE = "local"
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings.local' #If the try block above did not cause exit, we know that this module exists.
+import os
+import sys
+import importlib
+
+from hendrix import import_wsgi
+from hendrix.core import get_hendrix_resource
 
 from twisted.internet import reactor
-from hendrix.deploy_functions import get_hendrix_resource
-from hendrix.path_settings import * #Just to set the appropriate sys.path
 from twisted.internet.error import CannotListenError
+
+
+try:
+    settings = sys.argv[3]
+except KeyError:
+    settings = 'settings.local'
+os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
 try:
     PORT = int(sys.argv[2])
-    WSGI = imp.load_source('wsgi', sys.argv[1])
+    WSGI = sys.argv[1]
+    wsgi_module = import_wsgi(WSGI)
 except IndexError:
-    exit("usage: devserver.py <wsgi_module> <PORT>")
+    exit("Usage: hendrix-devserver.py <WSGI> <PORT> [<SETTINGS>]")
 
-wsgi = WSGI.get_wsgi_handler('local')
+from hendrix.contrib import DevWSGIHandler
+settings_module = importlib.import_module(settings)
 
-resource, server = get_hendrix_resource(wsgi, 'settings.'+DEPLOYMENT_TYPE, port=PORT)
+# If the user has wrapped the wsgi application in a Sentry instance then the
+# django WSGIHandler instance will be hidden under the application attr.
+wsgi = wsgi_module.application
+wsgi.application = DevWSGIHandler()
+
+resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT)
 
 try:
     server.startService()
