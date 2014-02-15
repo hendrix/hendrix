@@ -7,6 +7,7 @@ import sys, os, errno
 from hendrix import VIRTUALENV, HENDRIX_DIR
 from os import listdir
 from os.path import isfile, join
+import argparse
 
 
 ###############################################################################
@@ -141,19 +142,19 @@ def is_port_free(port):
 #
 ###############################################################################
 if __name__ == "__main__":
-    try:
-        # I understand that this is a very rigid way of handling the script
-        # args but it's good enough for now.
-        ACTION = sys.argv[1]
-        SETTINGS = sys.argv[2]
-        WSGI = sys.argv[3]
-        PORT = sys.argv[4]
-
-        if ACTION not in ['start', 'stop', 'restart']:
-            exit_show_usage()
-
-    except IndexError:
-        exit_show_usage()
+    parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
+    parser.add_argument('ACTION', help='Use start, stop or restart')
+    parser.add_argument('SETTINGS', help='Location of the settings object')
+    parser.add_argument('WSGI', help='Location of the wsgi object')
+    parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
+    args = vars(parser.parse_args())
+#    try:]
+#
+#        if ACTION not in ['start', 'stop', 'restart']:
+#            exit_show_usage()
+#
+#    except IndexError:
+#        exit_show_usage()
 
     # Let's make sure that the directory exists.
     try:
