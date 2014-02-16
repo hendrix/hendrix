@@ -153,7 +153,7 @@ if __name__ == "__main__":
     WSGI = args['WSGI']
     PORT = args['PORT']
 
-    try:]
+    try:
 
         if ACTION not in ['start', 'stop', 'restart']:
             exit_show_usage()
