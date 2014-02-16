@@ -148,13 +148,18 @@ if __name__ == "__main__":
     parser.add_argument('WSGI', help='Location of the wsgi object')
     parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
     args = vars(parser.parse_args())
-#    try:]
-#
-#        if ACTION not in ['start', 'stop', 'restart']:
-#            exit_show_usage()
-#
-#    except IndexError:
-#        exit_show_usage()
+    ACTION = args['ACTION']
+    SETTINGS = args['SETTINGS']
+    WSGI = args['WSGI']
+    PORT = args['PORT']
+
+    try:]
+
+        if ACTION not in ['start', 'stop', 'restart']:
+            exit_show_usage()
+
+    except IndexError:
+        exit_show_usage()
 
     # Let's make sure that the directory exists.
     try:
