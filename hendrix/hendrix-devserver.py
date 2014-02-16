@@ -13,7 +13,7 @@ from twisted.internet.error import CannotListenError
 parser=argparse.ArgumentParser(description="The Hendrix Development Server")
 parser.add_argument('SETTINGS', help='Location of the settings object')
 parser.add_argument('WSGI', help='Location of the wsgi object')
-parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
+parser.add_argument('PORT', type=int, help='Enter a port number for the server to serve content.')
 args=vars(parser.parse_args())
 try:
     settings = args['SETTINGS']
