@@ -139,7 +139,7 @@ def is_port_free(port):
 def build_parser():
     """
     """
-    parser = argparse.ArgumentParser(description='The Hendrix deployment suite'
+    parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
     group = parser.add_mutually_exclusive_group('ACTION', help='Use start, stop or restart')
     group.add_argument('start', help='Start the Hendrex server')
     group.add_argument('stop', help='Stop the Hendrix server')
