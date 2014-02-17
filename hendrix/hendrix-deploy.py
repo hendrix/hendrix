@@ -141,9 +141,9 @@ def build_parser():
     """
     parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
     group = parser.add_mutually_exclusive_group('ACTION', help='Use start, stop or restart')
-    group.add_argument('start', help='Start the Hendrex server')
-    group.add_argument('stop', help='Stop the Hendrix server')
-    group.add_argument('restart', help='Restart the Hendrix server')
+    group.add_argument('start', action='store_true', help='Start the Hendrex server')
+    group.add_argument('stop', action='store_true', help='Stop the Hendrix server')
+    group.add_argument('restart', action='store_true',help='Restart the Hendrix server')
     parser.add_argument('SETTINGS', help='Location of the settings object')
     parser.add_argument('WSGI', help='Location of the wsgi object')
     parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
