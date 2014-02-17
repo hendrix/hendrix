@@ -157,7 +157,7 @@ def build_parser():
 if __name__ == "__main__":
     parser = build_parser()
     args = vars(parser.parse_args())
-    ACTION = args[group]
+    ACTION = args[parser.group]
     SETTINGS = args['SETTINGS']
     WSGI = args['WSGI']
     PORT = args['PORT']
