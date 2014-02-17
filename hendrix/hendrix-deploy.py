@@ -141,9 +141,9 @@ def build_parser():
     """
     parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
     subparser = parser.add_subparsers(help='Use START, STOP, or RESTART')
-    startparser = subparser.add_parser('START', help='Start the Hendrex server', nargs=3)
-    stopparser = subparser.add_parser('STOP', help='Stop the Hendrix server', nargs=2)
-    restartparser = subparser.add_parser('RESTART', help='Restart the Hendrix server', nargs=3)
+    startparser = subparser.add_parser('START', help='Start the Hendrex server')
+    stopparser = subparser.add_parser('STOP', help='Stop the Hendrix server')
+    restartparser = subparser.add_parser('RESTART', help='Restart the Hendrix server')
     parser.add_argument('SETTINGS', help='Location of the settings object')
     parser.add_argument('WSGI', help='Location of the wsgi object')
     parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
