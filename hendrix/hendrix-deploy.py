@@ -136,17 +136,26 @@ def is_port_free(port):
     return True
 
 
+def build_parser():
+    """
+    """
+    parser = argparse.ArgumentParser(description='The Hendrix deployment suite'
+    group = parser.add_mutually_exclusive_group('ACTION', help='Use start, stop or restart')
+    group.add_argument('start', help='Start the Hendrex server')
+    group.add_argument('stop', help='Stop the Hendrix server')
+    group.add_argument('restart', help='Restart the Hendrix server')
+    parser.add_argument('SETTINGS', help='Location of the settings object')
+    parser.add_argument('WSGI', help='Location of the wsgi object')
+    parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
+    return parser
+
 ###############################################################################
 #
 # Let the scripting fun begin...
 #
 ###############################################################################
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
-    parser.add_argument('ACTION', help='Use start, stop or restart')
-    parser.add_argument('SETTINGS', help='Location of the settings object')
-    parser.add_argument('WSGI', help='Location of the wsgi object')
-    parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
+    parser = build_parser()
     args = vars(parser.parse_args())
     ACTION = args['ACTION']
     SETTINGS = args['SETTINGS']
