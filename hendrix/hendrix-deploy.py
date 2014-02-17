@@ -140,6 +140,9 @@ def build_parser():
     """
     """
     parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
+    parser.add_argument('--start', action='store_false')
+    parser.add_argument('--stop', action='store_false')
+    parser.add_argument('--restart', action='store_false')
     subparser = parser.add_subparsers(help='Use START, STOP, or RESTART')
     startparser = subparser.add_parser('START', help='Start the Hendrex server')
     stopparser = subparser.add_parser('STOP', help='Stop the Hendrix server')
