@@ -140,7 +140,7 @@ def build_parser():
     """
     """
     parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
-    group = parser.add_mutually_exclusive_group('ACTION', help='Use start, stop or restart')
+    group = parser.add_mutually_exclusive_group(help='Use start, stop or restart')
     group.add_argument('start', action='store_true', help='Start the Hendrex server')
     group.add_argument('stop', action='store_true', help='Stop the Hendrix server')
     group.add_argument('restart', action='store_true',help='Restart the Hendrix server')
