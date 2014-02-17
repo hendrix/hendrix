@@ -157,14 +157,14 @@ def build_parser():
 if __name__ == "__main__":
     parser = build_parser()
     args = vars(parser.parse_args())
-    ACTION = args[parser.group]
+    ACTION = parser.parse_args('-start', '-stop', '-restart')
     SETTINGS = args['SETTINGS']
     WSGI = args['WSGI']
     PORT = args['PORT']
 
     try:
 
-        if ACTION not in ['start', 'stop', 'restart']:
+        if ACTION not in ['-start', '-stop', '-restart']:
             exit_show_usage()
 
     except IndexError:
@@ -178,11 +178,11 @@ if __name__ == "__main__":
             pass
         else: raise
 
-    if ACTION == "start":
+    if ACTION == "-start":
         start(PORT, SETTINGS, WSGI)
 
-    if ACTION == "stop":
+    if ACTION == "-stop":
         stop(PORT, SETTINGS)
 
-    if ACTION == "restart":
+    if ACTION == "-restart":
         restart(PORT, SETTINGS, WSGI)
