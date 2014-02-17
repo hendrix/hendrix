@@ -144,9 +144,12 @@ def build_parser():
     startparser = subparser.add_parser('START', help='Start the Hendrex server')
     stopparser = subparser.add_parser('STOP', help='Stop the Hendrix server')
     restartparser = subparser.add_parser('RESTART', help='Restart the Hendrix server')
-    parser.add_argument('SETTINGS', help='Location of the settings object')
-    parser.add_argument('WSGI', help='Location of the wsgi object')
-    parser.add_argument('PORT', help='Enter a port number for the server to serve content.')
+    startparser.add_argument('--start', action='store_true')
+    stopparser.add_argument('--stop', action='store_true')
+    restartparser.add_argument('--restart', action='store_true')
+    parser.add_argument('SETTINGS', help='The location of the settings object')
+    parser.add_argument('WSGI', help='The location of the wsgi object')
+    parser.add_argument('PORT', help='Enter a port number for serving content')
     return parser
 
 ###############################################################################
