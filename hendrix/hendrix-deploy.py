@@ -172,11 +172,11 @@ if __name__ == "__main__":
             pass
         else: raise
 
-    if args["--start"]:
+    if args["start"]:
         start(PORT, SETTINGS, WSGI)
 
-    if args["--stop"]:
+    if args["stop"]:
         stop(PORT, SETTINGS)
 
-    if args["--restart"]:
+    if args["restart"]:
         restart(PORT, SETTINGS, WSGI)
