@@ -21,12 +21,9 @@ except KeyError:
     settings = 'settings.local'
 os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
-try:
-    PORT = args['PORT']
-    WSGI = args['WSGI']
-    wsgi_module = import_wsgi(WSGI)
-except IndexError:
-    exit("Usage: hendrix-devserver.py <WSGI> <PORT> [<SETTINGS>]")
+PORT = args['PORT']
+WSGI = args['WSGI']
+wsgi_module = import_wsgi(WSGI)
 
 from hendrix.contrib import DevWSGIHandler
 settings_module = importlib.import_module(settings)
