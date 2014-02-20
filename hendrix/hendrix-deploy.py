@@ -94,10 +94,6 @@ def restart(port, settings, wsgi):
 # Helper functions
 #
 ###############################################################################
-def exit_show_usage():
-    exit('Usage: hendix-deploy.py <start / stop / restart> <settings> <wsgi.py> <PORT>')
-
-
 def pid_ref(port, settings):
     """
     """
@@ -140,16 +136,7 @@ def build_parser():
     """
     """
     parser = argparse.ArgumentParser(description='The Hendrix deployment suite')
-    parser.add_argument('--start', action='store_false')
-    parser.add_argument('--stop', action='store_false')
-    parser.add_argument('--restart', action='store_false')
-    subparser = parser.add_subparsers(help='Use START, STOP, or RESTART')
-    startparser = subparser.add_parser('START', help='Start the Hendrex server')
-    stopparser = subparser.add_parser('STOP', help='Stop the Hendrix server')
-    restartparser = subparser.add_parser('RESTART', help='Restart the Hendrix server')
-    startparser.add_argument('--start', action='store_true')
-    stopparser.add_argument('--stop', action='store_true')
-    restartparser.add_argument('--restart', action='store_true')
+    parser.add_argument('ACTION', help='Use START, STOP, or RESTART')
     parser.add_argument('SETTINGS', help='The location of the settings object')
     parser.add_argument('WSGI', help='The location of the wsgi object')
     parser.add_argument('PORT', help='Enter a port number for serving content')
@@ -162,10 +149,15 @@ def build_parser():
 ###############################################################################
 if __name__ == "__main__":
     parser = build_parser()
-    args = vars(parser.parse_args())
-    SETTINGS = args['SETTINGS']
-    WSGI = args['WSGI']
-    PORT = args['PORT']
+    arguments = vars(parser.parse_args())
+    ACTION = arguments['ACTION']
+    SETTINGS = arguments['SETTINGS']
+    WSGI = arguments['WSGI']
+    PORT = arguments['PORT']
+
+    if ACTION not in ['start', 'stop', 'restart']:
+        parser.print_help()
+        exit
 
     # Let's make sure that the directory exists.
     try:
@@ -175,11 +167,11 @@ if __name__ == "__main__":
             pass
         else: raise
 
-    if args["start"]:
+    if ACTION == 'START':
         start(PORT, SETTINGS, WSGI)
 
-    if args["stop"]:
+    if ACTION == 'STOP':
         stop(PORT, SETTINGS)
 
-    if args["restart"]:
+    if ACTION == 'RESTART':
         restart(PORT, SETTINGS, WSGI)
