@@ -4,11 +4,16 @@ import importlib
 
 from hendrix import import_wsgi
 from hendrix.core import get_hendrix_resource
-from hendrix.contrib import DevWSGIHandler
 
 from twisted.internet import reactor
 from twisted.internet.error import CannotListenError
 
+
+try:
+    settings = sys.argv[3]
+except KeyError:
+    settings = 'settings.local'
+os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
 try:
     PORT = int(sys.argv[2])
@@ -17,11 +22,7 @@ try:
 except IndexError:
     exit("Usage: hendrix-devserver.py <WSGI> <PORT> [<SETTINGS>]")
 
-try:
-    settings = sys.argv[3]
-except KeyError:
-    settings = 'settings.local'
-os.environ['DJANGO_SETTINGS_MODULE'] = settings
+from hendrix.contrib import DevWSGIHandler
 settings_module = importlib.import_module(settings)
 
 # If the user has wrapped the wsgi application in a Sentry instance then the

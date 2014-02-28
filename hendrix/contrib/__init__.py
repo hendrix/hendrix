@@ -1,9 +1,11 @@
+import sys
 try:
     from django.core.handlers.wsgi import WSGIHandler
 except ImportError as e:
     raise ImportError(
+        str(e) + '\n' +
         'Hendrix is a Django plugin. As such Django must be installed.'
-    )
+    ), None, sys.exc_info()[2]
 
 
 class DevWSGIHandler(WSGIHandler):

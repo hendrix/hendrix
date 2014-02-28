@@ -23,11 +23,18 @@ def exposeProject(_file):
 
 
 def import_wsgi(wsgi_path):
+    """
+    import helper that reloads the wsgi module that exposes the application
+    """
     _path = path(wsgi_path).abspath()
     if not _path.exists():
         raise RuntimeError('%s does not exist' % _path)
     wsgi_filename = _path.basename().splitext()[0]
     wsgi_dir = _path.parent
+
+    # expose the project dir
+    sys.path.append(wsgi_dir)
+
     try:
         _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
         wsgi_module = imp.load_module(wsgi_filename, _file, pathname, desc)
