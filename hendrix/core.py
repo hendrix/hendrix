@@ -102,8 +102,6 @@ class Root(resource.Resource):
         the url, if it is incomplete then that incomplete url with be passed on
         to the child resource (in this case our wsgi application).
         """
-        print name
-
         request.prepath = []
         request.postpath.insert(0, name)
 
