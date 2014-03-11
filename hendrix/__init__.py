@@ -35,10 +35,11 @@ def import_wsgi(wsgi_path):
     # expose the project dir
     sys.path.append(wsgi_dir)
 
+    _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
     try:
-        _file, pathname, desc = imp.find_module(wsgi_filename, [wsgi_dir,])
         wsgi_module = imp.load_module(wsgi_filename, _file, pathname, desc)
-        _file.close()
     except ImportError:
-        raise RuntimeError('Could not import %s' % _path)
+        raise # Raised here to ensure proper file closure
+    finally:
+		_file.close()
     return wsgi_module
