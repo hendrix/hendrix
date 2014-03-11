@@ -27,7 +27,7 @@ class Reload(FileSystemEventHandler):
         if event.is_directory:
             return
         ext = path(event.src_path).ext
-        if ext in ['.py', '.html']:
+        if ext == '.py':
             self.process = self.restart()
             print "Got it!"
 
