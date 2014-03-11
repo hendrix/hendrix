@@ -1,5 +1,5 @@
 """
-`hendrix-deploy.py` repensents a means of controlling the web service used to
+`hendrix_deploy.py` repensents a means of controlling the web service used to
 deploy a wsgi application.
 """
 import subprocess
@@ -66,7 +66,7 @@ class HendrixAction(object):
             msg = (
                 'Port %(port_number)s is already in use. Please choose a different port.\n'
                 'Alternatively you could restart the process by excuting:\n'
-                '\thendix-deploy.py restart %(dt)s ./wsgi %(port_number)s\n'
+                '\thendix_deploy.py restart %(dt)s ./wsgi %(port_number)s\n'
             ) % {'port_number': self.port, 'dt': settings}
             exit(msg)
 

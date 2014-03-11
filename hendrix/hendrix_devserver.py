@@ -10,11 +10,11 @@ from twisted.internet import reactor
 from twisted.internet.error import CannotListenError
 
 
-parser=argparse.ArgumentParser(description="The Hendrix Development Server")
+parser = argparse.ArgumentParser(description="The Hendrix Development Server")
 parser.add_argument('SETTINGS', help='Location of the settings object')
 parser.add_argument('WSGI', help='Location of the wsgi object')
 parser.add_argument('PORT', type=int, help='Enter a port number for the server to serve content.')
-args=vars(parser.parse_args())
+args = vars(parser.parse_args())
 try:
     settings = args['SETTINGS']
 except KeyError:
@@ -43,5 +43,7 @@ except CannotListenError, e:
     thread_pool = server.services[0].pool
     thread_pool.stop()
     os.system( [ 'clear', 'cls' ][ os.name == 'nt' ] )
-    exit("Looks like you already have devserver running on this machine.\
-    \nPlease stop the other process before trying to launch a new one.")
+    exit(
+        'Looks like you already have devserver running on this machine.'
+        '\nPlease stop the other process before trying to launch a new one.'
+    )
