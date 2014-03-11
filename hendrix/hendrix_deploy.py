@@ -38,12 +38,10 @@ class HendrixAction(object):
         self.port = port
         actions = ['start', 'stop', 'restart']
         if self.action not in actions:
-            # import ipdb; ipdb.set_trace()
             help_txt = build_parser().format_help()
             msg = (
                 '%s not in %s. See below for help:\n\n%s'
             ) % (self.action, actions, help_txt)
-            # exit(msg)
             raise RuntimeError(msg)
 
 
@@ -65,15 +63,12 @@ class HendrixAction(object):
         if not is_port_free(self.port):
             specs_dict = dict(list_taken_specs())
             settings = specs_dict[self.port]
-            exit(
-                '\n\
-Port %(port_number)s is already in use. Please choose a different port.\n\
-Alternatively you could restart the process by excuting:\n\
-    hendix-deploy.py restart %(dt)s ./wsgi %(port_number)s\n' % {
-                'port_number': self.port,
-                'dt': settings
-            }
-        )
+            msg = (
+                'Port %(port_number)s is already in use. Please choose a different port.\n'
+                'Alternatively you could restart the process by excuting:\n'
+                '\thendix-deploy.py restart %(dt)s ./wsgi %(port_number)s\n'
+            ) % {'port_number': self.port, 'dt': settings}
+            exit(msg)
 
         _PID_FILE = pid_ref(self.port, self.settings)
 
