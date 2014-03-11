@@ -20,7 +20,7 @@ class Reload(FileSystemEventHandler):
         self.wsgi = wsgi
         self.settings = settings
         self.process = subprocess.Popen(
-            ['hendrix-devserver.py', self.wsgi, self.port, self.settings]
+            ['hendrix_devserver.py', self.settings, self.wsgi, self.port]
         )
 
     def on_any_event(self, event):
@@ -35,7 +35,7 @@ class Reload(FileSystemEventHandler):
         if self.process is not None:
             self.process.terminate()
         process = subprocess.Popen(
-            ['hendrix-devserver.py', self.wsgi, self.port, self.settings]
+            ['hendrix_devserver.py', self.settings, self.wsgi, self.port]
         )
         return process
 

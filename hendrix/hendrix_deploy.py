@@ -36,9 +36,15 @@ class HendrixAction(object):
         self.settings = settings
         self.wsgi = wsgi
         self.port = port
-        if self.action not in ['start', 'stop', 'restart']:
-            build_parser.print_help()
-            exit
+        actions = ['start', 'stop', 'restart']
+        if self.action not in actions:
+            # import ipdb; ipdb.set_trace()
+            help_txt = build_parser().format_help()
+            msg = (
+                '%s not in %s. See below for help:\n\n%s'
+            ) % (self.action, actions, help_txt)
+            # exit(msg)
+            raise RuntimeError(msg)
 
 
     def execute(self):
@@ -73,7 +79,7 @@ Alternatively you could restart the process by excuting:\n\
 
         # Parts of the command list to pass to subprocess.call
         twisted_part = ['%s/bin/twistd' % VIRTUALENV, '--pidfile', _PID_FILE]
-        hendrix_part = ['hendrix', '--port', self.port, '--settings', self.settings, '--wsgi', self.wsgi]
+        hendrix_part = ['hendrix', '--port', str(self.port), '--settings', self.settings, '--wsgi', self.wsgi]
         cmd = twisted_part + hendrix_part
 
         # Execute the command
@@ -180,7 +186,8 @@ def process(arguments):
     except OSError as exc:
         if exc.errno == errno.EEXIST and os.path.isdir(_PID_DIRECTORY):
             pass
-        else: raise
+        else:
+            raise
 
     return HendrixAction(ACTION, PORT, SETTINGS, WSGI)
 
@@ -195,8 +202,3 @@ if __name__ == "__main__":
     arguments = vars(build_parser().parse_args())
     hendrix_action = process(arguments)
     hendrix_action.execute()
-
-
-
-
-

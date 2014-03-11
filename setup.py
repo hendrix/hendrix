@@ -24,6 +24,6 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords = ["django", "twisted", "async", "logging"],
-    scripts = ['hendrix/hendrix-deploy.py', 'hendrix/hendrix-devserver.py'],
+    scripts = ['hendrix/hendrix_deploy.py', 'hendrix/hendrix_devserver.py'],
     install_requires = open('requirements').readlines(),
 )
