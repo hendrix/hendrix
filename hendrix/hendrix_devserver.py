@@ -33,7 +33,46 @@ settings_module = importlib.import_module(settings)
 wsgi = wsgi_module.application
 wsgi.application = DevWSGIHandler()
 
-resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT)
+
+
+##########################################################################
+# if HENDRIX_EXTRA_HANDLERS is specified in settings,
+# it should be a list of tuples specifying a url path and a module path
+# to a function which returns the handler that will process calls to that url
+#
+# example:
+#
+# HENDRIX_CHILD_HANDLERS = (
+#   ('process', 'apps.offload.handlers.get_LongRunningProcessHandler'),
+#   ('chat',    'apps.chat.handlers.get_ChatHandler'),
+# )
+#
+# HENDRIX_CHILD_HANDLER_NAMESPACE = 'crosstowntraffic'#(optional)
+#
+
+
+additional_handlers = []
+
+if hasattr(settings_module, 'HENDRIX_CHILD_HANDLERS'):
+    namespace = getattr(settings_module,'HENDRIX_CHILD_NAMESPACE','hendrixchildren')
+
+    for url_path, module_path in settings_module.HENDRIX_CHILD_HANDLERS:
+        path_to_module, handler_generator = module_path.rsplit('.', 1)
+        handler_module = importlib.import_module(path_to_module)
+
+        #TODO:
+        #
+        #   ideally, we could namespace these handlers like this:
+        #   /hendrixchildren/chat
+        #   /hendrixchildren/chat
+        #
+        #   this should seemingly be done by creating nested proxy handlers which return handlers
+        #   for their child paths.
+        #
+
+        additional_handlers.append(('%s-%s'%(namespace,url_path), getattr(handler_module, handler_generator)()))
+    
+resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT, additional_handlers=additional_handlers)
 
 try:
     server.startService()
