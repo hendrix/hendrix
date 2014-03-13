@@ -60,6 +60,7 @@ class HendrixAction(object):
         """
         Method to start a twisted daemon using the hendrix plugin.
         """
+        print "Starting Hendrix server."
         if not is_port_free(self.port):
             specs_dict = dict(list_taken_specs())
             settings = specs_dict[self.port]
@@ -79,8 +80,6 @@ class HendrixAction(object):
 
         # Execute the command
         subprocess.check_call(cmd)
-        print "Hendrix server started..."
-
 
     # All any function should need is the port and the deployment type to kill an
     # existing twisted process
