@@ -10,6 +10,7 @@ from twisted.application.service import IServiceMaker
 
 from hendrix.core import get_hendrix_resource
 from hendrix import import_wsgi
+from hendrix.contrib import get_additional_handlers
 
 
 class Options(usage.Options):
@@ -40,7 +41,8 @@ class HendrixServiceMaker(object):
         resource, server = get_hendrix_resource(
             application=wsgi_module.application,
             settings_module=settings_module,
-            port=int(options['port'])
+            port=int(options['port']),
+            additional_handlers = get_additional_handlers(settings_module)
         )
         return server
 
