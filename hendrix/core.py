@@ -6,7 +6,7 @@ from twisted.web.wsgi import WSGIResource
 from twisted.web.resource import ForbiddenResource
 
 
-def get_hendrix_resource(application, settings_module=None, port=80):
+def get_hendrix_resource(application, settings_module=None, port=80, additional_handlers=None):
     '''
     Pseudo factory that returns the proper Resource object.
     Takes a deployment type and (for development) a port number.
@@ -26,6 +26,13 @@ def get_hendrix_resource(application, settings_module=None, port=80):
     if settings_module is not None:
         static_resource = MediaResource(settings_module.STATIC_ROOT)
         root.putChild(settings_module.STATIC_URL.strip('/'), static_resource)
+    
+    if additional_handlers:
+        # additional_handlers should be a list of tuples like: ('/namespace/chat', <chathandler object>)
+        for path,handler in additional_handlers:
+            root.putChild(path, handler)
+            print 'child handler %r listening at /%s'%(handler, path)
+
     main_site = server.Site(root)
 
     tcp_service = internet.TCPServer(port, main_site)
@@ -33,6 +40,7 @@ def get_hendrix_resource(application, settings_module=None, port=80):
 
     threads_service.setServiceParent(hendrix_server)
     tcp_service.setServiceParent(hendrix_server)
+
 
     return hendrix_resource, hendrix_server
 
