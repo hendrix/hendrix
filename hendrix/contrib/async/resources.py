@@ -6,32 +6,37 @@ import json
 
 
 class MessageHandlerProtocol(Protocol):
-
+    dispatcher = hxdispatcher
     guid = None
 
     def dataReceived(self, data):
+
+        """
+            Takes "data" which we assume is json encoded
+            If data has a uid attribute, we pass that to the dispatcher
+            as the message_id so it will get carried through into any 
+            return communications and be identifiable to the client
+
+            falls back to just passing the message along...
+
+        """
+
         try:
             data = json.loads(data)
-            hxdispatcher.send(self.guid, data, message_id=data.get('uid'))
+            self.dispatcher.send(self.guid, data, message_id=data.get('subject_id'))
         except:
-            pass
-
-
-
-        # uid = str(uuid.uuid1())
-
-        # send_json_message(self.transport, uid,
-        #                   message='ok, starting complicated background task...')
-        # deferToThread(ReturnWhenFinished, self.transport,
-        #               data, random.random() * float(10), uid)
+            self.dispatcher.send(self.guid, {'message':data})
 
     def connectionMade(self):
-        self.guid = hxdispatcher.add(self.transport)
+        """
+            establish the address of this 
+        """
+        self.guid = self.dispatcher.add(self.transport)
 
 
     def connectionLost(self, something):
         # print 'connection lost:',something
-        hxdispatcher.remove(self.guid)
+        self.dispatcher.remove(self.guid)
 
 
 def get_MessageHandler():

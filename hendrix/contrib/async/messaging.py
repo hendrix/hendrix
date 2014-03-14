@@ -36,14 +36,16 @@ class MessageDispatcher(object):
         del(self.recipients[address])
 
 
-    def send(self, address, data_dict, message_id=None):
+    def send(self, address, data_dict, subject_id=None):
 
         recipient = self.recipients.get(address)
 
-        if not message_id:
-            message_id = recipient.last_message_id
+        if not subject_id:
+            subject_id = recipient.last_message_id
+        
+        recipient.last_message_id = subject_id
 
-        data_dict.update({'uid':message_id})
+        data_dict.update({'subject_id':subject_id})
 
         recipient.transport.write(json.dumps(data_dict))
 
@@ -62,7 +64,7 @@ def send_json_message(address, message, **kwargs):
 
     data.update(kwargs)
 
-    hxdispatcher.send(address, data)
+    hxdispatcher.send(address, data, subject_id=kwargs.get('subject_id'))
 
 
 def send_callback_json_message(value, *args, **kwargs):
@@ -71,3 +73,6 @@ def send_callback_json_message(value, *args, **kwargs):
         kwargs['result'] = value
 
     send_json_message(args[0], args[1], **kwargs)
+
+
+

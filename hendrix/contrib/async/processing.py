@@ -44,15 +44,11 @@ def send_short_task(sender, *args, **kwargs):
 
     rec = kwargs.pop('hxrecipient')
     mess = kwargs.pop('hxmessage')
-
-
-    print func
-    print args
-    print kwargs
+    subj = kwargs.pop('hxsubject_id')
 
     job = deferToThread(func, *args, **kwargs)
 
-    job.addCallback(send_callback_json_message, rec, mess)
+    job.addCallback(send_callback_json_message, rec, mess, subject_id=subj)
 
 
 
