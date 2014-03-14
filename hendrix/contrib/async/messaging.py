@@ -28,11 +28,12 @@ class MessageDispatcher(object):
             address = str(uuid.uuid1())
 
         self.recipients[address] = RecipientInfo(transport)
+        self.send(address, {'setup_connection':address})
+
         return address
 
     def remove(self, address):
         del(self.recipients[address])
-
 
 
     def send(self, address, data_dict, message_id=None):
