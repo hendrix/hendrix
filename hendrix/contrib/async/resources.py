@@ -6,6 +6,12 @@ import json
 
 
 class MessageHandlerProtocol(Protocol):
+    """
+        A basic protocol for socket messaging 
+        using a hendrix messaging dispatcher to handle
+        addressing messages to active sockets from
+        differnt contexts
+    """
     dispatcher = hxdispatcher
     guid = None
 
@@ -29,15 +35,23 @@ class MessageHandlerProtocol(Protocol):
 
     def connectionMade(self):
         """
-            establish the address of this 
+            establish the address of this new connection and add it to the list of 
+            sockets managed by the dispatcher
         """
         self.guid = self.dispatcher.add(self.transport)
 
 
     def connectionLost(self, something):
-        # print 'connection lost:',something
+        """
+            clean up the no longer useful socket in the dispatcher
+        """
         self.dispatcher.remove(self.guid)
 
 
 def get_MessageHandler():
+    """
+        create an instance of the SockJSResource for use 
+        as a child to the main wsgi app
+    """
+
     return SockJSResource(Factory.forProtocol(MessageHandlerProtocol))
