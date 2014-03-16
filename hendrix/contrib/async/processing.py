@@ -4,7 +4,7 @@ from twisted.internet.threads import deferToThread
 from django.dispatch import receiver
 
 from .signals import short_task, long_task
-from .messaging import send_callback_json_message, send_json_message
+from .messaging import send_callback_json_message, send_json_message, send_errback_json_message
 
 import inspect
 
@@ -55,8 +55,12 @@ def send_short_task(sender, *args, **kwargs):
             clear=True
         )
 
+        job.addErrback(send_errback_json_message, rec, mess, subject_id=subj)
+
     for callback in additional_callbacks:
         job.addCallback(callback)
+
+
 
 try:
     from celery import task
@@ -102,13 +106,14 @@ def send_long_task(sender, *args, **kwargs):
     subj = kwargs.pop('hxsubject_id', None)
     additional_callbacks = kwargs.pop('hxcallbacks',[])
 
-    #send this job to a deferred thread
     try:
+        #send this job to celery
         job = run_long_function.delay(path_to_function, *args, **kwargs)
 
+        #create a deferred thread to watch for when it's done
         monitor = deferToThread(task_complete_callback, job)
 
-            #and if we have a reciever, add the callback
+        #tell someone that this happened?
         if rec:
             send_json_message(
                 rec, 
@@ -116,16 +121,16 @@ def send_long_task(sender, *args, **kwargs):
                 subject_id=subj,
                 clear=True
             )
+            # hook up notifiecation for when it's finished
+            monitor.addCallback(send_callback_json_message, rec, mess, subject_id=subj)
 
-        monitor.addCallback(send_callback_json_message, rec, mess, subject_id=subj)
         for callback in additional_callbacks:
             monitor.addCallback(callback)
 
+        monitor.addErrback(send_errback_json_message, rec, mess, subject_id=subj)
 
 
-            # job.addCallback(send_callback_json_message, rec, mess, subject_id=subj)
     except Exception, e:
-        raise
         raise NotImplementedError("You must have celery installed and configured to queue long running tasks")
 
 

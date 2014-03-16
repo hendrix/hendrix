@@ -130,7 +130,10 @@ def send_json_message(address, message, **kwargs):
 
     data = {
         'message':message, 
-        }
+    }
+
+    if not kwargs.get('subject_id'):
+        data['subject_id'] = address
 
     data.update(kwargs)
 
@@ -149,6 +152,14 @@ def send_callback_json_message(value, *args, **kwargs):
     send_json_message(args[0], args[1], **kwargs)
 
     return value
+
+def send_errback_json_message(error, *args, **kwargs):
+
+    kwargs['error'] = error.getErrorMessage()
+    send_json_message(args[0], args[1], **kwargs)
+
+    error.trap(RuntimeError)
+
 
 
 hxdispatcher = MessageDispatcher()
