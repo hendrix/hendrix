@@ -8,12 +8,6 @@ from .messaging import send_callback_json_message, send_json_message
 
 import inspect
 
-def process_short_task(args):
-    print 'starting %r with args %r and kwargs %r' % (args[0], args[1], args[2])
-    func, func_args, func_kwargs = args
-    func(*func_args, **func_kwargs)
-
-
 
 def parse_signal_args(kwargs):
 
@@ -75,7 +69,6 @@ try:
 
         result = getattr(module, function_name)(*args, **kwargs)
         return result
-
 except:
     pass
 
