@@ -54,10 +54,6 @@ class MessageDispatcher(object):
             add a new recipient to be addressable by this MessageDispatcher
             generate a new uuid address if one is not specified
             
-            reply to the transport with a "setup_connection" notice 
-            containing the recipient's address for use as a return address 
-            in such activities as form submission where a notification of 
-            future results may be desired.
         """
 
         if not address:

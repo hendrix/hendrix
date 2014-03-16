@@ -1,9 +1,11 @@
-from twisted.internet.protocol import Factory, Protocol
-from txsockjs.factory import SockJSResource
-from .messaging import hxdispatcher
-
 import json
 import uuid
+
+from twisted.internet.protocol import Factory, Protocol
+from txsockjs.factory import SockJSResource
+
+from .messaging import hxdispatcher
+
 
 class MessageHandlerProtocol(Protocol):
     """
@@ -51,9 +53,10 @@ class MessageHandlerProtocol(Protocol):
             establish the address of this new connection and add it to the list of 
             sockets managed by the dispatcher
 
-            TODO:
-                a method that would put this transport in multiple channels
-                based on current page, user group participation, activity or other such concerns
+            reply to the transport with a "setup_connection" notice 
+            containing the recipient's address for use by the client as a return address 
+            for future communications
+            
         """
         self.transport.uid = str(uuid.uuid1())
 
