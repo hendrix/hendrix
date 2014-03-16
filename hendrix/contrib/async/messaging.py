@@ -93,7 +93,7 @@ class MessageDispatcher(object):
         else:
             recipients = [self.recipients.get(address)]
 
-        print 'recipients for message:', recipients
+        # print 'recipients for message:', recipients
 
         if recipients:               
             for recipient in recipients:
