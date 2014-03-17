@@ -1,4 +1,5 @@
 import sys
+import importlib
 try:
     from django.core.handlers.wsgi import WSGIHandler
 except ImportError as e:
@@ -19,3 +20,44 @@ class DevWSGIHandler(WSGIHandler):
             args[0]['PATH_INFO'],
         )
         return response
+
+
+def get_additional_handlers(settings_module):
+    
+    """
+        if HENDRIX_EXTRA_HANDLERS is specified in settings_module,
+        it should be a list of tuples specifying a url path and a module path
+        to a function which returns the handler that will process calls to that url
+
+        example:
+
+            HENDRIX_CHILD_HANDLERS = (
+              ('process', 'apps.offload.handlers.get_LongRunningProcessHandler'),
+              ('chat',    'apps.chat.handlers.get_ChatHandler'),
+            )
+
+            HENDRIX_CHILD_HANDLER_NAMESPACE = 'crosstowntraffic'#(optional)
+    """
+
+    additional_handlers = []
+
+    if hasattr(settings_module, 'HENDRIX_CHILD_HANDLERS'):
+        namespace = getattr(settings_module,'HENDRIX_CHILD_NAMESPACE','hendrixchildren')
+
+        for url_path, module_path in settings_module.HENDRIX_CHILD_HANDLERS:
+            path_to_module, handler_generator = module_path.rsplit('.', 1)
+            handler_module = importlib.import_module(path_to_module)
+
+            #TODO:
+            #
+            #   ideally, we would namespace these handlers like this:
+            #   /hendrixchildren/chat
+            #   /hendrixchildren/processupdates
+            #
+            #   this should seemingly be done by creating nested proxy handlers 
+            #   which would have their own children
+            #   for their child paths.
+            #
+
+            additional_handlers.append(('%s-%s'%(namespace,url_path), getattr(handler_module, handler_generator)()))
+    return additional_handlers

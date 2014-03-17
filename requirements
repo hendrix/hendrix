@@ -3,3 +3,4 @@ path.py
 zope.interface
 twisted
 mock
+txsockjs
