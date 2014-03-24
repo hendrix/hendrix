@@ -13,7 +13,7 @@ sys.path.append(PACKAGE_ROOT)
 
 deploy_plugin_module = imp.load_source('deploy_plugin', "%s/twisted/plugins/deploy_plugin.py" % PACKAGE_ROOT)
 
-WSGI_FILE = "%s/%s.py" % (path(wsgi.__file__).abspath().dirname(), wsgi.__name__)
+WSGI_FILE = wsgi.__file__
 
 
 class ServiceTests(unittest.TestCase):
