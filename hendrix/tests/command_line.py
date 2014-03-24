@@ -4,6 +4,7 @@ __package__ = 'hendrix.command_line'
 import hendrix
 from ..hendrix_deploy import HendrixAction, process
 
+@unittest.skip  # doesn't currently test anything of value
 class TestArgumentProcessing(unittest.TestCase):
 
     good_start_arguments = {'ACTION': 'start', 'WSGI': 'wsgi.py',
@@ -18,5 +19,6 @@ class TestArgumentProcessing(unittest.TestCase):
 
     def test_wrong_arguments_something(self):
         self.assertNotEqual(self.bad_instance.wsgi, '8000')
+
 if __name__ == '__main__':
     unittest.main()
