@@ -29,7 +29,6 @@ class MessageHandlerProtocol(Protocol):
             falls back to just passing the message along...
 
         """
-
         try:
             address = self.guid
             data = json.loads(data)
@@ -71,10 +70,4 @@ class MessageHandlerProtocol(Protocol):
         self.dispatcher.remove(self.transport)
 
 
-def get_MessageHandler():
-    """
-        create an instance of the SockJSResource for use
-        as a child to the main wsgi app
-    """
-
-    return SockJSResource(Factory.forProtocol(MessageHandlerProtocol))
+MessageResource = SockJSResource(Factory.forProtocol(MessageHandlerProtocol))

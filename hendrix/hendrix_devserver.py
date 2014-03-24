@@ -5,7 +5,7 @@ import argparse
 
 from hendrix import import_wsgi
 from hendrix.core import get_hendrix_resource
-from hendrix.contrib import get_additional_handlers
+from hendrix.contrib import get_additional_resources
 
 from twisted.internet import reactor
 from twisted.internet.error import CannotListenError
@@ -34,7 +34,7 @@ settings_module = importlib.import_module(settings)
 wsgi = wsgi_module.application
 wsgi.application = DevWSGIHandler()
 
-resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT, additional_handlers=get_additional_handlers(settings_module))
+resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT, additional_resources=get_additional_resources(settings_module))
 
 try:
     server.startService()

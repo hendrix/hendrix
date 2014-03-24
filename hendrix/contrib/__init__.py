@@ -8,6 +8,7 @@ except ImportError as e:
         'Hendrix is a Django plugin. As such Django must be installed.'
     ), None, sys.exc_info()[2]
 from twisted.web.resource import Resource, ForbiddenResource
+from .async.resources import MessageResource
 
 
 class DevWSGIHandler(WSGIHandler):
@@ -23,17 +24,22 @@ class DevWSGIHandler(WSGIHandler):
         return response
 
 
-class NamespaceResource(Resource):
+class NamedResource(Resource):
     """
     A resource that can be used to namespace other resources. Expected usage of
     this resource in a django application is:
-        namespace_res = NamespaceResource('some-namespace')
-        namespace_res.putChild('namex', SockJSResource(FactoryX...))
-        namespace_res.putChild('namey', SockJSResource(FactoryY...))
-        ...
+        ... in myproject.myapp.somemodule ...
+            NamespacedRes = NamedResource('some-namespace')
+            NamespacedRes.putChild('namex', SockJSResource(FactoryX...))
+            NamespacedRes.putChild('namey', SockJSResource(FactoryY...))
+        ... then in settings ...
+            HENDRIX_CHILD_RESOURCES = (
+              'myproject.myapp.somemodule.NamespacedRes',
+              ...,
+            )
     """
-    def __init__(self, namespace='hendrixchildren'):
-        super(NamespaceResource, self).__init__()
+    def __init__(self, namespace):
+        Resource.__init__(self)
         self.namespace = namespace
 
 
@@ -42,45 +48,36 @@ class NamespaceResource(Resource):
         By default this resource will yield a ForbiddenResource instance unless
         a request is made for a static child i.e. a child added using putChild
         """
+        # override this method if you want to serve dynamic child resources
         return ForbiddenResource("This is a resource namespace.")
 
 
-def get_additional_handlers(settings_module):
-
+def get_additional_resources(settings_module):
     """
-        if HENDRIX_EXTRA_HANDLERS is specified in settings_module,
-        it should be a list of tuples specifying a url path and a module path
-        to a function which returns the handler that will process calls to that url
+        if HENDRIX_CHILD_RESOURCES is specified in settings_module,
+        it should be a list resources subclassed from hendrix.contrib.NamedResource
 
         example:
 
-            HENDRIX_CHILD_HANDLERS = (
-              ('process', 'apps.offload.handlers.get_LongRunningProcessHandler'),
-              ('chat',    'apps.chat.handlers.get_ChatHandler'),
+            HENDRIX_CHILD_RESOURCES = (
+              'apps.offload.resources.LongRunningProcessResource',
+              'apps.chat.resources.ChatResource',
             )
-
-            HENDRIX_CHILD_HANDLER_NAMESPACE = 'crosstowntraffic'#(optional)
     """
 
-    additional_handlers = []
+    additional_resources = []
 
-    if hasattr(settings_module, 'HENDRIX_CHILD_HANDLERS'):
-        namespace = getattr(settings_module,'HENDRIX_CHILD_NAMESPACE','hendrixchildren')
+    if hasattr(settings_module, 'HENDRIX_CHILD_RESOURCES'):
 
-        for url_path, module_path in settings_module.HENDRIX_CHILD_HANDLERS:
-            path_to_module, handler_generator = module_path.rsplit('.', 1)
-            handler_module = importlib.import_module(path_to_module)
+        for module_path in settings_module.HENDRIX_CHILD_RESOURCES:
+            path_to_module, resource_name = module_path.rsplit('.', 1)
+            resource_module = importlib.import_module(path_to_module)
 
-            #TODO:
-            #
-            #   ideally, we would namespace these handlers like this:
-            #   /hendrixchildren/chat
-            #   /hendrixchildren/processupdates
-            #
-            #   this should seemingly be done by creating nested proxy handlers
-            #   which would have their own children
-            #   for their child paths.
-            #
+            additional_resources.append(getattr(resource_module, resource_name))
+    return additional_resources
 
-            additional_handlers.append(('%s-%s'%(namespace,url_path), getattr(handler_module, handler_generator)()))
-    return additional_handlers
+
+# Helper resource for the lazy amongst us
+HendrixResource = NamedResource('hendrix')
+HendrixResource.putChild('message', MessageResource)
+# add more resources here ...

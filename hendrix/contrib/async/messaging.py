@@ -5,7 +5,6 @@ import uuid
 class RecipientManager(object):
     """
         This class manages all the transports addressable by a single address.
-
     """
 
     def __init__(self, transport, address):
@@ -76,7 +75,6 @@ class MessageDispatcher(object):
             self.recipients[address].add(transport)
         else:
             self.recipients[address] = RecipientManager(transport, address)
-
         return address
 
     def remove(self, transport):

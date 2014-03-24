@@ -1,3 +1,4 @@
+import sys
 from twisted.application import internet, service
 from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
@@ -5,8 +6,14 @@ from twisted.web import server, resource, static
 from twisted.web.wsgi import WSGIResource
 from twisted.web.resource import ForbiddenResource
 
+from .contrib import NamedResource
 
-def get_hendrix_resource(application, settings_module=None, port=80, additional_handlers=None):
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_hendrix_resource(application, settings_module=None, port=80, additional_resources=None):
     '''
     Pseudo factory that returns the proper Resource object.
     Takes a deployment type and (for development) a port number.
@@ -27,11 +34,9 @@ def get_hendrix_resource(application, settings_module=None, port=80, additional_
         static_resource = MediaResource(settings_module.STATIC_ROOT)
         root.putChild(settings_module.STATIC_URL.strip('/'), static_resource)
 
-    if additional_handlers:
-        # additional_handlers should be a list of tuples like: ('/namespace/chat', <chathandler object>)
-        for path,handler in additional_handlers:
-            root.putChild(path, handler)
-            print 'child handler %r listening at /%s'%(handler, path)
+    if additional_resources:
+        for resource in additional_resources:
+            root.putNamedChild(resource)
 
     main_site = server.Site(root)
 
@@ -101,13 +106,22 @@ class Root(resource.Resource):
         to the child resource (in this case our wsgi application).
         """
         request.prepath = []
-        request.postpath.insert(0, name)  # re-establishes request.postpath so to contain the entire path
-
+        request.postpath.insert(0, name)
+        # re-establishes request.postpath so to contain the entire path
         return self.wsgi_resource
 
-    def putNamespacedChild(self, resource):
-        path = resource.namespace
-        self.putChild(path, resource)
+    def putNamedChild(self, resource):
+        """
+        putNamedChild takes either an instance of hendrix.contrib.NamedResource
+        or any resource.Resource with a "namespace" attribute as a means of
+        allowing application level control of resource namespacing.
+        """
+        try:
+            path = resource.namespace
+            self.putChild(path, resource)
+        except AttributeError, e:
+            msg = 'additional_resources instances must have a namespace attribute'
+            raise AttributeError(msg), None, sys.exc_info()[2]
 
 
 class MediaResource(static.File):
