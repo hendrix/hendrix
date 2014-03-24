@@ -1,4 +1,4 @@
-
+import copy
 import json
 import uuid
 
@@ -75,15 +75,18 @@ class MessageDispatcher(object):
             self.recipients[address].add(transport)
         else:
             self.recipients[address] = RecipientManager(transport, address)
+
         return address
 
     def remove(self, transport):
         """
             removes a transport from all channels to which it belongs.
-
         """
-        for recManager in self.recipients.values():
+        recipients = copy.copy(self.recipients)
+        for address, recManager in recipients.iteritems():
             recManager.remove(transport)
+            if not len(recManager.transports):
+                del self.recipients[address]
 
 
     def send(self, address, data_dict):
