@@ -9,10 +9,10 @@ from .messaging import hxdispatcher
 
 class MessageHandlerProtocol(Protocol):
     """
-        A basic protocol for socket messaging 
+        A basic protocol for socket messaging
         using a hendrix messaging dispatcher to handle
         addressing messages to active sockets from
-        differnt contexts
+        different contexts
     """
     dispatcher = hxdispatcher
     guid = None
@@ -23,7 +23,7 @@ class MessageHandlerProtocol(Protocol):
         """
             Takes "data" which we assume is json encoded
             If data has a subject_id attribute, we pass that to the dispatcher
-            as the subject_id so it will get carried through into any 
+            as the subject_id so it will get carried through into any
             return communications and be identifiable to the client
 
             falls back to just passing the message along...
@@ -50,13 +50,13 @@ class MessageHandlerProtocol(Protocol):
 
     def connectionMade(self):
         """
-            establish the address of this new connection and add it to the list of 
+            establish the address of this new connection and add it to the list of
             sockets managed by the dispatcher
 
-            reply to the transport with a "setup_connection" notice 
-            containing the recipient's address for use by the client as a return address 
+            reply to the transport with a "setup_connection" notice
+            containing the recipient's address for use by the client as a return address
             for future communications
-            
+
         """
         self.transport.uid = str(uuid.uuid1())
 
@@ -73,7 +73,7 @@ class MessageHandlerProtocol(Protocol):
 
 def get_MessageHandler():
     """
-        create an instance of the SockJSResource for use 
+        create an instance of the SockJSResource for use
         as a child to the main wsgi app
     """
 

@@ -44,6 +44,20 @@ class RecipientManager(object):
 
 
 class MessageDispatcher(object):
+    """
+    MessageDispatcher is a PubSub state machine that routes data packets through
+    an attribute called "recipients". The recipients attribute is a dict
+    structure where the keys are unique addresses and the values are instances
+    of RecipientManager. "address"es (i.e. RecipientManagers) are created and/or
+    subscribed to. Subscribing to an address results in registering a clients
+    websocket (i.e. the transport associated to the SockJSResource protocol)
+    within a dict that is internal to the Manager called "transports".
+    RecipientManager's purpose is to expose functions that MessageDispatcher
+    can leverage to execute the PubSub process.
+    N.B. subscribing a client to an address opens that client to all data
+        published to that address. As such it useful to think of addresses as
+        channels. To acheive a private channel an obsure address is required.
+    """
 
     def __init__(self, *args, **kwargs):
         self.recipients = {}
@@ -53,7 +67,6 @@ class MessageDispatcher(object):
         """
             add a new recipient to be addressable by this MessageDispatcher
             generate a new uuid address if one is not specified
-            
         """
 
         if not address:
@@ -79,10 +92,8 @@ class MessageDispatcher(object):
 
         """
             address can either be a string or a list of strings
-            
-            data_dict gets sent along as is and could contain anything
-            
 
+            data_dict gets sent along as is and could contain anything
         """
         if type(address) == list:
             recipients = [self.recipients.get(rec) for rec in address]
@@ -91,12 +102,12 @@ class MessageDispatcher(object):
 
         # print 'recipients for message:', recipients
 
-        if recipients:               
+        if recipients:
             for recipient in recipients:
                 if recipient:
                     recipient.send(json.dumps(data_dict))
 
-    
+
     def do_action(self, transport, data):
         """
             receives a dictionary.  cleans the input and tries to perform
@@ -109,7 +120,7 @@ class MessageDispatcher(object):
         }
 
         action = data.get('action')
-        
+
         if action in actions:
             actions[action](transport, data)
 
@@ -129,7 +140,7 @@ def send_json_message(address, message, **kwargs):
     """
 
     data = {
-        'message':message, 
+        'message':message,
     }
 
     if not kwargs.get('subject_id'):
@@ -163,4 +174,3 @@ def send_errback_json_message(error, *args, **kwargs):
 
 
 hxdispatcher = MessageDispatcher()
-
