@@ -7,6 +7,7 @@ except ImportError as e:
         str(e) + '\n' +
         'Hendrix is a Django plugin. As such Django must be installed.'
     ), None, sys.exc_info()[2]
+from twisted.web.resource import Resource, ForbiddenResource
 
 
 class DevWSGIHandler(WSGIHandler):
@@ -22,8 +23,30 @@ class DevWSGIHandler(WSGIHandler):
         return response
 
 
+class NamespaceResource(Resource):
+    """
+    A resource that can be used to namespace other resources. Expected usage of
+    this resource in a django application is:
+        namespace_res = NamespaceResource('some-namespace')
+        namespace_res.putChild('namex', SockJSResource(FactoryX...))
+        namespace_res.putChild('namey', SockJSResource(FactoryY...))
+        ...
+    """
+    def __init__(self, namespace='hendrixchildren'):
+        super(NamespaceResource, self).__init__()
+        self.namespace = namespace
+
+
+    def getChild(self, path, request):
+        """
+        By default this resource will yield a ForbiddenResource instance unless
+        a request is made for a static child i.e. a child added using putChild
+        """
+        return ForbiddenResource("This is a resource namespace.")
+
+
 def get_additional_handlers(settings_module):
-    
+
     """
         if HENDRIX_EXTRA_HANDLERS is specified in settings_module,
         it should be a list of tuples specifying a url path and a module path
@@ -54,7 +77,7 @@ def get_additional_handlers(settings_module):
             #   /hendrixchildren/chat
             #   /hendrixchildren/processupdates
             #
-            #   this should seemingly be done by creating nested proxy handlers 
+            #   this should seemingly be done by creating nested proxy handlers
             #   which would have their own children
             #   for their child paths.
             #

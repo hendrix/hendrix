@@ -26,7 +26,7 @@ def get_hendrix_resource(application, settings_module=None, port=80, additional_
     if settings_module is not None:
         static_resource = MediaResource(settings_module.STATIC_ROOT)
         root.putChild(settings_module.STATIC_URL.strip('/'), static_resource)
-    
+
     if additional_handlers:
         # additional_handlers should be a list of tuples like: ('/namespace/chat', <chathandler object>)
         for path,handler in additional_handlers:
@@ -96,16 +96,18 @@ class Root(resource.Resource):
 
     def getChild(self, name, request):
         """
-        Here getChild is only evaluated once. Prepath must be an empty list
-        otherwise the WSGIRequest path variable is the combination of the
-        prepath and postpath lists. Postpath needs to contain all segments of
-        the url, if it is incomplete then that incomplete url with be passed on
+        Postpath needs to contain all segments of
+        the url, if it is incomplete then that incomplete url will be passed on
         to the child resource (in this case our wsgi application).
         """
         request.prepath = []
-        request.postpath.insert(0, name)
+        request.postpath.insert(0, name)  # re-establishes request.postpath so to contain the entire path
 
         return self.wsgi_resource
+
+    def putNamespacedChild(self, resource):
+        path = resource.namespace
+        self.putChild(path, resource)
 
 
 class MediaResource(static.File):
@@ -117,4 +119,3 @@ class MediaResource(static.File):
     def directoryListing(self):
         # Override to forbid directory listing
         return ForbiddenResource()
-
