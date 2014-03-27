@@ -10,7 +10,7 @@ README = read('README.md')
 setup(
     name = "hendrix",
     packages = find_packages(),
-    version = "0.1",
+    version = "0.2",
     url = "https://github.com/hangarunderground/hendrix",
     description = "A deployment module for Django that uses Twisted.",
     long_description = "\n\n".join([README]),
@@ -24,6 +24,6 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords = ["django", "twisted", "async", "logging"],
-    scripts = ['hendrix/hendrix_deploy.py', 'hendrix/hendrix_devserver.py', 'hendrix/hx', 'hendrix/deploy.py'],
+    scripts = ['hendrix/hendrix_devserver.py', 'hendrix/hx', 'hendrix/deploy.py'],
     install_requires = open('requirements').readlines(),
 )

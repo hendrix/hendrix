@@ -4,4 +4,3 @@ zope.interface
 twisted
 mock
 txsockjs
-daemonize
