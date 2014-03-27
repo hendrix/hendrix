@@ -8,3 +8,4 @@ twisted/plugins/dropin.cache
 hendrix/pids
 *~
 .DS_Store
+*.pid
