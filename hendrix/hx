@@ -1,0 +1,36 @@
+#!/bin/bash
+# This is where the magic happens! ... sort of.
+# Meaning that this bash script allows us to run our daemonizing deploy.py
+# script from any venv we may or may not happen to be in.
+
+# arg array example
+# for FILE1 in "$@"
+# do
+#    wc $FILE1
+# done
+
+# TODO Use options
+# makereport -u jsmith -p notebooks -d 10-20-2011 -f pdf
+# Bash enables this functionality with the "getopts" function. For the above example, you could use getopts as follows:
+# while getopts u:d:p:f: option
+# do
+#         case "${option}"
+#         in
+#                 u) USER=${OPTARG};;
+#                 d) DATE=${OPTARG};;
+#                 p) PRODUCT=${OPTARG};;
+#                 f) FORMAT=$OPTARG;;
+#         esac
+# done
+ARGCOUNT=$#
+if [ "$ARGCOUNT" = "4" ]; then
+    ACTION=$1
+    SETTINGS=$2
+    WSGI=$3
+    PORT=$4
+    python deploy.py $ACTION $SETTINGS $WSGI $PORT
+    exit(0)
+else
+    echo "$@ is not enough args. 4 are needed e.g.: hx action settings wsgi port"
+    exit(1)
+fi

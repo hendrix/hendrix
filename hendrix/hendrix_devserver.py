@@ -1,29 +1,23 @@
 import os
 import sys
 import importlib
-import argparse
 
-from hendrix import import_wsgi
-from hendrix.core import get_hendrix_resource
-from hendrix.contrib import get_additional_resources
+from . import import_wsgi
+from .parser import HendrixParser
+from .resources import get_additional_resources
+from .services import HendrixService
 
 from twisted.internet import reactor
 from twisted.internet.error import CannotListenError
 
 
-parser = argparse.ArgumentParser(description="The Hendrix Development Server")
-parser.add_argument('SETTINGS', help='Location of the settings object')
-parser.add_argument('WSGI', help='Location of the wsgi object')
-parser.add_argument('PORT', type=int, help='Enter a port number for the server to serve content.')
+parser = HendrixParser().base_args()
 args = vars(parser.parse_args())
-try:
-    settings = args['SETTINGS']
-except KeyError:
-    settings = 'settings.local'
+settings = args.get('settings', 'settings.local')
 os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
-PORT = args['PORT']
-WSGI = args['WSGI']
+PORT = args.get('port', 8000)
+WSGI = args.get('wsgi', './wsgi.py')
 wsgi_module = import_wsgi(WSGI)
 
 from hendrix.contrib import DevWSGIHandler
@@ -34,7 +28,11 @@ settings_module = importlib.import_module(settings)
 wsgi = wsgi_module.application
 wsgi.application = DevWSGIHandler()
 
-resource, server = get_hendrix_resource(wsgi, settings_module, port=PORT, additional_resources=get_additional_resources(settings_module))
+server = HendrixService(
+    wsgi, port=PORT,
+    services=get_additional_services(settings_module),
+    resources=get_additional_resources(settings_module)
+)
 
 try:
     server.startService()

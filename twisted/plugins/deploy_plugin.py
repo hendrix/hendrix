@@ -8,9 +8,9 @@ from twisted.python import usage
 from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 
-from hendrix.core import get_hendrix_resource
+from hendrix.services import HendrixService, get_additional_services
 from hendrix import import_wsgi
-from hendrix.contrib import get_additional_resources
+from hendrix.resources import get_additional_resources
 
 
 class Options(usage.Options):
@@ -38,11 +38,11 @@ class HendrixServiceMaker(object):
         except ImportError:
             raise RuntimeError("Could not find '%s'." % settings)
 
-        resource, server = get_hendrix_resource(
+        server = HendrixService(
             application=wsgi_module.application,
-            settings_module=settings_module,
             port=int(options['port']),
-            additional_resources=get_additional_resources(settings_module)
+            resources=get_additional_resources(settings_module),
+            services=get_additional_services(settings_module)
         )
         return server
 

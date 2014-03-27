@@ -1,16 +1,49 @@
 import sys
 from twisted.application import internet, service
-from twisted.internet import reactor
+from twisted.internet import reactor, protocol
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server, resource, static
 from twisted.web.wsgi import WSGIResource
-from twisted.web.resource import ForbiddenResource
+from twisted.web import resource
 
 from .contrib import NamedResource
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class HendrixService(service.MultiService):
+
+    def __init__(self, application, port=80, resources=None, services=None, host=None):
+        service.MultiService.__init__()
+
+        # Create, start and add a thread pool service, which is made available
+        # to our WSGIResource within HendrixResource
+        threads = ThreadPool()
+        reactor.addSystemEventTrigger('after', 'shutdown', threads.stop)
+        ThreadPoolService(threads).setServiceParent(self)
+
+        # create the base resource and add any additional static resources
+        self.resource = HendrixResource(reactor, threads, application)
+        if resources:
+            for res in resources:
+                self.resource.putNamedChild(res)
+
+
+        # create the base server/client
+        factory = server.Site(self.resource)
+        if host:
+            factory = protocol.ReconnectingClientFactory(factory)
+            internet.connectTCP(host, port, factory).setServiceParent(self)
+        else:
+            # add a tcp server that binds to port=port
+            internet.listenTCP(port, factory).setServiceParent(self)
+
+        # add any additional services
+        if services:
+            for srv in services:
+                srv.setServiceParent(self)
 
 
 def get_hendrix_resource(application, settings_module=None, port=80, additional_resources=None):
@@ -50,22 +83,6 @@ def get_hendrix_resource(application, settings_module=None, port=80, additional_
     return hendrix_resource, hendrix_server
 
 
-def threadPoolService(reactor=reactor):
-    """
-    This is a helper function that adds a ThreadPool to the reactor (i.e. the
-    event loop) and ensures that those threads are stopped after the reactor
-    shuts down. It returns a Service instance such that the thread pool can be
-    added to a MultiService instance.
-    """
-    # Create and start a thread pool,
-    threads = ThreadPool()
-
-    # The pool will stop when the reactor shuts down
-    reactor.addSystemEventTrigger('after', 'shutdown', threads.stop)
-
-    return ThreadPoolService(threads)
-
-
 class ThreadPoolService(service.Service):
     '''
     A simple class that defines a threadpool on init
@@ -89,15 +106,15 @@ class ThreadPoolService(service.Service):
         self.pool.stop()
 
 
-class Root(resource.Resource):
+class HendrixResource(resource.Resource):
     """
     A wrapper that overrides the getChild method on Resource so to only serve
     the WSGIResource
     """
 
-    def __init__(self, wsgi_resource):
+    def __init__(self, reactor, threads, application):
         resource.Resource.__init__(self)
-        self.wsgi_resource = wsgi_resource
+        self.wsgi_resource = WSGIResource(reactor, threads, application)
 
     def getChild(self, name, request):
         """
@@ -132,4 +149,4 @@ class MediaResource(static.File):
     '''
     def directoryListing(self):
         # Override to forbid directory listing
-        return ForbiddenResource()
+        return resource.ForbiddenResource()
