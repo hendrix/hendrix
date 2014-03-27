@@ -2,10 +2,10 @@ import os
 import sys
 import importlib
 
-from . import import_wsgi
-from .parser import HendrixParser
-from .resources import get_additional_resources
-from .services import HendrixService
+from hendrix import import_wsgi
+from hendrix.parser import HendrixParser
+from hendrix.resources import get_additional_resources
+from hendrix.services import HendrixService, get_additional_services
 
 from twisted.internet import reactor
 from twisted.internet.error import CannotListenError

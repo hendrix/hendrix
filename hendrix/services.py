@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class HendrixService(service.MultiService):
 
     def __init__(self, application, port=80, resources=None, services=None, host=None):
-        service.MultiService.__init__()
+        service.MultiService.__init__(self)
 
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
@@ -23,20 +23,20 @@ class HendrixService(service.MultiService):
         ThreadPoolService(threads).setServiceParent(self)
 
         # create the base resource and add any additional static resources
-        self.resource = HendrixResource(reactor, threads, application)
+        resource = HendrixResource(reactor, threads, application)
         if resources:
             for res in resources:
-                self.resource.putNamedChild(res)
+                resource.putNamedChild(res)
 
 
         # create the base server/client
-        factory = server.Site(self.resource)
+        factory = server.Site(resource)
         if host:
             factory = protocol.ReconnectingClientFactory(factory)
-            internet.connectTCP(host, port, factory).setServiceParent(self)
+            internet.TCPClient(host, port, factory).setServiceParent(self)
         else:
             # add a tcp server that binds to port=port
-            internet.listenTCP(port, factory).setServiceParent(self)
+            internet.TCPServer(port, factory).setServiceParent(self)
 
         # add any additional services
         if services:

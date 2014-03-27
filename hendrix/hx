@@ -28,9 +28,10 @@ if [ "$ARGCOUNT" = "4" ]; then
     SETTINGS=$2
     WSGI=$3
     PORT=$4
-    python deploy.py $ACTION $SETTINGS $WSGI $PORT
-    exit(0)
+    deploy=`type -P deploy.py`
+    python $deploy $ACTION $SETTINGS $WSGI $PORT &> /dev/null &
+    exit 0
 else
     echo "$@ is not enough args. 4 are needed e.g.: hx action settings wsgi port"
-    exit(1)
+    exit 1
 fi

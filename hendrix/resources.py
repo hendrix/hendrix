@@ -1,7 +1,8 @@
+import os
 import sys
 import importlib
 from .contrib.async.resources import MessageResource
-from twisted.web import resource
+from twisted.web import resource, static
 from twisted.web.wsgi import WSGIResource
 
 
@@ -68,7 +69,7 @@ class NamedResource(resource.Resource):
             )
     """
     def __init__(self, namespace):
-        Resource.__init__(self)
+        resource.Resource.__init__(self)
         self.namespace = namespace
 
 
@@ -81,33 +82,29 @@ class NamedResource(resource.Resource):
         return resource.ForbiddenResource("This is a resource namespace.")
 
 
-
-
-class NamedMediaResource(static.File):
-    "Serves files from a directory and forbids access to subpaths"
-
-    def __init__(self, directory, namespace):
-        static.File.__init__(directory)
-        self.namespace = namespace
-
+class MediaResource(static.File):
+    '''
+    A simple static service with directory listing disabled
+    (gives the client a 403 instead of letting them browse
+    a static directory).
+    '''
     def directoryListing(self):
         # Override to forbid directory listing
         return resource.ForbiddenResource()
 
 
 
-class DjangoStaticResource(NamedMediaResource):
-
-    def __init__(self, settings):
-        try:
-            directory = settings.STATIC_ROOT
-            namespace = settings.STATIC_URL.strip('/')
-            NamedMediaResource.__init__(directory, namespace)
-        except AttributeError, e:
-            print e
-            raise NotImplementedError(
-                'STATIC_ROOT and STATIC_URL must be included in settings.'
-            )
+def DjangoStaticResource(app_file):
+    """
+    takes an app level file dir to find the site root and servers static files
+    from static
+    """
+    SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(app_file), '..'))
+    STATIC_ROOT = os.path.join(SITE_ROOT, 'static')
+    STATIC_URL = 'static'
+    StaticFilesResource = MediaResource(STATIC_ROOT)
+    StaticFilesResource.namespace = STATIC_URL
+    return StaticFilesResource
 
 
 def get_additional_resources(settings_module):
@@ -132,10 +129,10 @@ def get_additional_resources(settings_module):
 
             additional_resources.append(getattr(resource_module, resource_name))
 
-return additional_resources
+    return additional_resources
 
 
 # Helper resources for the lazy amongst us
-HendrixResource = NamedResource('hendrix')
-HendrixResource.putChild('message', MessageResource)
+HendrixMessagingResource = NamedResource('hendrix')
+HendrixMessagingResource.putChild('message', MessageResource)
 # add more resources here ...
