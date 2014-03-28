@@ -17,4 +17,6 @@ class HendrixParser(argparse.ArgumentParser):
     def all_args(self):
         self.add_argument('action', help='Use start, stop, or restart')
         self.base_args()
+        self.add_argument('workers', type=int, nargs='?', default=0, help='Number of processes to run')
+        self.add_argument('fd', type=int, nargs='?', default=None, help='DO NOT SET THIS')
         return self

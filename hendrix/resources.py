@@ -98,6 +98,17 @@ def DjangoStaticResource(app_file):
     """
     takes an app level file dir to find the site root and servers static files
     from static
+    Usage:
+        [...in app.resource...]
+        from hendrix.resources import DjangoStaticResource
+        StaticResource = DjangoStaticResource(__file__)
+
+        [...in settings...]
+        HENDRIX_CHILD_RESOURCES = (
+            ...,
+            'app.resource.StaticResource',
+            ...
+        )
     """
     SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(app_file), '..'))
     STATIC_ROOT = os.path.join(SITE_ROOT, 'static')

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class HendrixService(service.MultiService):
 
-    def __init__(self, application, port=80, resources=None, services=None, host=None):
+    def __init__(self, application, port=80, resources=None, services=None):
         service.MultiService.__init__(self)
 
         # Create, start and add a thread pool service, which is made available
@@ -29,19 +29,20 @@ class HendrixService(service.MultiService):
                 resource.putNamedChild(res)
 
 
-        # create the base server/client
-        factory = server.Site(resource)
-        if host:
-            factory = protocol.ReconnectingClientFactory(factory)
-            internet.TCPClient(host, port, factory).setServiceParent(self)
-        else:
-            # add a tcp server that binds to port=port
-            internet.TCPServer(port, factory).setServiceParent(self)
+        self.factory = server.Site(resource)
+        # add a tcp server that binds to port=port
+        self.tcp_service = internet.TCPServer(port, self.factory)
+        self.tcp_service.setServiceParent(self)
 
         # add any additional services
         if services:
             for srv in services:
                 srv.setServiceParent(self)
+
+    @property
+    def tcp_port(self):
+        "Return the port object associated to our tcp server"
+        return self.services[1]._port
 
 
 

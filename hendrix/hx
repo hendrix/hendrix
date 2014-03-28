@@ -23,15 +23,19 @@
 #         esac
 # done
 ARGCOUNT=$#
-if [ "$ARGCOUNT" = "4" ]; then
+if [ "$ARGCOUNT" > "3" ]; then
     ACTION=$1
     SETTINGS=$2
     WSGI=$3
     PORT=$4
+    WORKERS=$5
+    FD=$6
     deploy=`type -P deploy.py`
-    python $deploy $ACTION $SETTINGS $WSGI $PORT &> /dev/null &
+    python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS $FD &> /dev/null &
     exit 0
 else
-    echo "$@ is not enough args. 4 are needed e.g.: hx action settings wsgi port"
+    echo "hx Arg Length Error: $@ is not enough args. 4 are needed e.g. Usage:"
+    echo "hx action settings wsgi port [workers]"
+    echo
     exit 1
 fi
