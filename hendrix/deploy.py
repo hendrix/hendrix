@@ -61,15 +61,32 @@ class HendrixDeploy(object):
     def start(self, fd=None):
         pids = [str(os.getpid())]  # script pid
         if fd is None:
+            # anything in this block is only run once
+
+            # TODO add global services here, possibly add a services kwarg on
+            # __init__
+
             self.service.startService()
             if self.workers:
                 # Create a new listening port and several other processes to help out.
                 port = self.service.tcp_port
+                fileno = port.fileno()
+                child_args = [
+                    executable,  # path to python executable e.g. /usr/bin/python
+                    __file__,  # path to this module
+                    'start',
+                    self.settings,
+                    self.wsgi,
+                    str(self.port),
+                    '0',
+                    str(fileno)
+                ]
                 for i in range(self.workers):
                     transport = reactor.spawnProcess(
-                            None, executable, [executable, __file__, 'start', self.settings, self.wsgi, str(self.port), '0', str(port.fileno())],
-                        childFDs={0: 0, 1: 1, 2: 2, port.fileno(): port.fileno()},
-                        env=environ)
+                        None, executable, child_args,
+                        childFDs={0: 0, 1: 1, 2: 2, fileno: fileno},
+                        env=environ
+                    )
                     pids.append(str(transport.pid))
             with open(self.pid, 'w') as pid_file:
                 pid_file.write('\n'.join(pids))
