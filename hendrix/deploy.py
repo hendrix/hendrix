@@ -16,7 +16,19 @@ from twisted.internet import reactor
 
 
 class HendrixDeploy(object):
-
+    """
+    HendrixDeploy encapsulates the necessary information needed to deploy the
+    HendrixService on a single or multiple processes.
+        action: [start|stop|restart]
+        settings: dot seperated python path to django settings module e.g. proj.settings
+        wsgi: the relative or absolute path to a wsgi.py file. It's important
+            to note that this file is also used to expose the projects path to
+            python.
+        port: the listening port
+        workers: the number of process you want to start minus 1 i.e. 2 yeilds 3 processes
+        fd: file descriptor that is needed to expose the listening port to sub-
+            processes of the reactor
+    """
     def __init__(self, action, settings, wsgi, port, workers=2, fd=None):
         self.action = action
         self.settings = settings
@@ -41,6 +53,7 @@ class HendrixDeploy(object):
 
     @property
     def pid(self):
+        "The default location of the pid file for process management"
         return '%s/%s_%s.pid' % (
             HENDRIX_DIR, self.port, self.settings.replace('.', '_')
         )
@@ -52,7 +65,6 @@ class HendrixDeploy(object):
             if self.workers:
                 # Create a new listening port and several other processes to help out.
                 port = self.service.tcp_port
-                # import ipdb; ipdb.set_trace()
                 for i in range(self.workers):
                     transport = reactor.spawnProcess(
                             None, executable, [executable, __file__, 'start', self.settings, self.wsgi, str(self.port), '0', str(port.fileno())],
@@ -83,7 +95,7 @@ class HendrixDeploy(object):
 
     def restart(self, sig=9, fd=None):
         self.stop(sig)
-        time.sleep(1)
+        time.sleep(1)  # wait a second to ensure the port is closed
         self.start(fd)
 
 

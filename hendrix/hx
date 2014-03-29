@@ -3,39 +3,54 @@
 # Meaning that this bash script allows us to run our daemonizing deploy.py
 # script from any venv we may or may not happen to be in.
 
-# arg array example
-# for FILE1 in "$@"
-# do
-#    wc $FILE1
-# done
+# defaults
+usage () {
+    echo "USAGE:"
+    echo -e "\thx action settings wsgi [-p port (default: 8000)] [-w workers (default: 0)]"
+}
 
-# TODO Use options
-# makereport -u jsmith -p notebooks -d 10-20-2011 -f pdf
-# Bash enables this functionality with the "getopts" function. For the above example, you could use getopts as follows:
-# while getopts u:d:p:f: option
-# do
-#         case "${option}"
-#         in
-#                 u) USER=${OPTARG};;
-#                 d) DATE=${OPTARG};;
-#                 p) PRODUCT=${OPTARG};;
-#                 f) FORMAT=$OPTARG;;
-#         esac
-# done
+PORT="8000"
+WORKERS="0"
+VERBOSE=0
+
 ARGCOUNT=$#
-if [ "$ARGCOUNT" > "3" ]; then
-    ACTION=$1
-    SETTINGS=$2
-    WSGI=$3
-    PORT=$4
-    WORKERS=$5
-    FD=$6
-    deploy=`type -P deploy.py`
-    python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS $FD &> /dev/null &
-    exit 0
+if [ "$ARGCOUNT" > "2" ]; then
+    for i in `seq 1 3`; do
+        case "${i}" in
+            1) ACTION=$1 ;;
+            2) SETTINGS=$1 ;;
+            3) WSGI=$1 ;;
+        esac
+        shift
+    done
+    ARGCOUNT=$#
+    NEXT_VAR="$1"
+    NEXT_STRING_ELEMENT=${NEXT_VAR:0:1}
+    if [[ "$NEXT_STRING_ELEMENT" = "-" ]]; then
+        if [ "$ARGCOUNT" > "0" ]; then
+            while getopts 'p:w:v' flag; do
+              case "${flag}" in
+                v) VERBOSE=1 ;;
+                w) WORKERS="${OPTARG}" ;;
+                p) PORT="${OPTARG}" ;;
+                *) usage; echo "Unexpected option ${flag}"; exit 1 ;;
+              esac
+            done
+        fi
+    elif [[ ! "$NEXT_STRING_ELEMENT" == "" ]]; then
+        echo "ERROR: only options from here on out"
+        usage
+    fi
 else
-    echo "hx Arg Length Error: $@ is not enough args. 4 are needed e.g. Usage:"
-    echo "hx action settings wsgi port [workers]"
-    echo
+    echo "Arg Length Error: $@ is not enough args. 4 are needed e.g. Usage:"
+    usage
     exit 1
 fi
+
+deploy=`type -P deploy.py`
+if [[ "$VERBOSE" = "1" ]]; then
+    python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS
+else
+    python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS &> /dev/null &
+fi
+exit 0
