@@ -5,16 +5,34 @@
 
 # defaults
 usage () {
-    echo "USAGE:"
-    echo -e "\thx action settings wsgi [-p port (default: 8000)] [-w workers (default: 0)]"
+USAGE='USAGE:\n
+"hx" is the terminal command used to deploy on a Hendrix web server.\n
+\thx action settings wsgi [-p port (default: 8000)] [-w workers (default: 0)]\n\n
+    \taction          \t\t\tstart|stop|restart\n
+    \tsettings        \t\te.g. myproject.settings\n
+    \twsgi            \t\t\te.g. /path/to/wsgi.py or ./wsgi.py\n
+    \t-w (workers)    \t\t[number] e.g. -w 2\n
+    \t-p (port)       \t\t[number] e.g. -p 8888\n
+    \t-v              \t\t\tprint output for debugging\n
+'
+echo -e $USAGE
+exit
 }
 
 PORT="8000"
 WORKERS="0"
 VERBOSE=0
+DEBUG=0
 
 ARGCOUNT=$#
-if [ "$ARGCOUNT" > "2" ]; then
+if [[ "$ARGCOUNT" -le "1" ]]; then
+    while getopts 'h' flag; do
+      case "${flag}" in
+        h) usage ;;
+        *) usage; echo "Unexpected option ${flag}"; exit 1 ;;
+      esac
+    done
+elif [[ "$ARGCOUNT" -gt "2" ]]; then
     for i in `seq 1 3`; do
         case "${i}" in
             1) ACTION=$1 ;;
@@ -28,11 +46,13 @@ if [ "$ARGCOUNT" > "2" ]; then
     NEXT_STRING_ELEMENT=${NEXT_VAR:0:1}
     if [[ "$NEXT_STRING_ELEMENT" = "-" ]]; then
         if [ "$ARGCOUNT" > "0" ]; then
-            while getopts 'p:w:v' flag; do
+            while getopts 'hp:w:vd' flag; do
               case "${flag}" in
                 v) VERBOSE=1 ;;
                 w) WORKERS="${OPTARG}" ;;
                 p) PORT="${OPTARG}" ;;
+                h) usage ;;
+                d) DEBUG=1 ;;
                 *) usage; echo "Unexpected option ${flag}"; exit 1 ;;
               esac
             done
@@ -48,8 +68,12 @@ else
 fi
 
 deploy=`type -P deploy.py`
-if [[ "$VERBOSE" = "1" ]]; then
-    python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS
+if [[ "$VERBOSE" = "1" ]] || [[ "$DEBUG" = "1" ]]; then
+    if [[ "$DEBUG" = "1" ]]; then
+        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS
+    else
+        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS &
+    fi
 else
     python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS &> /dev/null &
 fi
