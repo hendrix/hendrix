@@ -24,20 +24,21 @@ Restarting a server:
 
 ###Serving Static Files
 Serving static files via **Hendrix** is optional but easy.
-1. In an app in your project, i.e. one package deep into the python path, create
+
+* In an app in your project, i.e. one package deep into the python path, create
 a module e.g. `resources.py`
-2. To that module add the following code:
+* To that module add the following code:
 ```python
 from hendrix.resources import DjangoStaticResource
 StaticFilesResource = DjangoStaticResource(__file__)
 ```
-3. In you settings file add:
+* In you settings file add:
 ```python
 HENDRIX_CHILD_RESOURCES = (
     'myapp.resources.StaticFilesResource',
 )
 ```
-4. That's it.
+* That's it.
 
 
 ###Runserver Equivalent
