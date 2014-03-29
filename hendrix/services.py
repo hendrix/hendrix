@@ -12,6 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class HendrixService(service.MultiService):
+    """
+    HendrixService is a constructor that facilitates the collection of services
+    and the extension of resources on the website by subclassing MultiService.
+    'application' refers to an instance of django.core.handlers.wsgi.WSGIHandler
+    'resources' refers to a list of twisted Resources with a namespace attribute
+    'services' refers to a list of twisted Services to add to the collection.
+    """
 
     def __init__(self, application, port=80, resources=None, services=None):
         service.MultiService.__init__(self)
