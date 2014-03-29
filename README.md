@@ -1,4 +1,5 @@
 #Hendrix
+###Twisted meets Django: *Making deployment easy*
 
 Hendrix is a **multi-threaded**, **multi-process** *and* **asynchronous**
 web server for *Django* projects. The idea here is to have a highly extensible
@@ -41,7 +42,7 @@ HENDRIX_CHILD_RESOURCES = (
 * That's it.
 
 
-###Runserver Equivalent
+###Django Runserver Equivalent
 Install **hendrix** in your project's INSTALLED_APPS list
 ```python
 INSTALLED_APPS = (
