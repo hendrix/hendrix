@@ -94,14 +94,16 @@ class MediaResource(static.File):
 
 
 
-def DjangoStaticResource(app_file):
+def DjangoStaticResource(path, rel_url='static'):
     """
     takes an app level file dir to find the site root and servers static files
     from static
     Usage:
         [...in app.resource...]
         from hendrix.resources import DjangoStaticResource
-        StaticResource = DjangoStaticResource(__file__)
+        StaticResource = DjangoStaticResource('/abspath/to/static/folder')
+        ... OR ...
+        StaticResource = DjangoStaticResource('/abspath/to/static/folder', 'custom-static-relative-url')
 
         [...in settings...]
         HENDRIX_CHILD_RESOURCES = (
@@ -110,11 +112,9 @@ def DjangoStaticResource(app_file):
             ...
         )
     """
-    SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(app_file), '..'))
-    STATIC_ROOT = os.path.join(SITE_ROOT, 'static')
-    STATIC_URL = 'static'
-    StaticFilesResource = MediaResource(STATIC_ROOT)
-    StaticFilesResource.namespace = STATIC_URL
+    rel_url = rel_url.strip('/')
+    StaticFilesResource = MediaResource(path)
+    StaticFilesResource.namespace = rel_url
     return StaticFilesResource
 
 
