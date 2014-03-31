@@ -32,9 +32,11 @@ Serving static files via **Hendrix** is optional but easy.
 from hendrix.resources import DjangoStaticResource
 StaticFilesResource = DjangoStaticResource('/abs/path/to/static/folder')
 ```
-    The above code associates the static files to the url "static" relative
-    to the root url i.e. www.mysite.com/static/
-    To specify your own relative url e.g. "media" in `resources.py` ...
+
+The above code associates the static files to the url "static" relative
+to the root url i.e. www.mysite.com/static/. To specify your 
+own relative url e.g. "media" in `resources.py` ...
+
 ```python
 from hendrix.resources import DjangoStaticResource
 StaticFilesResource = DjangoStaticResource('/abs/path/to/static/folder', 'media')
