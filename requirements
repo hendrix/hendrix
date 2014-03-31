@@ -4,3 +4,4 @@ zope.interface
 twisted
 mock
 txsockjs
+pyopenssl
