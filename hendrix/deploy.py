@@ -31,19 +31,24 @@ class HendrixDeploy(object):
             processes of the reactor
     """
     def __init__(self, action, settings, wsgi, port, workers=2, fd=None):
-        self.action = action
-        self.settings = settings
-        self.wsgi = wsgi
-        self.port = port
-        self.workers = workers
+        self.options = {
+            'action': action,
+            'settings': settings,
+            'wsgi': wsgi,
+            'port': port,
+            'workers': workers,
+        }
+
         wsgi_module = import_wsgi(wsgi)
         settings_module = importlib.import_module(settings)
         os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
-        self.service = HendrixService(
-            wsgi_module.application, port,
-            resources=get_additional_resources(settings_module),
-            services=get_additional_services(settings_module)
+        self.services = get_additional_services(settings_module)
+        self.resources = get_additional_resources(settings_module)
+
+        self.hendrix = HendrixService(
+            wsgi_module.application, port, resources=self.resources,
+            services=self.services
         )
         if action == 'start':
             getattr(self, action)(fd)
@@ -56,36 +61,43 @@ class HendrixDeploy(object):
     def pid(self):
         "The default location of the pid file for process management"
         return '%s/%s_%s.pid' % (
-            HENDRIX_DIR, self.port, self.settings.replace('.', '_')
+            HENDRIX_DIR, self.options['port'], self.options['settings'].replace('.', '_')
         )
 
     def start(self, fd=None):
         pids = [str(os.getpid())]  # script pid
+        servers = ['web_tcp',]
+        servers += [
+            name for name, service in self.services
+            if isinstance(service, TCPServer) or isinstance(service, SSLServer)
+        ]
         if fd is None:
             # anything in this block is only run once
 
             # TODO add global services here, possibly add a services kwarg on
             # __init__
 
-            self.service.startService()
-            if self.workers:
+            self.hendrix.startService()
+            if self.options['workers']:
                 # Create a new listening port and several other processes to help out.
-                port = self.service.tcp_port
-                fileno = port.fileno()
+                childFDs = {0: 0, 1: 1, 2: 2}
+                for name in servers:
+                    port = self.hendrix.get_port(name)
+                    childFDs[fileno] = port.fileno()
                 child_args = [
                     executable,  # path to python executable e.g. /usr/bin/python
                     __file__,  # path to this module
                     'start',
-                    self.settings,
-                    self.wsgi,
-                    str(self.port),
+                    self.options['settings'],
+                    self.options['wsgi'],
+                    str(self.options['port']),
                     '0',
                     str(fileno)
                 ]
                 for i in range(self.workers):
                     transport = reactor.spawnProcess(
                         None, executable, child_args,
-                        childFDs={0: 0, 1: 1, 2: 2, fileno: fileno},
+                        childFDs=childFDs,
                         env=environ
                     )
                     pids.append(str(transport.pid))
@@ -94,9 +106,10 @@ class HendrixDeploy(object):
         else:
             # Another process created the port, drop the tcp service and
             # just start listening on it.
-            self.service.tcp_service.disownServiceParent()
-            self.service.startService()
-            port = reactor.adoptStreamPort(fd, AF_INET, self.service.factory)
+            for server in servers:
+                self.disownService(server)
+            self.hendrix.startService()
+            port = reactor.adoptStreamPort(fd, AF_INET, self.hendrix.factory)
 
         reactor.run()
 
@@ -115,6 +128,10 @@ class HendrixDeploy(object):
         self.stop(sig)
         time.sleep(1)  # wait a second to ensure the port is closed
         self.start(fd)
+
+    def disownService(self, name):
+        _service = self.hendrix.getServiceNamed(name)
+        _service.disownServiceParent()
 
 
 if __name__ == '__main__':
