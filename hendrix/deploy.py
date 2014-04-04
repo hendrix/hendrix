@@ -8,6 +8,7 @@ from sys import executable
 from socket import AF_INET
 
 from hendrix import HENDRIX_DIR, import_wsgi
+from hendrix.contrib.cache import CacheServer
 from hendrix.parser import HendrixParser
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
