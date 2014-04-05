@@ -36,9 +36,9 @@ class HendrixService(service.MultiService):
                 resource.putNamedChild(res)
 
 
-        self.factory = server.Site(resource)
+        factory = server.Site(resource)
         # add a tcp server that binds to port=port
-        web_tcp = internet.TCPServer(port, self.factory)
+        web_tcp = TCPServer(port, factory)
         web_tcp.setName('web_tcp')  # to get this at runtime use hedrix_service.getServiceNamed('web_tcp')
         web_tcp.setServiceParent(self)
 
@@ -48,7 +48,6 @@ class HendrixService(service.MultiService):
                 srv.setName(srv_name)
                 srv.setServiceParent(self)
 
-    @property
     def get_port(self, name):
         "Return the port object associated to our tcp server"
         service = self.getServiceNamed(name)
@@ -102,3 +101,10 @@ def get_additional_services(settings_module):
 
             additional_services.append(getattr(resource_module, service_name))
     return additional_services
+
+
+class TCPServer(internet.TCPServer):
+
+    def __init__(self, port, factory, *args, **kwargs):
+        internet.TCPServer.__init__(self, port, factory, *args, **kwargs)
+        self.factory = factory
