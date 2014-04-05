@@ -3,6 +3,8 @@ import os
 import sys
 import time
 
+import cPickle as pickle
+
 from os import environ
 from sys import executable
 from socket import AF_INET
@@ -81,9 +83,13 @@ class HendrixDeploy(object):
             if self.options['workers']:
                 # Create a new listening port and several other processes to help out.
                 childFDs = {0: 0, 1: 1, 2: 2}
+                fds = {}
                 for name in servers:
                     port = self.hendrix.get_port(name)
-                    childFDs[fileno] = port.fileno()
+                    fd = port.fileno()
+                    childFDs[fd] = fd
+                    fds[name] = fd
+
                 child_args = [
                     executable,  # path to python executable e.g. /usr/bin/python
                     __file__,  # path to this module
@@ -92,9 +98,9 @@ class HendrixDeploy(object):
                     self.options['wsgi'],
                     str(self.options['port']),
                     '0',
-                    str(fileno)
+                    pickle.dumps(fds)
                 ]
-                for i in range(self.workers):
+                for i in range(self.options['workers']):
                     transport = reactor.spawnProcess(
                         None, executable, child_args,
                         childFDs=childFDs,
@@ -106,10 +112,15 @@ class HendrixDeploy(object):
         else:
             # Another process created the port, drop the tcp service and
             # just start listening on it.
-            for server in servers:
-                self.disownService(server)
+            fds = pickle.loads(fd)
+            factories = {}
+            for name in servers:
+                factory = self.disownService(name)
+                factories[name] = factory
             self.hendrix.startService()
-            port = reactor.adoptStreamPort(fd, AF_INET, self.hendrix.factory)
+
+            for name, factory in factories.iteritems():
+                port = reactor.adoptStreamPort(fds[name], AF_INET, factory)
 
         reactor.run()
 
@@ -132,6 +143,7 @@ class HendrixDeploy(object):
     def disownService(self, name):
         _service = self.hendrix.getServiceNamed(name)
         _service.disownServiceParent()
+        return _service.factory
 
 
 if __name__ == '__main__':
