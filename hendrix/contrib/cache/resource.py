@@ -8,7 +8,13 @@ from twisted.internet import reactor
 from twisted.web import proxy
 from twisted.web.server import NOT_DONE_YET
 
+
+# TODO add options to modify the max age of content
 MAX_AGE = 3600
+
+
+# TODO remove the qs from the uri used in the cache ie remove everything after ?
+
 
 
 class CacheClient(proxy.ProxyClient):
@@ -34,7 +40,8 @@ class CacheClient(proxy.ProxyClient):
     def handleResponsePart(self, buffer):
         """
         buffer is just a str of the content to be shown, father is the intial
-        request
+        request.
+        Compresses and stores web responses associated to uri's
         """
         cache_control = self.headers.get('cache-control', 'max-age=%d' % MAX_AGE)
         max_age_name, max_age = urlparse.parse_qsl(cache_control)[0]
@@ -82,6 +89,9 @@ class CacheClientFactory(proxy.ProxyClientFactory):
 
 
 class ReverseProxyResource(proxy.ReverseProxyResource):
+    """
+    This is a state persistent subclass of the built-in ReverseProxyResource.
+    """
 
     def __init__(self, site_port, host='localhost', path='', reactor=reactor, secure_port=443):
         proxy.ReverseProxyResource.__init__(
@@ -130,6 +140,7 @@ class ReverseProxyResource(proxy.ReverseProxyResource):
                     content = self.decompressBuffer(content)
                 return content
 
+        # set up and evaluate a connection to the target server
         port = self.secure_port if is_secure else self.port
         host = "%s:%d" % (self.host, port)
         request.received_headers['host'] = host

@@ -19,8 +19,6 @@ from twisted.application.internet import TCPServer, SSLServer
 
 
 
-
-
 class HendrixDeploy(object):
     """
     HendrixDeploy encapsulates the necessary information needed to deploy the
