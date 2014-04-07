@@ -98,7 +98,6 @@ def get_additional_services(settings_module):
         for name, module_path in settings_module.HENDRIX_SERVICES:
             path_to_module, service_name = module_path.rsplit('.', 1)
             resource_module = importlib.import_module(path_to_module)
-
             additional_services.append((name, getattr(resource_module, service_name)))
     return additional_services
 

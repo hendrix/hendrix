@@ -10,6 +10,7 @@ from sys import executable
 from socket import AF_INET
 
 from hendrix import HENDRIX_DIR, import_wsgi
+from hendrix.contrib.cache import CacheService
 from hendrix.parser import HendrixParser
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
@@ -35,6 +36,7 @@ class HendrixDeploy(object):
             processes of the reactor
     """
     def __init__(self, action, settings, wsgi, port, workers=2, fd=None):
+        default_proxy_port = 8765
         self.options = {
             'action': action,
             'settings': settings,
@@ -49,6 +51,21 @@ class HendrixDeploy(object):
 
         self.services = get_additional_services(settings_module)
         self.resources = get_additional_resources(settings_module)
+
+        self.servers = ['web_tcp',]
+        default_cache = True
+        for name, service in self.services:
+            if isinstance(service, TCPServer) or isinstance(service, SSLServer):
+                self.servers.append(name)
+            default_cache &= not isinstance(service, CacheService)
+        print default_cache
+        if default_cache:
+            self.servers.append('cache')
+            self.services.append(
+                ('cache', CacheService(site_port=default_proxy_port, proxy_port=port))
+            )
+            port = default_proxy_port
+            self.options['port'] = port
 
         self.hendrix = HendrixService(
             wsgi_module.application, port, resources=self.resources,
@@ -70,11 +87,7 @@ class HendrixDeploy(object):
 
     def start(self, fd=None):
         pids = [str(os.getpid())]  # script pid
-        servers = ['web_tcp',]
-        servers += [
-            name for name, service in self.services
-            if isinstance(service, TCPServer) or isinstance(service, SSLServer)
-        ]
+
         if fd is None:
             # anything in this block is only run once
 
@@ -86,7 +99,7 @@ class HendrixDeploy(object):
                 # Create a new listening port and several other processes to help out.
                 childFDs = {0: 0, 1: 1, 2: 2}
                 fds = {}
-                for name in servers:
+                for name in self.servers:
                     port = self.hendrix.get_port(name)
                     fd = port.fileno()
                     childFDs[fd] = fd
@@ -118,7 +131,7 @@ class HendrixDeploy(object):
             # just start listening on it.
             fds = pickle.loads(fd)
             factories = {}
-            for name in servers:
+            for name in self.servers:
                 factory = self.disownService(name)
                 factories[name] = factory
             self.hendrix.startService()
