@@ -10,11 +10,13 @@ from sys import executable
 from socket import AF_INET
 
 from hendrix import HENDRIX_DIR, import_wsgi
-from hendrix.contrib.cache import CacheServer
 from hendrix.parser import HendrixParser
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
-from twisted.internet import reactor
+from twisted.internet import reactor, protocol
+from twisted.application.internet import TCPServer, SSLServer
+
+
 
 
 
@@ -100,12 +102,14 @@ class HendrixDeploy(object):
                     '0',
                     pickle.dumps(fds)
                 ]
+                transports = []
                 for i in range(self.options['workers']):
                     transport = reactor.spawnProcess(
                         None, executable, child_args,
                         childFDs=childFDs,
                         env=environ
                     )
+                    transports.append(transport)
                     pids.append(str(transport.pid))
             with open(self.pid, 'w') as pid_file:
                 pid_file.write('\n'.join(pids))
@@ -118,7 +122,6 @@ class HendrixDeploy(object):
                 factory = self.disownService(name)
                 factories[name] = factory
             self.hendrix.startService()
-
             for name, factory in factories.iteritems():
                 port = reactor.adoptStreamPort(fds[name], AF_INET, factory)
 

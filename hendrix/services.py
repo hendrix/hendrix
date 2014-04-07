@@ -44,7 +44,7 @@ class HendrixService(service.MultiService):
 
         # add any additional services
         if services:
-            for srv_nam, srv in services:
+            for srv_name, srv in services:
                 srv.setName(srv_name)
                 srv.setServiceParent(self)
 
@@ -95,11 +95,11 @@ def get_additional_services(settings_module):
     additional_services = []
 
     if hasattr(settings_module, 'HENDRIX_SERVICES'):
-        for module_path in settings_module.HENDRIX_SERVICES:
+        for name, module_path in settings_module.HENDRIX_SERVICES:
             path_to_module, service_name = module_path.rsplit('.', 1)
             resource_module = importlib.import_module(path_to_module)
 
-            additional_services.append(getattr(resource_module, service_name))
+            additional_services.append((name, getattr(resource_module, service_name)))
     return additional_services
 
 
