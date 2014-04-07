@@ -9,3 +9,4 @@ hendrix/pids
 *~
 .DS_Store
 *.pid
+venv
