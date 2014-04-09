@@ -20,7 +20,7 @@ REQUIRED (positional args):\n
 OPTIONS:\n
     \t-w              \t\t\t[number] of workers e.g. -w 2\n
     \t--port -p       \t\t[number] e.g. -p 8888\n
-    \t--priv          \t\t\tpath to ssl private key\n
+    \t--key          \t\t\tpath to ssl private key\n
     \t--cert          \t\t\tpath to pem certificate\n
     \t-v --verbose    \t\tprint output for debugging\n
     \t--debug         \t\tdebug mode
@@ -30,6 +30,7 @@ exit
 }
 
 PORT="8000"
+PORTSSL="4430"
 WORKERS="0"
 VERBOSE=0
 DEBUG=0
@@ -66,8 +67,9 @@ elif [[ "$ARGCOUNT" -gt "2" ]]; then
                 flag=$1; shift
               case "${flag}" in
                 --port|-p) PORT=$1; shift ;;
+                --portssl|-ps) PORTSSL=$1; shift ;;
                 --help|-h) usage ;;
-                --priv) PRIVKEY=$1; shift;;
+                --key) PRIVKEY=$1; shift;;
                 --cert) CERT=$1; shift;;
                 -w) WORKERS=$1; shift ;;
                 --verbose|-v) VERBOSE=1 ;;
@@ -89,9 +91,9 @@ fi
 hendrix_deploy () {
     deploy=`type -P deploy.py`
     if [[ ! "$PRIVKEY" == "" ]] && [[ ! "$CERT" == "" ]]; then
-        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS $PRIVKEY $CERT
+        python $deploy $ACTION $SETTINGS $WSGI $PORT $PORTSSL $WORKERS $PRIVKEY $CERT
     else
-        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS
+        python $deploy $ACTION $SETTINGS $WSGI $PORT $PORTSSL $WORKERS
     fi
 }
 

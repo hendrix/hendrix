@@ -46,31 +46,19 @@ Restarting a server:
 ###Serving Static Files
 Serving static files via **Hendrix** is optional but easy.
 
-* Anywhere in your project create a module e.g. `resources.py` in the package `myapp`
-* To that module add the following code:
-```python
-from hendrix.resources import DjangoStaticResource
-StaticFilesResource = DjangoStaticResource('/abs/path/to/static/folder')
-```
 
-The above code associates the static files to the url "static" relative
-to the root url i.e. www.mysite.com/static/. To specify your 
-own relative url e.g. "media" in `resources.py` ...
-
-```python
-from hendrix.resources import DjangoStaticResource
-StaticFilesResource = DjangoStaticResource('/abs/path/to/static/folder', 'media')
+a default static file handler is built into Hendrix which can be used by adding the following to your settings:
 ```
-* In you settings file add:
-```python
 HENDRIX_CHILD_RESOURCES = (
-    'myapp.resources.StaticFilesResource',
+    'hendrix.contrib.resources.static.DefaultDjangoStaticResource',
 )
 ```
-* That's it.
+No other configuration is necessary.  You don't need to add anything to urls.py.
+
+You can also easily create your own custom static or other handlers by adding them to HENDRIX\_CHILD\_RESOURCES.
 
 
-###Django Runserver Equivalent
+###Running the Development Server
 Install **hendrix** in your project's INSTALLED_APPS list
 ```python
 INSTALLED_APPS = (
