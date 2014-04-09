@@ -11,11 +11,14 @@ from socket import AF_INET
 
 from hendrix import HENDRIX_DIR, import_wsgi
 from hendrix.contrib.cache import CacheService
+from hendrix.contrib import ssl
 from hendrix.parser import HendrixParser
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
-from twisted.internet import reactor, protocol
 from twisted.application.internet import TCPServer, SSLServer
+from twisted.internet import reactor, protocol
+from twisted.internet.ssl import PrivateCertificate
+from twisted.protocols.tls import TLSMemoryBIOFactory
 
 
 
@@ -33,7 +36,7 @@ class HendrixDeploy(object):
         fd: file descriptor that is needed to expose the listening port to sub-
             processes of the reactor
     """
-    def __init__(self, action, settings, wsgi, port, workers=2, fd=None):
+    def __init__(self, action, settings, wsgi, port, workers=2, privkey=None, cert=None, fd=None):
         default_proxy_port = 8765
         self.options = {
             'action': action,
@@ -41,8 +44,9 @@ class HendrixDeploy(object):
             'wsgi': wsgi,
             'port': port,
             'workers': workers,
+            'privkey': privkey,
+            'cert': cert
         }
-
         wsgi_module = import_wsgi(wsgi)
         settings_module = importlib.import_module(settings)
         os.environ['DJANGO_SETTINGS_MODULE'] = settings
@@ -56,7 +60,7 @@ class HendrixDeploy(object):
             if isinstance(service, TCPServer) or isinstance(service, SSLServer):
                 self.servers.append(name)
             default_cache &= not isinstance(service, CacheService)
-        print default_cache
+
         if default_cache:
             self.servers.append('cache')
             self.services.append(
@@ -69,6 +73,17 @@ class HendrixDeploy(object):
             wsgi_module.application, port, resources=self.resources,
             services=self.services
         )
+
+        self.is_secure = False
+        if self.options['privkey'] and self.options['cert']:
+            web_tcp = self.hendrix.getServiceNamed('web_tcp')
+            factory = web_tcp.factory
+            web_ssl = ssl.SSLServer(443, factory, privkey, cert)
+            web_ssl.setName('web_ssl')
+            web_ssl.setServiceParent(self.hendrix)
+            self.servers.append('web_ssl')
+            self.is_secure = True
+
         if action == 'start':
             getattr(self, action)(fd)
         elif action == 'restart':
@@ -111,8 +126,11 @@ class HendrixDeploy(object):
                     self.options['wsgi'],
                     str(self.options['port']),
                     '0',
-                    pickle.dumps(fds)
                 ]
+                if self.is_secure:
+                    child_args.append(self.options['privkey'])
+                    child_args.append(self.options['cert'])
+                child_args.append(pickle.dumps(fds))
                 transports = []
                 for i in range(self.options['workers']):
                     transport = reactor.spawnProcess(
@@ -134,6 +152,13 @@ class HendrixDeploy(object):
                 factories[name] = factory
             self.hendrix.startService()
             for name, factory in factories.iteritems():
+                if name == 'web_ssl':
+                    privateCert = PrivateCertificate.loadPEM(
+                        open(self.options['cert']).read() + open(self.options['privkey']).read()
+                    )
+                    factory = TLSMemoryBIOFactory(
+                        privateCert.options(), False, factory
+                    )
                 port = reactor.adoptStreamPort(fds[name], AF_INET, factory)
 
         reactor.run()

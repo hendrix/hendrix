@@ -12,8 +12,11 @@ USAGE='USAGE:\n
     \tsettings        \t\te.g. myproject.settings\n
     \twsgi            \t\t\te.g. /path/to/wsgi.py or ./wsgi.py\n
     \t-w (workers)    \t\t[number] e.g. -w 2\n
-    \t-p (port)       \t\t[number] e.g. -p 8888\n
+    \t--port -p       \t\t[number] e.g. -p 8888\n
+    \t--priv          \t\tabs. path to ssl private key\n
+    \t--cert          \t\tabs. path to pem certificate\n
     \t-v              \t\t\tprint output for debugging\n
+    \t--debug         \t\tdebug mode
 '
 echo -e $USAGE
 exit
@@ -23,12 +26,15 @@ PORT="8000"
 WORKERS="0"
 VERBOSE=0
 DEBUG=0
+PRIVKEY=""
+CERT=""
 
 ARGCOUNT=$#
 if [[ "$ARGCOUNT" -le "1" ]]; then
-    while getopts 'h' flag; do
+    while [[ $# > 0 ]]; do
+        flag=$1; shift
       case "${flag}" in
-        h) usage ;;
+        --help|-h) usage ;;
         *) usage; echo "Unexpected option ${flag}"; exit 1 ;;
       esac
     done
@@ -46,13 +52,16 @@ elif [[ "$ARGCOUNT" -gt "2" ]]; then
     NEXT_STRING_ELEMENT=${NEXT_VAR:0:1}
     if [[ "$NEXT_STRING_ELEMENT" = "-" ]]; then
         if [ "$ARGCOUNT" > "0" ]; then
-            while getopts 'hp:w:vd' flag; do
+            while [[ $# > 0 ]]; do
+                flag=$1; shift
               case "${flag}" in
-                v) VERBOSE=1 ;;
-                w) WORKERS="${OPTARG}" ;;
-                p) PORT="${OPTARG}" ;;
-                h) usage ;;
-                d) DEBUG=1 ;;
+                --port|-p) PORT=$1; shift ;;
+                --help|-h) usage ;;
+                --priv) PRIVKEY=$1; shift;;
+                --cert) CERT=$1; shift;;
+                -w) WORKERS=$1; shift ;;
+                -v) VERBOSE=1 ;;
+                --debug) DEBUG=1 ;;
                 *) usage; echo "Unexpected option ${flag}"; exit 1 ;;
               esac
             done
@@ -67,14 +76,22 @@ else
     exit 1
 fi
 
-deploy=`type -P deploy.py`
-if [[ "$VERBOSE" = "1" ]] || [[ "$DEBUG" = "1" ]]; then
-    if [[ "$DEBUG" = "1" ]]; then
-        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS
+hendrix_deploy () {
+    deploy=`type -P deploy.py`
+    if [[ ! "$PRIVKEY" == "" ]] && [[ ! "$CERT" == "" ]]; then
+        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS $PRIVKEY $CERT
     else
-        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS &
+        python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS
     fi
+}
+
+
+
+if [[ "$DEBUG" = "1" ]]; then
+    hendrix_deploy
+elif [[ "$VERBOSE" = "1" ]]; then
+    hendrix_deploy &
 else
-    python $deploy $ACTION $SETTINGS $WSGI $PORT $WORKERS &> /dev/null &
+    hendrix_deploy &> /dev/null &
 fi
 exit 0

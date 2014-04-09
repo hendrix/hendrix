@@ -18,5 +18,7 @@ class HendrixParser(argparse.ArgumentParser):
         self.add_argument('action', help='Use start, stop, or restart')
         self.base_args()
         self.add_argument('workers', type=int, nargs='?', default=0, help='Number of processes to run')
+        self.add_argument('privkey', type=str, nargs='?', default=None, help='Absolute path to SSL private key')
+        self.add_argument('cert', type=str, nargs='?', default=None, help='Absolute path to SSL public certificate')
         self.add_argument('fd', type=str, nargs='?', default=None, help='DO NOT SET THIS')
         return self
