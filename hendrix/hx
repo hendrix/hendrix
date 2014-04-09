@@ -5,17 +5,24 @@
 
 # defaults
 usage () {
-USAGE='USAGE:\n
-"hx" is the terminal command used to deploy on a Hendrix web server.\n
-\thx action settings wsgi [-p port (default: 8000)] [-w workers (default: 0)]\n\n
+USAGE='\033[0m\n
+DESCRIPTION:
+\033[34m\n
+\t"hx" is the terminal command used to deploy on a Hendrix web server.
+ \033[0m\n
+USAGE:\n
+\tNote that this command daemonizes the process by default.\n
+\te.g. hx start settings /path/to/wsgi.py\n
+REQUIRED (positional args):\n
     \taction          \t\t\tstart|stop|restart\n
     \tsettings        \t\te.g. myproject.settings\n
     \twsgi            \t\t\te.g. /path/to/wsgi.py or ./wsgi.py\n
-    \t-w (workers)    \t\t[number] e.g. -w 2\n
+OPTIONS:\n
+    \t-w              \t\t\t[number] of workers e.g. -w 2\n
     \t--port -p       \t\t[number] e.g. -p 8888\n
-    \t--priv          \t\tabs. path to ssl private key\n
-    \t--cert          \t\tabs. path to pem certificate\n
-    \t-v              \t\t\tprint output for debugging\n
+    \t--priv          \t\t\tpath to ssl private key\n
+    \t--cert          \t\t\tpath to pem certificate\n
+    \t-v --verbose    \t\tprint output for debugging\n
     \t--debug         \t\tdebug mode
 '
 echo -e $USAGE
@@ -28,6 +35,9 @@ VERBOSE=0
 DEBUG=0
 PRIVKEY=""
 CERT=""
+ACTION=""
+SETTINGS=""
+WSGI=""
 
 ARGCOUNT=$#
 if [[ "$ARGCOUNT" -le "1" ]]; then
@@ -60,7 +70,7 @@ elif [[ "$ARGCOUNT" -gt "2" ]]; then
                 --priv) PRIVKEY=$1; shift;;
                 --cert) CERT=$1; shift;;
                 -w) WORKERS=$1; shift ;;
-                -v) VERBOSE=1 ;;
+                --verbose|-v) VERBOSE=1 ;;
                 --debug) DEBUG=1 ;;
                 *) usage; echo "Unexpected option ${flag}"; exit 1 ;;
               esac
@@ -86,8 +96,9 @@ hendrix_deploy () {
 }
 
 
-
-if [[ "$DEBUG" = "1" ]]; then
+if [[ "$SETTINGS" == "" ]] || [[ "$ACTION" == "" ]] || [[ "$WSGI" == "" ]]; then
+    usage
+elif [[ "$DEBUG" = "1" ]]; then
     hendrix_deploy
 elif [[ "$VERBOSE" = "1" ]]; then
     hendrix_deploy &
