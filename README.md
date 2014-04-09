@@ -35,8 +35,7 @@ HENDRIX_CHILD_RESOURCES = (
 ```
 No other configuration is necessary.  You don't need to add anything to urls.py.
 
-You can also easily create your own custom static or other handlers by copying that one into your project and adding it to HENDRIX\_CHILD\_RESOURCES.
-
+You can also easily create your own custom static or other handlers by adding them to HENDRIX\_CHILD\_RESOURCES.
 
 
 ###Running the Development Server
