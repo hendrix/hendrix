@@ -8,6 +8,8 @@ from twisted.internet import reactor
 from twisted.web import proxy
 from twisted.web.server import NOT_DONE_YET
 
+from logging import getLogger
+logger = getLogger(__name__)
 
 # TODO add options to modify the max age of content
 MAX_AGE = 3600
@@ -55,6 +57,8 @@ class CacheClient(proxy.ProxyClient):
                 max_age,
                 datetime.now()
             ]
+
+
         self.father.write(buffer)
 
 
@@ -77,6 +81,7 @@ class CacheClientFactory(proxy.ProxyClientFactory):
     protocol = CacheClient
 
     def __init__(self, command, rest, version, headers, data, father, resource):
+        logger.debug(self)
         self.command = command
         self.rest = rest
         self.version = version
@@ -97,6 +102,7 @@ class ReverseProxyResource(proxy.ReverseProxyResource):
     """
 
     def __init__(self, site_port, host='localhost', path='', reactor=reactor, secure_port=443):
+        logger.debug(self)
         proxy.ReverseProxyResource.__init__(
             self, host, site_port, path, reactor=reactor
         )
@@ -130,6 +136,7 @@ class ReverseProxyResource(proxy.ReverseProxyResource):
         is_secure = request.isSecure()
         # start caching logic
         if self.path in self.cache and not is_secure and request.method == "GET":
+            logger.debug(self.path)
             content, max_age, created = self.cache[self.path]
             delta_time = datetime.now() - created
             is_fresh = delta_time.total_seconds() < max_age

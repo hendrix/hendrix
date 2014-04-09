@@ -36,13 +36,14 @@ class HendrixDeploy(object):
         fd: file descriptor that is needed to expose the listening port to sub-
             processes of the reactor
     """
-    def __init__(self, action, settings, wsgi, port, workers=2, privkey=None, cert=None, fd=None):
+    def __init__(self, action, settings, wsgi, port, portssl, workers=2, privkey=None, cert=None, fd=None):
         default_proxy_port = 8765
         self.options = {
             'action': action,
             'settings': settings,
             'wsgi': wsgi,
             'port': port,
+            'portssl': portssl,
             'workers': workers,
             'privkey': privkey,
             'cert': cert
@@ -78,7 +79,7 @@ class HendrixDeploy(object):
         if self.options['privkey'] and self.options['cert']:
             web_tcp = self.hendrix.getServiceNamed('web_tcp')
             factory = web_tcp.factory
-            web_ssl = ssl.SSLServer(443, factory, privkey, cert)
+            web_ssl = ssl.SSLServer(portssl, factory, privkey, cert)
             web_ssl.setName('web_ssl')
             web_ssl.setServiceParent(self.hendrix)
             self.servers.append('web_ssl')
@@ -125,6 +126,7 @@ class HendrixDeploy(object):
                     self.options['settings'],
                     self.options['wsgi'],
                     str(self.options['port']),
+                    str(self.options['portssl']),
                     '0',
                 ]
                 if self.is_secure:
