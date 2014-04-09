@@ -11,7 +11,8 @@ processes on a single machine. Meaning that it can leverage multicore
 servers.
 * **Resource Caching** - Process distributed resource caching, dynamically serving 
 gzipped files. It's also possible to extend the current caching functionality by
-subclassing the hendrix `CacheService` and addint `HENDRIX_SERVICES` in your
+subclassing the hendrix `CacheService` and adding a reference to that subclass within a 
+`HENDRIX_SERVICES` tuple of tuples e.g. `(('name', 'app.MyCustomCache'),)` in your 
 Django settings file.
 * **Built-in SSL** - SSL is also process distributed, just provide the options 
 --priv /path/to/private.key and --cert /path/to/signed.cert to enable SSL
