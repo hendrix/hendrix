@@ -5,11 +5,31 @@ Hendrix is a **multi-threaded**, **multi-process** *and* **asynchronous**
 web server for *Django* projects. The idea here is to have a highly extensible
 wsgi deployment tool that is fast, transparent and easy to use.
 
+###Features
+* **Multi-processing** - The WSGI app can be served from multiple 
+processes on a single machine. Meaning that it can leverage multicore 
+servers.
+* **Resource Caching** - Process distributed resource caching, dynamically serving 
+gzipped files. It's also possible to extend the current caching functionality by
+subclassing the hendrix `CacheService` and adding a reference to that subclass within a 
+`HENDRIX_SERVICES` tuple of tuples e.g. `(('name', 'app.MyCustomCache'),)` in your 
+Django settings file.
+* **Built-in SSL** - SSL is also process distributed, just provide the options 
+--priv /path/to/private.key and --cert /path/to/signed.cert to enable SSL
+and process distributed TLS
+* **Multi-threading from within Django** - Enables the use of Twisted's `defer` 
+module and `deferToThread` and `callInThread` methods from within Django
+* **Built-in Websockets Framework**
+
 ###Installation
 
 `pip install -e git+git@github.com:hangarunderground/hendrix.git@master#egg=hendrix`
 
-###Deployment
+###Deployment/Usage
+
+For help:
+
+`hx -h` or `hx --help`
 
 Starting a server with 4 processes (1 parent and 3 child processes):
 
@@ -75,8 +95,8 @@ Twisted is what makes this all possible. Mostly. Check it out [here](https://twi
 
 ###Yet to come
 * Ensure stability of current implementation of web sockets
-* Does adding services to child processes yield duplicate behaviour
-* SSLServer
+* Create an option to disable caching
+* Load Balancing
 * tests...
 
 
