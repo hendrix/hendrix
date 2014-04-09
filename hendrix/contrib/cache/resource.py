@@ -43,10 +43,13 @@ class CacheClient(proxy.ProxyClient):
         request.
         Compresses and stores web responses associated to uri's
         """
-        cache_control = self.headers.get('cache-control', 'max-age=%d' % MAX_AGE)
-        max_age_name, max_age = urlparse.parse_qsl(cache_control)[0]
-        max_age = int(max_age)
-        if max_age:
+        cache_control = self.headers.get('cache-control')
+        if cache_control:
+            max_age_name, max_age = urlparse.parse_qsl(cache_control)[0]
+            max_age = int(max_age)
+        else:
+            max_age = MAX_AGE
+        if max_age and self.father.method == "GET" and self.father.code/100 == 2:
             self.resource.cache[self.father.uri] = [
                 self.compressBuffer(buffer),
                 max_age,
@@ -126,7 +129,7 @@ class ReverseProxyResource(proxy.ReverseProxyResource):
 
         is_secure = request.isSecure()
         # start caching logic
-        if self.path in self.cache and not is_secure:
+        if self.path in self.cache and not is_secure and request.method == "GET":
             content, max_age, created = self.cache[self.path]
             delta_time = datetime.now() - created
             is_fresh = delta_time.total_seconds() < max_age
@@ -142,7 +145,10 @@ class ReverseProxyResource(proxy.ReverseProxyResource):
 
         # set up and evaluate a connection to the target server
         port = self.secure_port if is_secure else self.port
-        host = "%s:%d" % (self.host, port)
+        if port == 80:
+            host = self.host
+        else:
+            host = "%s:%d" % (self.host, port)
         request.received_headers['host'] = host
         request.content.seek(0, 0)
         qs = urlparse.urlparse(request.uri)[4]
