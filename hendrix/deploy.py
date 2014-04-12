@@ -10,7 +10,7 @@ from sys import executable
 from socket import AF_INET
 
 from hendrix import HENDRIX_DIR, import_wsgi
-from hendrix.contrib.cache import CacheService
+from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl
 from hendrix.parser import HendrixParser
 from hendrix.resources import get_additional_resources
@@ -19,6 +19,9 @@ from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor, protocol
 from twisted.internet.ssl import PrivateCertificate
 from twisted.protocols.tls import TLSMemoryBIOFactory
+
+
+
 
 
 
@@ -36,55 +39,90 @@ class HendrixDeploy(object):
         fd: file descriptor that is needed to expose the listening port to sub-
             processes of the reactor
     """
-    def __init__(self, action, settings, wsgi, port, portssl, workers=2, privkey=None, cert=None, fd=None):
-        default_proxy_port = 8765
-        self.options = {
-            'action': action,
-            'settings': settings,
-            'wsgi': wsgi,
-            'port': port,
-            'portssl': portssl,
-            'workers': workers,
-            'privkey': privkey,
-            'cert': cert
-        }
+
+    def __init__(self):
+
+
+        self.options = HendrixDeploy.setOptions()
+
+        wsgi = self.options['wsgi']
+        settings = self.options['settings']
+
         wsgi_module = import_wsgi(wsgi)
         settings_module = importlib.import_module(settings)
         os.environ['DJANGO_SETTINGS_MODULE'] = settings
 
+        self.application = wsgi_module.application
+
+        self.is_secure = self.options['key'] and self.options['cert']
+
         self.services = get_additional_services(settings_module)
         self.resources = get_additional_resources(settings_module)
 
-        self.servers = ['web_tcp',]
-        default_cache = True
-        for name, service in self.services:
-            if isinstance(service, TCPServer) or isinstance(service, SSLServer):
-                self.servers.append(name)
-            default_cache &= not isinstance(service, CacheService)
+        self.servers = []
 
-        if default_cache:
-            self.servers.append('cache')
-            self.services.append(
-                ('cache', CacheService(site_port=default_proxy_port, proxy_port=port))
-            )
-            port = default_proxy_port
-            self.options['port'] = port
+    @classmethod
+    def setOptions(cls):
+        parser = HendrixParser().all_args()
+        return vars(parser.parse_args(sys.argv[1::]))
 
+    def addServices(self):
+        self.addHendrix()
+
+        if self.is_secure:
+            self.addSSLService()
+
+        if self.options.get('local_cache'):
+            self.addLocalCacheService()
+
+        self.catalogServers(self.hendrix)
+
+
+
+    def addHendrix(self):
         self.hendrix = HendrixService(
-            wsgi_module.application, port, resources=self.resources,
+            self.application, self.options['http_port'], resources=self.resources,
             services=self.services
         )
 
-        self.is_secure = False
-        if self.options['privkey'] and self.options['cert']:
-            web_tcp = self.hendrix.getServiceNamed('web_tcp')
-            factory = web_tcp.factory
-            web_ssl = ssl.SSLServer(portssl, factory, privkey, cert)
-            web_ssl.setName('web_ssl')
-            web_ssl.setServiceParent(self.hendrix)
-            self.servers.append('web_ssl')
-            self.is_secure = True
 
+    def catalogServers(self, hendrix):
+        for service in hendrix.services:
+            if isinstance(service, TCPServer) or isinstance(service, SSLServer):
+                self.servers.append(service.name)
+
+
+    def addLocalCacheService(self):
+        cache_port = self.options.get('cache_port')
+        http_port = self.options.get('http_port')
+        _cache = CacheService(host='localhost', from_port=cache_port, to_port=http_port, path='')
+        _cache.setName('cache')
+        _cache.setServiceParent(self.hendrix)
+        self.servers.append('cache')
+
+
+    def addSSLService(self):
+
+        ssl_port = self.options['ssl_port']
+        key = self.options['key']
+        cert = self.options['cert']
+
+        _tcp = self.hendrix.getServiceNamed('main_web_tcp')
+        factory = _tcp.factory
+
+        _ssl = ssl.SSLServer(ssl_port, factory, key, cert)
+
+        _ssl.setName('main_web_ssl')
+        _ssl.setServiceParent(self.hendrix)
+
+        self.servers.append('main_web_ssl')
+
+
+
+    def run(self):
+        self.addServices()
+        action = self.options['action']
+        fd = self.options['fd']
         if action == 'start':
             getattr(self, action)(fd)
         elif action == 'restart':
@@ -92,12 +130,34 @@ class HendrixDeploy(object):
         else:
             getattr(self, action)()
 
+
+
     @property
     def pid(self):
         "The default location of the pid file for process management"
         return '%s/%s_%s.pid' % (
-            HENDRIX_DIR, self.options['port'], self.options['settings'].replace('.', '_')
+            HENDRIX_DIR, self.options['http_port'], self.options['settings'].replace('.', '_')
         )
+
+    def getSpawnArgs(self):
+        """
+        For the child processes we don't need to specify the SSL or caching
+        parameters as 
+        """
+        _args = [
+            executable,  # path to python executable e.g. /usr/bin/python
+            __file__,  # path to this module
+            'start',
+            self.options['settings'],
+            self.options['wsgi'],
+            '--http_port', str(self.options['http_port']),
+            '--ssl_port', str(self.options['ssl_port']),
+            '--workers', '0',
+            '--fd', pickle.dumps(self.fds)
+        ]
+
+        return _args
+
 
     def start(self, fd=None):
         pids = [str(os.getpid())]  # script pid
@@ -112,33 +172,18 @@ class HendrixDeploy(object):
             if self.options['workers']:
                 # Create a new listening port and several other processes to help out.
                 childFDs = {0: 0, 1: 1, 2: 2}
-                fds = {}
+                self.fds = {}
                 for name in self.servers:
                     port = self.hendrix.get_port(name)
                     fd = port.fileno()
                     childFDs[fd] = fd
-                    fds[name] = fd
+                    self.fds[name] = fd
 
-                child_args = [
-                    executable,  # path to python executable e.g. /usr/bin/python
-                    __file__,  # path to this module
-                    'start',
-                    self.options['settings'],
-                    self.options['wsgi'],
-                    str(self.options['port']),
-                    str(self.options['portssl']),
-                    '0',
-                ]
-                if self.is_secure:
-                    child_args.append(self.options['privkey'])
-                    child_args.append(self.options['cert'])
-                child_args.append(pickle.dumps(fds))
+                args = self.getSpawnArgs()
                 transports = []
                 for i in range(self.options['workers']):
                     transport = reactor.spawnProcess(
-                        None, executable, child_args,
-                        childFDs=childFDs,
-                        env=environ
+                        None, executable, args, childFDs=childFDs, env=environ
                     )
                     transports.append(transport)
                     pids.append(str(transport.pid))
@@ -154,9 +199,9 @@ class HendrixDeploy(object):
                 factories[name] = factory
             self.hendrix.startService()
             for name, factory in factories.iteritems():
-                if name == 'web_ssl':
+                if name == 'main_web_ssl':
                     privateCert = PrivateCertificate.loadPEM(
-                        open(self.options['cert']).read() + open(self.options['privkey']).read()
+                        open(self.options['cert']).read() + open(self.options['key']).read()
                     )
                     factory = TLSMemoryBIOFactory(
                         privateCert.options(), False, factory
@@ -188,6 +233,5 @@ class HendrixDeploy(object):
 
 
 if __name__ == '__main__':
-    parser = HendrixParser().all_args()
-    arguments = vars(parser.parse_args())
-    HendrixDeploy(**arguments)
+    deploy = HendrixDeploy()
+    deploy.run()

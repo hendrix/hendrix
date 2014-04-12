@@ -28,6 +28,7 @@ class HendrixResource(resource.Resource):
         resource.Resource.__init__(self)
         self.wsgi_resource = WSGIResource(reactor, threads, application)
 
+
     def getChild(self, name, request):
         """
         Postpath needs to contain all segments of

@@ -38,9 +38,9 @@ class HendrixService(service.MultiService):
 
         factory = server.Site(resource)
         # add a tcp server that binds to port=port
-        web_tcp = TCPServer(port, factory)
-        web_tcp.setName('web_tcp')  # to get this at runtime use hedrix_service.getServiceNamed('web_tcp')
-        web_tcp.setServiceParent(self)
+        main_web_tcp = TCPServer(port, factory)
+        main_web_tcp.setName('main_web_tcp')  # to get this at runtime use hedrix_service.getServiceNamed('main_web_tcp')
+        main_web_tcp.setServiceParent(self)
 
         # add any additional services
         if services:
