@@ -66,11 +66,11 @@ class Command(BaseCommand):
             help='Enter an cache port number to serve cached content.'
         ),
         make_option(
-            '--local_cache',
+            '--global_cache',
             dest='local_cache',
             action='store_true',
             default=False,
-            help='Choice of process local cache or process shared cache'
+            help='Make it so that there is only one cache server'
         ),
         make_option(
             '--nocache',
@@ -106,7 +106,14 @@ class Command(BaseCommand):
             dest='fd',
             default=None,
             help='DO NOT SET THIS'
-        )
+        ),
+        make_option(
+            '-d', '--daemonize',
+            dest='daemonize',
+            action='store_true',
+            default=False,
+            help='Run in the background'
+        ),
     )
 
     def handle(self, *args, **options):

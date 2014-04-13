@@ -1,8 +1,13 @@
 #!/bin/bash
-# This is where the magic happens! ... sort of.
-# Meaning that this bash script allows us to run our daemonizing deploy.py
-# script from any venv we may or may not happen to be in.
-
-# deploy=`type -P django-admin.py`
-
-python manage.py hx $@
+# a simple script to help daemonize the process
+DAEMONIZE="0"
+for arg in $@; do
+    if [[ $arg = "-d" ]] || [[ $arg = "--daemonize" ]]; then
+        DAEMONIZE="1"
+    fi
+done
+if [[ $DAEMONIZE = "1" ]]; then
+    python manage.py hx $@ &> /dev/null &
+else
+    python manage.py hx $@
+fi

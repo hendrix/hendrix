@@ -14,17 +14,12 @@ from django.conf import settings
 from hendrix import HENDRIX_DIR, import_wsgi, defaults
 from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl
-from hendrix.parser import HendrixParser
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor, protocol
 from twisted.internet.ssl import PrivateCertificate
 from twisted.protocols.tls import TLSMemoryBIOFactory
-
-
-
-
 
 
 class HendrixDeploy(object):
@@ -53,8 +48,6 @@ class HendrixDeploy(object):
         self.application = getattr(wsgi, application_name, None)
         # get application if debug == True
         # self.application = dev_wsgi(wsgi)
-
-        print self.options
 
         self.is_secure = self.options['key'] and self.options['cert']
 
@@ -96,7 +89,7 @@ class HendrixDeploy(object):
         if self.is_secure:
             self.addSSLService()
 
-        if self.options.get('local_cache') and not self.options.get('nocache'):
+        if not self.options.get('global_cache') and not self.options.get('nocache'):
             self.addLocalCacheService()
 
         self.catalogServers(self.hendrix)
@@ -181,9 +174,13 @@ class HendrixDeploy(object):
             '--https_port', str(self.options['https_port']),
             '--cache_port', str(self.options['cache_port']),
             '--workers', '0',
-            '--fd', pickle.dumps(self.fds)
+            '--fd', pickle.dumps(self.fds),
+            '--nocache'
             # --key & --cert are purposely not set
         ]
+        if self.options['traceback']:
+            _args.append('--traceback')
+
 
         return _args
 
