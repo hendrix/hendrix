@@ -15,7 +15,7 @@ class HendrixParser(argparse.ArgumentParser):
 
     def all_args(self):
         self.add_argument('--http_port', type=int, default=defaults.HTTP_PORT, help='Enter a port number for the server to serve content.')
-        self.add_argument('--ssl_port', type=int, default=defaults.HTTPS_PORT, help='Enter an ssl port number for the server to serve secure content.')
+        self.add_argument('--https_port', type=int, default=defaults.HTTPS_PORT, help='Enter an ssl port number for the server to serve secure content.')
         self.add_argument('--cache_port', type=int, default=defaults.CACHE_PORT, help='Enter an cache port number to serve cached content.')
         self.add_argument('--local_cache', action='store_true', help='Choice of process local cache or process shared cache')
         self.add_argument('--nocache', action='store_true', help='Disable cache')

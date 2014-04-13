@@ -3,6 +3,6 @@
 # Meaning that this bash script allows us to run our daemonizing deploy.py
 # script from any venv we may or may not happen to be in.
 
-deploy=`type -P deploy.py`
+# deploy=`type -P django-admin.py`
 
-python $deploy $@
+python manage.py hx $@

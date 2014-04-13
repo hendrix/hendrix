@@ -9,7 +9,9 @@ from os import environ
 from sys import executable
 from socket import AF_INET
 
-from hendrix import HENDRIX_DIR, import_wsgi
+from django.conf import settings
+
+from hendrix import HENDRIX_DIR, import_wsgi, defaults
 from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl
 from hendrix.parser import HendrixParser
@@ -40,39 +42,61 @@ class HendrixDeploy(object):
             processes of the reactor
     """
 
-    def __init__(self):
+    def __init__(self, action='start', options=None):
+        self.action = action
+        self.options = options
+        self.options = HendrixDeploy.getConf(self.options)
+        # get wsgi
+        wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
+        wsgi_module, application_name = wsgi_dot_path.split('.')
+        wsgi = importlib.import_module(wsgi_module)
+        self.application = getattr(wsgi, application_name, None)
+        # get application if debug == True
+        # self.application = dev_wsgi(wsgi)
 
-
-        self.options = HendrixDeploy.setOptions()
-
-        wsgi = self.options['wsgi']
-        settings = self.options['settings']
-
-        wsgi_module = import_wsgi(wsgi)
-        settings_module = importlib.import_module(settings)
-        os.environ['DJANGO_SETTINGS_MODULE'] = settings
-
-        self.application = wsgi_module.application
+        print self.options
 
         self.is_secure = self.options['key'] and self.options['cert']
 
-        self.services = get_additional_services(settings_module)
-        self.resources = get_additional_resources(settings_module)
+        self.services = get_additional_services(settings)
+        self.resources = get_additional_resources(settings)
 
         self.servers = []
 
     @classmethod
-    def setOptions(cls):
-        parser = HendrixParser().all_args()
-        return vars(parser.parse_args(sys.argv[1::]))
+    def getConf(cls, options):
+        "updates the options dict to use config options in the settings module"
+        ports = ['http_port', 'https_port', 'cache_port']
+        for port_name in ports:
+            port = getattr(settings, port_name.upper(), None)
+            # only use the settings ports if the defaults were left unchanged
+            default = getattr(defaults, port_name.upper())
+            if port and options.get(port_name) == default:
+                options[port_name] = port
+
+        _opts = [('key', 'hx_private_key'), ('cert', 'hx_certficate'), ('wsgi', 'wsgi_application')]
+        for opt_name, settings_name in _opts:
+            opt = getattr(settings, settings_name.upper(), None)
+            if opt:
+                options[opt_name] = opt
+
+        if not options['settings']:
+            options['settings'] = environ['DJANGO_SETTINGS_MODULE']
+        return options
+
 
     def addServices(self):
+        """
+        a helper function used in HendrixDeploy.run
+        it instanstiates the HendrixService and adds child services
+        note that these services will also be run on all processes
+        """
         self.addHendrix()
 
         if self.is_secure:
             self.addSSLService()
 
-        if self.options.get('local_cache'):
+        if self.options.get('local_cache') and not self.options.get('nocache'):
             self.addLocalCacheService()
 
         self.catalogServers(self.hendrix)
@@ -80,6 +104,7 @@ class HendrixDeploy(object):
 
 
     def addHendrix(self):
+        "instantiates the HendrixService"
         self.hendrix = HendrixService(
             self.application, self.options['http_port'], resources=self.resources,
             services=self.services
@@ -87,12 +112,14 @@ class HendrixDeploy(object):
 
 
     def catalogServers(self, hendrix):
+        "collects a list of service names serving on TCP or SSL"
         for service in hendrix.services:
             if isinstance(service, TCPServer) or isinstance(service, SSLServer):
                 self.servers.append(service.name)
 
 
     def addLocalCacheService(self):
+        "adds a CacheService to the instatiated HendrixService"
         cache_port = self.options.get('cache_port')
         http_port = self.options.get('http_port')
         _cache = CacheService(host='localhost', from_port=cache_port, to_port=http_port, path='')
@@ -102,15 +129,15 @@ class HendrixDeploy(object):
 
 
     def addSSLService(self):
-
-        ssl_port = self.options['ssl_port']
+        "adds a SSLService to the instaitated HendrixService"
+        https_port = self.options['https_port']
         key = self.options['key']
         cert = self.options['cert']
 
         _tcp = self.hendrix.getServiceNamed('main_web_tcp')
         factory = _tcp.factory
 
-        _ssl = ssl.SSLServer(ssl_port, factory, key, cert)
+        _ssl = ssl.SSLServer(https_port, factory, key, cert)
 
         _ssl.setName('main_web_ssl')
         _ssl.setServiceParent(self.hendrix)
@@ -120,8 +147,9 @@ class HendrixDeploy(object):
 
 
     def run(self):
+        "sets up the desired services and runs the requested action"
         self.addServices()
-        action = self.options['action']
+        action = self.action
         fd = self.options['fd']
         if action == 'start':
             getattr(self, action)(fd)
@@ -142,18 +170,19 @@ class HendrixDeploy(object):
     def getSpawnArgs(self):
         """
         For the child processes we don't need to specify the SSL or caching
-        parameters as 
+        parameters as
         """
         _args = [
             executable,  # path to python executable e.g. /usr/bin/python
-            __file__,  # path to this module
+            'manage.py',
+            'hx',
             'start',
-            self.options['settings'],
-            self.options['wsgi'],
             '--http_port', str(self.options['http_port']),
-            '--ssl_port', str(self.options['ssl_port']),
+            '--https_port', str(self.options['https_port']),
+            '--cache_port', str(self.options['cache_port']),
             '--workers', '0',
             '--fd', pickle.dumps(self.fds)
+            # --key & --cert are purposely not set
         ]
 
         return _args
@@ -227,11 +256,11 @@ class HendrixDeploy(object):
         self.start(fd)
 
     def disownService(self, name):
+        """
+        disowns a service on hendirix by name
+        returns a factory for use in the adoptStreamPort part of setting up
+        multiple processes
+        """
         _service = self.hendrix.getServiceNamed(name)
         _service.disownServiceParent()
         return _service.factory
-
-
-if __name__ == '__main__':
-    deploy = HendrixDeploy()
-    deploy.run()
