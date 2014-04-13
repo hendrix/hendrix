@@ -49,6 +49,13 @@ class Command(BaseCommand):
             help="Flag that watchdog should restart the server when changes to the codebase occur"
         ),
         make_option(
+            '-l', '--loud',
+            action='store_true',
+            dest='loud',
+            default=False,
+            help="Show warnings"
+        ),
+        make_option(
             '--http_port',
             type=int,
             dest='http_port',
@@ -70,21 +77,21 @@ class Command(BaseCommand):
             help='Enter an cache port number to serve cached content.'
         ),
         make_option(
-            '--global_cache',
+            '-g', '--global_cache',
             dest='local_cache',
             action='store_true',
             default=False,
             help='Make it so that there is only one cache server'
         ),
         make_option(
-            '--nocache',
+            '-n', '--nocache',
             dest='nocache',
             action='store_true',
             default=False,
-            help='Disable cache'
+            help='Disable page cache'
         ),
         make_option(
-            '--workers',
+            '-w', '--workers',
             type=int,
             dest='workers',
             default=0,

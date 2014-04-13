@@ -86,11 +86,11 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
-        if self.is_secure:
-            self.addSSLService()
-
         if not self.options.get('global_cache') and not self.options.get('nocache'):
             self.addLocalCacheService()
+
+        if self.is_secure:
+            self.addSSLService()
 
         self.catalogServers(self.hendrix)
 
@@ -116,9 +116,8 @@ class HendrixDeploy(object):
         cache_port = self.options.get('cache_port')
         http_port = self.options.get('http_port')
         _cache = CacheService(host='localhost', from_port=cache_port, to_port=http_port, path='')
-        _cache.setName('cache')
+        _cache.setName('cache_proxy')
         _cache.setServiceParent(self.hendrix)
-        self.servers.append('cache')
 
 
     def addSSLService(self):
@@ -135,7 +134,6 @@ class HendrixDeploy(object):
         _ssl.setName('main_web_ssl')
         _ssl.setServiceParent(self.hendrix)
 
-        self.servers.append('main_web_ssl')
 
 
 
@@ -167,7 +165,10 @@ class HendrixDeploy(object):
         """
         _args = [
             executable,  # path to python executable e.g. /usr/bin/python
-            '-W', 'ignore',
+        ]
+        if not self.options['loud']:
+            _args += ['-W', 'ignore',]
+        _args += [
             'manage.py',
             'hx',
             'start',
@@ -176,14 +177,21 @@ class HendrixDeploy(object):
             '--cache_port', str(self.options['cache_port']),
             '--workers', '0',
             '--fd', pickle.dumps(self.fds),
-            '--nocache'
-            # --key & --cert are purposely not set
         ]
+        if self.is_secure:
+            _args += [
+                '--key', self.options.get('key'),
+                '--cert', self.options.get('cert')
+            ]
         if self.options['traceback']:
             _args.append('--traceback')
 
 
         return _args
+
+
+    def addGlobalServices(self):
+        pass
 
 
     def start(self, fd=None):
@@ -194,6 +202,8 @@ class HendrixDeploy(object):
 
             # TODO add global services here, possibly add a services kwarg on
             # __init__
+            self.addGlobalServices()
+
 
             self.hendrix.startService()
             if self.options['workers']:

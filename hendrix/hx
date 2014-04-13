@@ -1,13 +1,19 @@
 #!/bin/bash
 # a simple script to help daemonize the process
 DAEMONIZE="0"
+LOUD="0"
 for arg in $@; do
     if [[ $arg = "-d" ]] || [[ $arg = "--daemonize" ]]; then
         DAEMONIZE="1"
     fi
+    if [[ $arg = "-l" ]] || [[ $arg = "--loud" ]]; then
+        LOUD="1"
+    fi
 done
 if [[ $DAEMONIZE = "1" ]]; then
     python manage.py hx $@ &> /dev/null &
+elif [[ $LOUD = "1" ]]; then
+    python manage.py hx $@
 else
     python -W ignore manage.py hx $@
 fi
