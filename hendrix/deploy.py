@@ -167,6 +167,7 @@ class HendrixDeploy(object):
         """
         _args = [
             executable,  # path to python executable e.g. /usr/bin/python
+            '-W', 'ignore',
             'manage.py',
             'hx',
             'start',

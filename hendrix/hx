@@ -9,5 +9,5 @@ done
 if [[ $DAEMONIZE = "1" ]]; then
     python manage.py hx $@ &> /dev/null &
 else
-    python manage.py hx $@
+    python -W ignore manage.py hx $@
 fi

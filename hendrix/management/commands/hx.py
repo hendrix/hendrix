@@ -14,9 +14,14 @@ from watchdog.events import FileSystemEventHandler
 class Reload(FileSystemEventHandler):
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, options, *args, **kwargs):
         super(Reload, self).__init__(*args, **kwargs)
-        HendrixDeploy().run()
+        self.options = []
+        for key, value in options.iteritems():
+            self.options += [key, str(value)]
+        self.process = subprocess.Popen(
+            ['hx', 'start'] + self.options
+        )
 
     def on_any_event(self, event):
         if event.is_directory:
@@ -27,10 +32,9 @@ class Reload(FileSystemEventHandler):
             print "Got it!"
 
     def restart(self):
-        if self.process is not None:
-            self.process.terminate()
+        self.process.terminate()
         process = subprocess.Popen(
-            ['hx', 'restart']
+            ['hx', 'restart'] + self.options
         )
         return process
 
@@ -40,7 +44,7 @@ class Command(BaseCommand):
         make_option(
             '--reload',
             action='store_true',
-            dest='noreload',
+            dest='reload',
             default=False,
             help="Flag that watchdog should restart the server when changes to the codebase occur"
         ),
@@ -117,17 +121,19 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        action = args[0]
-        deploy = HendrixDeploy(action, options)
-        deploy.run()
-        # event_handler = Reload()
-        # observer = Observer()
-        # observer.schedule(event_handler, path='.', recursive=True)
-        # observer.start()
-        # try:
-        #     while True:
-        #         time.sleep(1)
-        # except KeyboardInterrupt:
-        #     observer.stop()
-        # observer.join()
-        # exit('\n')
+        if options['reload']:
+            event_handler = Reload(options)
+            observer = Observer()
+            observer.schedule(event_handler, path='.', recursive=True)
+            observer.start()
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                observer.stop()
+            observer.join()
+            exit('\n')
+        else:
+            action = args[0]
+            deploy = HendrixDeploy(action, options)
+            deploy.run()
