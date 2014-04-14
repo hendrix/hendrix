@@ -14,12 +14,13 @@ gzipped files. It's also possible to extend the current caching functionality by
 subclassing the hendrix `CacheService` and adding a reference to that subclass within a
 `HENDRIX_SERVICES` tuple of tuples e.g. `(('name', 'app.MyCustomCache'),)` in your
 Django settings file. Just use the `--nocache` flag to turn caching off.
-* **Built-in SSL** - SSL is also process distributed, just provide the options
---priv /path/to/private.key and --cert /path/to/signed.cert to enable SSL
+* **Built-in SSL Support** - SSL is also process distributed, just provide the options
+--key /path/to/private.key and --cert /path/to/signed.cert to enable SSL
 and process distributed TLS
 * **Multi-threading from within Django** - Enables the use of Twisted's `defer`
 module and `deferToThread` and `callInThread` methods from within Django
 * **Built-in Websockets Framework**
+* **Daemonize** by passing the `-d` or `--daemonize` flags to `hx`
 
 ###Installation
 
