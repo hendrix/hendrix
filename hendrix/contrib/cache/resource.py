@@ -10,6 +10,8 @@ from twisted.internet import reactor, defer, threads
 from twisted.web import proxy, resource
 from twisted.web.server import NOT_DONE_YET
 
+PREFIX = "/CACHE"
+
 
 
 class CacheClient(proxy.ProxyClient):
@@ -48,7 +50,6 @@ class CacheClient(proxy.ProxyClient):
             # because we don't care if the user hits
             # refresh before the request is done
             pass
-        # execute cache logic
 
     def cache(self, content, request):
 
@@ -60,7 +61,7 @@ class CacheClient(proxy.ProxyClient):
             max_age = MAX_AGE
         if max_age and request.method == "GET" and request.code/100 == 2:
             content = self.compressBuffer(content)
-            self.resource.putCache(content, request.uri, max_age)
+            self.resource.putCache(content, PREFIX + request.uri, max_age)
         self.closeBuffer()
 
 
@@ -109,6 +110,7 @@ class CacheClientFactory(proxy.ProxyClientFactory):
 
 class CachedResource(resource.Resource):
 
+    isLeaf = True
 
     def __init__(self, content=None, max_age=None):
         resource.Resource.__init__(self)
@@ -128,8 +130,6 @@ class CachedResource(resource.Resource):
         self.content = self.decompressBuffer(self.content)
 
     def render(self, request):
-        print 'CACHED!'
-        print self.content
         return self.content
 
 
@@ -166,7 +166,7 @@ class CacheProxyResource(proxy.ReverseProxyResource):
         """
         # start caching logic
         is_secure = request.isSecure()
-        uri = request.uri
+        uri = PREFIX + request.uri
         if uri in self.children and not is_secure and request.method == "GET":
             child = self.children[uri]
             created = child.created
@@ -236,6 +236,6 @@ class CacheProxyResource(proxy.ReverseProxyResource):
                 pass
         return
 
-    def putCache(self, content, url, request):
-        resource = CachedResource(content, request)
+    def putCache(self, content, url, max_age):
+        resource = CachedResource(content, max_age)
         self.putChild(url, resource)
