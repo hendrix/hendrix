@@ -10,7 +10,7 @@ README = read('README.md')
 setup(
     name = "hendrix",
     packages = find_packages(),
-    version = "0.2",
+    version = "0.1.0",
     url = "https://github.com/hangarunderground/hendrix",
     description = "A deployment module for Django that uses Twisted.",
     long_description = "\n\n".join([README]),
