@@ -185,8 +185,6 @@ class HendrixDeploy(object):
             ]
         if self.options['traceback']:
             _args.append('--traceback')
-
-
         return _args
 
 

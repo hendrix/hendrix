@@ -3,8 +3,10 @@ from datetime import datetime
 import gzip
 import urlparse
 
+from hendrix.defaults import MAX_AGE
+
 from urllib import quote as urlquote
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, threads
 from twisted.web import proxy, resource
 from twisted.web.server import NOT_DONE_YET
 
@@ -20,48 +22,46 @@ class CacheClient(proxy.ProxyClient):
             self, command, rest, version, headers, data, father
         )
         self.resource = resource
-
-
-    def openBuffer(self):
         self.buffer = cStringIO.StringIO()
+
 
     def closeBuffer(self):
         self.buffer.close()
 
     def connectionMade(self):
         proxy.ProxyClient.connectionMade(self)
-        self.openBuffer()
 
     def connectionLost(self, reason):
         proxy.ProxyClient.connectionLost(self, reason)
-        self.closeBuffer()
         # print 'hello', reason
 
     def dataReceived(self, transport):
         proxy.ProxyClient.dataReceived(self, transport)
 
     def handleResponseEnd(self):
-        # try:
-        proxy.ProxyClient.handleResponseEnd(self)
-        # except RuntimeError:
-            # import ipdb; ipdb.set_trace()
-            # pass
+        try:
+            if not self._finished:
+                content = self.buffer.getvalue()
+                reactor.callInThread(self.cache, content, self.father)
+            proxy.ProxyClient.handleResponseEnd(self)
+        except RuntimeError:
+            # because we don't care if the user hits
+            # refresh before the request is done
+            pass
         # execute cache logic
-        # self.cache(buffer, request)
 
-    # def cache(self, buffer, request):
-    #     # d = defer.Deferred()
-    #
-    #     cache_control = self.headers.get('cache-control')
-    #     if cache_control:
-    #         max_age_name, max_age = urlparse.parse_qsl(cache_control)[0]
-    #         max_age = int(max_age)
-    #     else:
-    #         max_age = MAX_AGE
-    #     if max_age and self.father.method == "GET" and self.father.code/100 == 2:
-    #         self.resource.putCache(self.father.uri, request)
-    #
-    #     return d.callback
+    def cache(self, content, request):
+
+        cache_control = self.headers.get('cache-control')
+        if cache_control:
+            max_age_name, max_age = urlparse.parse_qsl(cache_control)[0]
+            max_age = int(max_age)
+        else:
+            max_age = MAX_AGE
+        if max_age and request.method == "GET" and request.code/100 == 2:
+            content = self.compressBuffer(content)
+            self.resource.putCache(content, request.uri, max_age)
+        self.closeBuffer()
 
 
     def handleResponsePart(self, buffer):
@@ -110,12 +110,26 @@ class CacheClientFactory(proxy.ProxyClientFactory):
 class CachedResource(resource.Resource):
 
 
-    def __init__(self, content, request):
+    def __init__(self, content=None, max_age=None):
         resource.Resource.__init__(self)
         self.content = content
-        self.request = request
+        self.max_age = max_age
+        self.created = datetime.now()
+
+    def decompressBuffer(self, buffer):
+        "complements the compressBuffer function in CacheClient"
+        zbuf = cStringIO.StringIO(buffer)
+        zfile = gzip.GzipFile(fileobj=zbuf)
+        deflated = zfile.read()
+        zfile.close()
+        return deflated
+
+    def decompressContent(self):
+        self.content = self.decompressBuffer(self.content)
 
     def render(self, request):
+        print 'CACHED!'
+        print self.content
         return self.content
 
 
@@ -145,6 +159,32 @@ class CacheProxyResource(proxy.ReverseProxyResource):
             self.host, self.port, self.path + '/' + urlquote(path, safe=""),
             self.reactor
         )
+
+    def getChildWithDefault(self, path, request):
+        """
+        Retrieve a static or dynamically generated child resource from me.
+        """
+        # start caching logic
+        is_secure = request.isSecure()
+        uri = request.uri
+        if uri in self.children and not is_secure and request.method == "GET":
+            child = self.children[uri]
+            created = child.created
+            max_age = child.max_age
+            delta_time = datetime.now() - created
+            is_fresh = delta_time.total_seconds() < max_age
+            if is_fresh:
+                encodings = request.getHeader('accept-encoding')
+                if encodings and 'gzip' in encodings:
+                    request.responseHeaders.addRawHeader('content-encoding', 'gzip')
+                    request.responseHeaders.addRawHeader('content-length', len(child.content))
+                else:
+                    child.decompressContent()
+                return child
+        # original logic
+        if path in self.children:
+            return self.children[path]
+        return self.getChild(path, request)
 
     def render(self, request):
         """
@@ -182,6 +222,9 @@ class CacheProxyResource(proxy.ReverseProxyResource):
         zfile.close()
         return deflated
 
+    def decompressContent(self):
+        self.content = self.decompressBuffer(self.content)
+
     def getGlobalSelf(self):
         transports = self.reactor.getReaders()
         for transport in transports:
@@ -193,9 +236,6 @@ class CacheProxyResource(proxy.ReverseProxyResource):
                 pass
         return
 
-
-
-    def putCache(self, url, request):
-        content = self.buffer.getvalue()
+    def putCache(self, content, url, request):
         resource = CachedResource(content, request)
         self.putChild(url, resource)
