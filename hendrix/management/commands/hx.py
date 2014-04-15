@@ -23,7 +23,7 @@ class Reload(FileSystemEventHandler):
                 'the command as an option.'
             )
         self.options = []
-        store_true = ['--nocache', '--global_cache', '--daemonize']
+        store_true = ['--nocache', '--global_cache', '--daemonize', '--dev']
         store_false = []
         for key, value in options.iteritems():
             key = '--' + key
@@ -137,6 +137,13 @@ class Command(BaseCommand):
             default=False,
             help='Run in the background'
         ),
+        make_option(
+            '--dev',
+            dest='dev',
+            action='store_true',
+            default=False,
+            help='Runs in development mode. Meaning it uses the development wsgi handler subclass'
+        )
     )
 
     def handle(self, *args, **options):

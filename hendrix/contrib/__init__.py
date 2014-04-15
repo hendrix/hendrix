@@ -11,27 +11,6 @@ from twisted.web.resource import Resource, ForbiddenResource
 from .async.resources import MessageResource
 
 
-try:
-    from raven.contrib.django.raven_compat.middleware.wsgi import Sentry
-    has_sentry = True
-except ImportError:
-    has_sentry = False
-
-
-def dev_wsgi(wsgi_dot_path):
-    """
-    modifies the wsgi handler to use our DevWSGIHandler
-    also takes into consideration whether or not the handler is using sentry
-    """
-    wsgi = importlib.import_module(wsgi_dot_path)
-    _wsgi = DevWSGIHandler()
-    if has_sentry and isinstance(wsgi, Sentry):
-        wsgi.application = _wsgi
-    else:
-        wsgi = _wsgi
-    return wsgi
-
-
 
 class DevWSGIHandler(WSGIHandler):
     def __call__(self, *args, **kwargs):

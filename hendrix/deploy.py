@@ -13,7 +13,7 @@ from django.conf import settings
 
 from hendrix import HENDRIX_DIR, import_wsgi, defaults
 from hendrix.contrib.services.cache import CacheService
-from hendrix.contrib import ssl
+from hendrix.contrib import ssl, DevWSGIHandler
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from twisted.application.internet import TCPServer, SSLServer
@@ -42,12 +42,14 @@ class HendrixDeploy(object):
         self.options = options
         self.options = HendrixDeploy.getConf(self.options)
         # get wsgi
-        wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
-        wsgi_module, application_name = wsgi_dot_path.split('.')
-        wsgi = importlib.import_module(wsgi_module)
-        self.application = getattr(wsgi, application_name, None)
-        # get application if debug == True
-        # self.application = dev_wsgi(wsgi)
+        if not self.options['dev']:
+            wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
+            wsgi_module, application_name = wsgi_dot_path.split('.')
+            wsgi = importlib.import_module(wsgi_module)
+            self.application = getattr(wsgi, application_name, None)
+        else:
+            self.application = DevWSGIHandler()
+            print 'Ready and Listening...'
 
         self.is_secure = self.options['key'] and self.options['cert']
 
@@ -206,7 +208,6 @@ class HendrixDeploy(object):
             # TODO add global services here, possibly add a services kwarg on
             # __init__
             self.addGlobalServices()
-
 
             self.hendrix.startService()
             if self.options['workers']:
