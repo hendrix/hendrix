@@ -111,11 +111,16 @@ class HendrixDeploy(object):
                 self.servers.append(service.name)
 
 
-    def addLocalCacheService(self):
-        "adds a CacheService to the instatiated HendrixService"
+    def getCacheService(self):
         cache_port = self.options.get('cache_port')
         http_port = self.options.get('http_port')
-        _cache = CacheService(host='localhost', from_port=cache_port, to_port=http_port, path='')
+        return CacheService(
+            host='localhost', from_port=cache_port, to_port=http_port, path=''
+        )
+
+    def addLocalCacheService(self):
+        "adds a CacheService to the instatiated HendrixService"
+        _cache = self.getCacheService()
         _cache.setName('cache_proxy')
         _cache.setServiceParent(self.hendrix)
 
@@ -133,8 +138,6 @@ class HendrixDeploy(object):
 
         _ssl.setName('main_web_ssl')
         _ssl.setServiceParent(self.hendrix)
-
-
 
 
     def run(self):
@@ -189,7 +192,9 @@ class HendrixDeploy(object):
 
 
     def addGlobalServices(self):
-        pass
+        if self.options.get('global_cache') and not self.options.get('nocache'):
+            _cache = self.getCacheService()
+            _cache.startService()
 
 
     def start(self, fd=None):

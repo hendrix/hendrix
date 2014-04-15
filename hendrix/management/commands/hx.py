@@ -90,7 +90,7 @@ class Command(BaseCommand):
         ),
         make_option(
             '-g', '--global_cache',
-            dest='local_cache',
+            dest='global_cache',
             action='store_true',
             default=False,
             help='Make it so that there is only one cache server'
