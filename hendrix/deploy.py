@@ -43,7 +43,7 @@ class HendrixDeploy(object):
         self.options = HendrixDeploy.getConf(self.options)
         # get wsgi
         wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
-        wsgi_module, application_name = wsgi_dot_path.split('.')
+        wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
         wsgi = importlib.import_module(wsgi_module)
         self.application = getattr(wsgi, application_name, None)
         # get application if debug == True
@@ -85,6 +85,8 @@ class HendrixDeploy(object):
         note that these services will also be run on all processes
         """
         self.addHendrix()
+
+        print self.options
 
         if not self.options.get('global_cache') and not self.options.get('nocache'):
             self.addLocalCacheService()

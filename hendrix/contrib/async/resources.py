@@ -4,6 +4,8 @@ import uuid
 from twisted.internet.protocol import Factory, Protocol
 from txsockjs.factory import SockJSResource
 
+from hendrix.resources import NamedResource
+
 from .messaging import hxdispatcher
 
 
@@ -70,4 +72,5 @@ class MessageHandlerProtocol(Protocol):
         self.dispatcher.remove(self.transport)
 
 
-MessageResource = SockJSResource(Factory.forProtocol(MessageHandlerProtocol))
+MessageResource = NamedResource('messages')
+MessageResource.putChild('main', SockJSResource(Factory.forProtocol(MessageHandlerProtocol)))

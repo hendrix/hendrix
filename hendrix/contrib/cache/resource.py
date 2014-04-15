@@ -55,8 +55,12 @@ class CacheClient(proxy.ProxyClient):
 
         cache_control = self.headers.get('cache-control')
         if cache_control:
-            max_age_name, max_age = urlparse.parse_qsl(cache_control)[0]
-            max_age = int(max_age)
+            parsed = urlparse.parse_qsl(cache_control)
+            if parsed:
+                max_age_name, max_age = parsed[0]
+                max_age = int(max_age)
+            else:
+                max_age = MAX_AGE
         else:
             max_age = MAX_AGE
         if max_age and request.method == "GET" and request.code/100 == 2:
