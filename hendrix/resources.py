@@ -1,7 +1,6 @@
 import os
 import sys
 import importlib
-from .contrib.async.resources import MessageResource
 from twisted.web import resource, static
 from twisted.web.wsgi import WSGIResource
 
@@ -50,7 +49,7 @@ class HendrixResource(resource.Resource):
             path = resource.namespace
             self.putChild(path, resource)
         except AttributeError, e:
-            msg = 'additional_resources instances must have a namespace attribute'
+            msg = '%r improperly configured. additional_resources instances must have a namespace attribute'%resource
             raise AttributeError(msg), None, sys.exc_info()[2]
 
 
@@ -144,7 +143,3 @@ def get_additional_resources(settings_module):
     return additional_resources
 
 
-# Helper resources for the lazy amongst us
-HendrixMessagingResource = NamedResource('hendrix')
-HendrixMessagingResource.putChild('message', MessageResource)
-# add more resources here ...

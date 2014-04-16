@@ -44,6 +44,7 @@ class HendrixService(service.MultiService):
 
         # add any additional services
         if services:
+            logger.info('loaded %r at %r'%(srv,srv_name))
             for srv_name, srv in services:
                 srv.setName(srv_name)
                 srv.setServiceParent(self)
