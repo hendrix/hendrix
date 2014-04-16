@@ -35,8 +35,9 @@ class HendrixDeploy(object):
         self.options = HendrixDeploy.getConf(self.options)
         # get wsgi
         if not self.options['dev']:
+
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
-            wsgi_module, application_name = wsgi_dot_path.split('.')
+            wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
             wsgi = importlib.import_module(wsgi_module)
             self.application = getattr(wsgi, application_name, None)
         else:
