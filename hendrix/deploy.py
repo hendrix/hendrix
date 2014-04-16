@@ -13,7 +13,8 @@ from django.conf import settings
 
 from hendrix import HENDRIX_DIR, import_wsgi, defaults
 from hendrix.contrib.services.cache import CacheService
-from hendrix.contrib import ssl
+from hendrix.contrib import ssl, DevWSGIHandler
+from hendrix.contrib.color import Colors
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from twisted.application.internet import TCPServer, SSLServer
@@ -26,29 +27,21 @@ class HendrixDeploy(object):
     """
     HendrixDeploy encapsulates the necessary information needed to deploy the
     HendrixService on a single or multiple processes.
-        action: [start|stop|restart]
-        settings: dot seperated python path to django settings module e.g. proj.settings
-        wsgi: the relative or absolute path to a wsgi.py file. It's important
-            to note that this file is also used to expose the projects path to
-            python.
-        port: the listening port
-        workers: the number of process you want to start minus 1 i.e. 2 yeilds 3 processes
-        fd: file descriptor that is needed to expose the listening port to sub-
-            processes of the reactor
     """
 
     def __init__(self, action='start', options=None):
-
         self.action = action
         self.options = options
         self.options = HendrixDeploy.getConf(self.options)
         # get wsgi
-        wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
-        wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
-        wsgi = importlib.import_module(wsgi_module)
-        self.application = getattr(wsgi, application_name, None)
-        # get application if debug == True
-        # self.application = dev_wsgi(wsgi)
+        if not self.options['dev']:
+            wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
+            wsgi_module, application_name = wsgi_dot_path.split('.')
+            wsgi = importlib.import_module(wsgi_module)
+            self.application = getattr(wsgi, application_name, None)
+        else:
+            self.application = DevWSGIHandler()
+            Colors.blue('Ready and Listening...')
 
         self.is_secure = self.options['key'] and self.options['cert']
 
@@ -112,11 +105,16 @@ class HendrixDeploy(object):
                 self.servers.append(service.name)
 
 
-    def addLocalCacheService(self):
-        "adds a CacheService to the instatiated HendrixService"
+    def getCacheService(self):
         cache_port = self.options.get('cache_port')
         http_port = self.options.get('http_port')
-        _cache = CacheService(host='localhost', from_port=cache_port, to_port=http_port, path='')
+        return CacheService(
+            host='localhost', from_port=cache_port, to_port=http_port, path=''
+        )
+
+    def addLocalCacheService(self):
+        "adds a CacheService to the instatiated HendrixService"
+        _cache = self.getCacheService()
         _cache.setName('cache_proxy')
         _cache.setServiceParent(self.hendrix)
 
@@ -134,8 +132,6 @@ class HendrixDeploy(object):
 
         _ssl.setName('main_web_ssl')
         _ssl.setServiceParent(self.hendrix)
-
-
 
 
     def run(self):
@@ -190,7 +186,9 @@ class HendrixDeploy(object):
 
 
     def addGlobalServices(self):
-        pass
+        if self.options.get('global_cache') and not self.options.get('nocache'):
+            _cache = self.getCacheService()
+            _cache.startService()
 
 
     def start(self, fd=None):
@@ -202,7 +200,6 @@ class HendrixDeploy(object):
             # TODO add global services here, possibly add a services kwarg on
             # __init__
             self.addGlobalServices()
-
 
             self.hendrix.startService()
             if self.options['workers']:

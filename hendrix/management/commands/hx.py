@@ -16,9 +16,21 @@ class Reload(FileSystemEventHandler):
 
     def __init__(self, options, *args, **kwargs):
         super(Reload, self).__init__(*args, **kwargs)
+        self.reload = options.pop('reload')
+        if not self.reload:
+            raise RuntimeError(
+                'Reload should not be run if --reload has no been passed to '
+                'the command as an option.'
+            )
         self.options = []
+        store_true = ['--nocache', '--global_cache', '--daemonize', '--dev']
+        store_false = []
         for key, value in options.iteritems():
-            self.options += [key, str(value)]
+            key = '--' + key
+            if (key in store_true and value) or (key in store_false and not value):
+                self.options += [key,]
+            elif value:
+                self.options += [key, str(value)]
         self.process = subprocess.Popen(
             ['hx', 'start'] + self.options
         )
@@ -78,7 +90,7 @@ class Command(BaseCommand):
         ),
         make_option(
             '-g', '--global_cache',
-            dest='local_cache',
+            dest='global_cache',
             action='store_true',
             default=False,
             help='Make it so that there is only one cache server'
@@ -125,6 +137,13 @@ class Command(BaseCommand):
             default=False,
             help='Run in the background'
         ),
+        make_option(
+            '--dev',
+            dest='dev',
+            action='store_true',
+            default=False,
+            help='Runs in development mode. Meaning it uses the development wsgi handler subclass'
+        )
     )
 
     def handle(self, *args, **options):
