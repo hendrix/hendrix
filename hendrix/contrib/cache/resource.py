@@ -35,7 +35,6 @@ class CacheClient(proxy.ProxyClient):
 
     def connectionLost(self, reason):
         proxy.ProxyClient.connectionLost(self, reason)
-        # print 'hello', reason
 
     def dataReceived(self, transport):
         proxy.ProxyClient.dataReceived(self, transport)
@@ -143,7 +142,6 @@ class CacheProxyResource(proxy.ReverseProxyResource):
     This is a state persistent subclass of the built-in ReverseProxyResource.
     """
 
-
     def __init__(self, host, to_port, path, reactor=reactor):
         """
         The 'to_port' arg points to the port of the server that we are sending
@@ -230,6 +228,11 @@ class CacheProxyResource(proxy.ReverseProxyResource):
         self.content = self.decompressBuffer(self.content)
 
     def getGlobalSelf(self):
+        """
+        This searches the reactor for the original instance of CacheProxyResource.
+        This is necessary because with each call of getChild a new instance of
+        CacheProxyResource is created.
+        """
         transports = self.reactor.getReaders()
         for transport in transports:
             try:
