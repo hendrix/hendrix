@@ -143,6 +143,3 @@ def get_additional_resources(settings_module):
     return additional_resources
 
 
-# Helper resources for the lazy amongst us
-HendrixMessagingResource = NamedResource('hendrix')
-# add more resources here ...

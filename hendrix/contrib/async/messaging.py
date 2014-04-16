@@ -101,29 +101,10 @@ class MessageDispatcher(object):
         else:
             recipients = [self.recipients.get(address)]
 
-        # print 'recipients for message:', recipients
-
         if recipients:
             for recipient in recipients:
                 if recipient:
                     recipient.send(json.dumps(data_dict))
-
-
-    def do_action(self, transport, data):
-        """
-            receives a dictionary.  cleans the input and tries to perform
-            the appropriate action
-
-        """
-
-        actions = {
-            'subscribe': self.subscribe
-        }
-
-        action = data.get('action')
-
-        if action in actions:
-            actions[action](transport, data)
 
 
     def subscribe(self, transport, data):
@@ -131,8 +112,9 @@ class MessageDispatcher(object):
             adds a transport to a channel
         """
 
-        if 'address' in data:
-            self.add(transport, data.get('address'))
+        self.add(transport, address=data.get('hx_subscribe'))
+
+        self.send(data.get('hx_subscribe'), {'message':"%r is listening"%transport})
 
 
 def send_json_message(address, message, **kwargs):

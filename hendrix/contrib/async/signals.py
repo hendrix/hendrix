@@ -8,4 +8,4 @@ short_task = django.dispatch.Signal(providing_args=["args", "kwargs"])
 
 long_task = django.dispatch.Signal(providing_args=["args", "kwargs"])
 
-print 'signals loaded'
+message_signal = django.dispatch.Signal(providing_args=["data", "dispatcher"])

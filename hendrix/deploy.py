@@ -38,6 +38,7 @@ class HendrixDeploy(object):
     """
 
     def __init__(self, action='start', options=None):
+
         self.action = action
         self.options = options
         self.options = HendrixDeploy.getConf(self.options)
@@ -85,8 +86,6 @@ class HendrixDeploy(object):
         note that these services will also be run on all processes
         """
         self.addHendrix()
-
-        print self.options
 
         if not self.options.get('global_cache') and not self.options.get('nocache'):
             self.addLocalCacheService()
