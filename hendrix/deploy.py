@@ -14,6 +14,7 @@ from django.conf import settings
 from hendrix import HENDRIX_DIR, import_wsgi, defaults
 from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl, DevWSGIHandler
+from hendrix.contrib.color import Colors
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from twisted.application.internet import TCPServer, SSLServer
@@ -26,15 +27,6 @@ class HendrixDeploy(object):
     """
     HendrixDeploy encapsulates the necessary information needed to deploy the
     HendrixService on a single or multiple processes.
-        action: [start|stop|restart]
-        settings: dot seperated python path to django settings module e.g. proj.settings
-        wsgi: the relative or absolute path to a wsgi.py file. It's important
-            to note that this file is also used to expose the projects path to
-            python.
-        port: the listening port
-        workers: the number of process you want to start minus 1 i.e. 2 yeilds 3 processes
-        fd: file descriptor that is needed to expose the listening port to sub-
-            processes of the reactor
     """
 
     def __init__(self, action='start', options=None):
@@ -49,7 +41,7 @@ class HendrixDeploy(object):
             self.application = getattr(wsgi, application_name, None)
         else:
             self.application = DevWSGIHandler()
-            print 'Ready and Listening...'
+            Colors.blue('Ready and Listening...')
 
         self.is_secure = self.options['key'] and self.options['cert']
 

@@ -9,19 +9,27 @@ except ImportError as e:
     ), None, sys.exc_info()[2]
 from twisted.web.resource import Resource, ForbiddenResource
 from .async.resources import MessageResource
-
+from .color import Colors
 
 
 class DevWSGIHandler(WSGIHandler):
     def __call__(self, *args, **kwargs):
         response = super(DevWSGIHandler, self).__call__(*args, **kwargs)
-        print 'Response [%s] - %s:%s %s %s' % (
-            response.status_code,
+        code = response.status_code
+        message = 'Response [%s] - %s:%s %s %s' % (
+            code,
             args[0]['REMOTE_ADDR'],
             args[0]['SERVER_PORT'],
             args[0]['REQUEST_METHOD'],
             args[0]['PATH_INFO'],
         )
+        signal = code/100
+        if signal == 2:
+            Colors.green(message)
+        elif signal == 3:
+            Colors.blue(message)
+        else:
+            Colors.red(message)    
         return response
 
 
