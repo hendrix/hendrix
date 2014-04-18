@@ -35,10 +35,11 @@ class HendrixDeploy(object):
         self.services = []
         self.resources = []
 
-        # get wsgi
+        use_settings = True
         if self.options['wsgi']:
             wsgi_dot_path = self.options['wsgi']
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
+            use_settings = False
         else:
             django_conf = importlib.import_module('django.conf')
             settings = getattr(django_conf, 'settings')
@@ -46,13 +47,11 @@ class HendrixDeploy(object):
             self.resources = get_additional_resources(settings)
             self.options = HendrixDeploy.getConf(settings, self.options)
 
-
-        if not self.options['dev'] and not self.options['wsgi']:
+        if not self.options['dev'] and use_settings:
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
         else:
             self.application = DevWSGIHandler()
-            Colors.blue('Ready and Listening...')
 
         self.is_secure = self.options['key'] and self.options['cert']
 
@@ -154,6 +153,8 @@ class HendrixDeploy(object):
         self.addServices()
         action = self.action
         fd = self.options['fd']
+
+        Colors.blue('Ready and Listening...')
         if action == 'start':
             getattr(self, action)(fd)
         elif action == 'restart':
@@ -195,6 +196,8 @@ class HendrixDeploy(object):
                 '--key', self.options.get('key'),
                 '--cert', self.options.get('cert')
             ]
+        if self.options['nocache']:
+            _args.append('--nocache') 
         if self.options['traceback']:
             _args.append('--traceback')
         return _args
