@@ -9,12 +9,11 @@ from os import environ
 from sys import executable
 from socket import AF_INET
 
-from django.conf import settings
-
 from hendrix import HENDRIX_DIR, import_wsgi, defaults
 from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl, DevWSGIHandler
 from hendrix.contrib.color import Colors
+from hendrix.management.commands.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from twisted.application.internet import TCPServer, SSLServer
@@ -29,30 +28,45 @@ class HendrixDeploy(object):
     HendrixService on a single or multiple processes.
     """
 
-    def __init__(self, action='start', options=None):
+    def __init__(self, action='start', options={}):
         self.action = action
-        self.options = options
-        self.options = HendrixDeploy.getConf(self.options)
-        # get wsgi
-        if not self.options['dev']:
+        self.options = hx_options()
+        self.options.update(options)
+        self.services = []
+        self.resources = []
 
+        # get wsgi
+        if self.options['wsgi']:
+            wsgi_dot_path = self.options['wsgi']
+            self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
+        else:
+            django_conf = importlib.import_module('django.conf')
+            settings = getattr(django_conf, 'settings')
+            self.services = get_additional_services(settings)
+            self.resources = get_additional_resources(settings)
+            self.options = HendrixDeploy.getConf(settings, self.options)
+
+
+        if not self.options['dev'] and not self.options['wsgi']:
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
-            wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
-            wsgi = importlib.import_module(wsgi_module)
-            self.application = getattr(wsgi, application_name, None)
+            self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
         else:
             self.application = DevWSGIHandler()
             Colors.blue('Ready and Listening...')
 
         self.is_secure = self.options['key'] and self.options['cert']
 
-        self.services = get_additional_services(settings)
-        self.resources = get_additional_resources(settings)
-
         self.servers = []
 
+
     @classmethod
-    def getConf(cls, options):
+    def importWSGI(cls, wsgi_dot_path):
+        wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
+        wsgi = importlib.import_module(wsgi_module)
+        return getattr(wsgi, application_name, None)
+
+    @classmethod
+    def getConf(cls, settings, options):
         "updates the options dict to use config options in the settings module"
         ports = ['http_port', 'https_port', 'cache_port']
         for port_name in ports:

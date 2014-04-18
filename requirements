@@ -5,3 +5,5 @@ twisted
 mock
 txsockjs
 pyopenssl
+nose
+django
