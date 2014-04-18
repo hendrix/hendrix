@@ -2,7 +2,7 @@ import time
 import subprocess
 from path import path
 from django.core.management.base import BaseCommand
-from optparse import make_option
+from optparse import make_option, OptionParser
 
 from hendrix import defaults
 from hendrix.deploy import HendrixDeploy
@@ -163,3 +163,12 @@ class Command(BaseCommand):
             action = args[0]
             deploy = HendrixDeploy(action, options)
             deploy.run()
+
+
+
+def options():
+    """
+    A helper function that returns a dictionary of the default key-values pairs
+    """
+    parser = OptionParser(option_list=Command.option_list)
+    return vars(parser.parse_args([])[0])
