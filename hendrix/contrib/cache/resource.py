@@ -193,7 +193,7 @@ class CachedResource(resource.Resource):
             e.g. 'Mon, 03 Mar 2014 12:12:12 GMT'
         """
         time_struc = strptime(timestr, '%a, %d %b %Y %H:%M:%S GMT')
-        return datetime.datetime(*time_struc[:6])
+        return datetime(*time_struc[:6])
 
     def getLastModified(self):
         "returns the GMT last-modified datetime or None"
