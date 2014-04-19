@@ -52,11 +52,11 @@ Change your working directory to where manage.py lives:
 
 #####Starting a server with 4 processes (1 parent and 3 child processes):
 
-`hx start -w 3`
+    hx start -w 3
 
 #####Stoping that server:
 
-`hx stop`
+    hx stop
 
 *Note that stoping a server is dependent on the settings file and http_port
 used.*
@@ -67,7 +67,7 @@ start with `hx start --settings local_settings` then stop by `hx stop --settings
 
 #####Restarting a server:
 
-`hx restart`
+    hx restart
 
 ###Serving Static Files
 Serving static files via **Hendrix** is optional but easy.
