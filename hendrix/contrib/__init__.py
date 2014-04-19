@@ -1,3 +1,4 @@
+import os
 import sys
 import importlib
 try:
@@ -16,12 +17,13 @@ class DevWSGIHandler(WSGIHandler):
     def __call__(self, *args, **kwargs):
         response = super(DevWSGIHandler, self).__call__(*args, **kwargs)
         code = response.status_code
-        message = 'Response [%s] - %s:%s %s %s' % (
+        message = 'Response [%s] => Request %s:%s %s %s on pid %d' % (
             code,
             args[0]['REMOTE_ADDR'],
             args[0]['SERVER_PORT'],
             args[0]['REQUEST_METHOD'],
             args[0]['PATH_INFO'],
+            os.getpid()
         )
         signal = code/100
         if signal == 2:
@@ -29,7 +31,7 @@ class DevWSGIHandler(WSGIHandler):
         elif signal == 3:
             Colors.blue(message)
         else:
-            Colors.red(message)    
+            Colors.red(message)
         return response
 
 
