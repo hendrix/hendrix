@@ -100,6 +100,7 @@ HX_OPTION_LIST = BaseCommand.option_list + (
     make_option(
         '--wsgi',
         dest='wsgi',
+        type=str,
         default=None,
         help=(
             'Overrides the use of django settings for use in testing. N.B. This'

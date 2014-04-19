@@ -35,11 +35,11 @@ class HendrixDeploy(object):
         self.services = []
         self.resources = []
 
-        use_settings = True
+        self.use_settings = True  # because running the management command overrides self.options['wsgi']
         if self.options['wsgi']:
             wsgi_dot_path = self.options['wsgi']
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
-            use_settings = False
+            self.use_settings = False
         else:
             django_conf = importlib.import_module('django.conf')
             settings = getattr(django_conf, 'settings')
@@ -47,7 +47,7 @@ class HendrixDeploy(object):
             self.resources = get_additional_resources(settings)
             self.options = HendrixDeploy.getConf(settings, self.options)
 
-        if not self.options['dev'] and use_settings:
+        if not self.options['dev'] and self.use_settings:
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
         else:
@@ -154,8 +154,8 @@ class HendrixDeploy(object):
         action = self.action
         fd = self.options['fd']
 
-        Colors.blue('Ready and Listening...')
         if action == 'start':
+            Colors.blue('Ready and Listening...')
             getattr(self, action)(fd)
         elif action == 'restart':
             getattr(self, action)(sig=9, fd=fd)
@@ -197,9 +197,15 @@ class HendrixDeploy(object):
                 '--cert', self.options.get('cert')
             ]
         if self.options['nocache']:
-            _args.append('--nocache') 
+            _args.append('--nocache')
+        if self.options['dev']:
+            _args.append('--dev')
         if self.options['traceback']:
             _args.append('--traceback')
+        if self.options['global_cache']:
+            _args.append('--global_cache')
+        if not self.use_settings:
+            _args += ['--wsgi', self.options['wsgi']]
         return _args
 
 
