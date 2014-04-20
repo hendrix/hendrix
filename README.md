@@ -48,7 +48,11 @@ Change your working directory to where manage.py lives:
 
 #####For help and a complete list of the options:
 
-`hx -h` or `hx --help`
+    hx -h
+
+or 
+
+    hx --help
 
 #####Starting a server with 4 processes (1 parent and 3 child processes):
 
@@ -91,7 +95,7 @@ hx start --reload
 This will reload your server every time a change is made to a python file in
 your project.
 
-####Using "dev" mode
+#####Using "dev" mode
 You can also use the development mode, which colourfully prints requests.
 ```bash
 hx start --dev
@@ -107,7 +111,7 @@ hx start --settings production_settings --dev
 etcetera...
 
 
-###Running SSL in the comfort of your own home
+###SSL
 This is made possible by creating a self-signed key. First make sure you have
 the newest **patched** version of openssl.
 Then generate a private key file:
@@ -138,13 +142,13 @@ option
 At the moment a caching server is deployed by default on port 8000. Is serves
 gzipped content, which is pretty cool - right?
 
-#####How/what/huh?
+#####How it works
 
 The Hendrix cache server is a reverse proxy that sits in front your Django app.
 However, if you wanted to switch away from the cache server you can always point
 to the http port (default 8080).
 
-It works by forwarding on requests to the http server running the app and
+It works by forwarding requests to the http server running the app and
 caches the response depending on the availability of `max-age` [seconds] in a
 `Cache-Control` header.
 
@@ -158,7 +162,7 @@ e.g. `http://somesite.com/my/resource?somevar=test,cache=true` (so long as a
 What this means is that you can let the browser do some or none of the js/css
 caching if you so want.
 
-#####*"So how do I get it to cache stuff?", you say.*
+#####Caching in Django
 
 In your project view modules use the `cache_control` decorator to add
 a `max-age` of your choosing. e.g.
@@ -183,9 +187,9 @@ port you want to use with the `--cache_port` option.
 If you're running multiple process using the `-w` or `--workers` options caching
 will be process distributed by default. Meaning there will be a reverse proxy
 cache server for each process. However if you want to run the reverse
-proxy server on a single process just the `-g` or `--global_cache` flags.
+proxy server on a single process just use the `-g` or `--global_cache` flags.
 
-...local meaning local to the process, as the cache is held in memory.
+... here "local" means local to the process.
 
 
 ###Testing
@@ -227,7 +231,11 @@ Twisted is what makes this all possible. Mostly. Check it out [here](https://twi
 ###Yet to come
 * Ensure stability of current implementation of web sockets
 * Load Balancing
-* tests...
+* Twisted logging
+* Cache regex logic/config file
+* Ansible deployment utility
+* Salt deployment utility
+* more tests...
 
 
 ###History
