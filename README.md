@@ -50,7 +50,7 @@ Change your working directory to where manage.py lives:
 
     hx -h
 
-or 
+or
 
     hx --help
 
@@ -196,7 +196,7 @@ proxy server on a single process just use the `-g` or `--global_cache` flags.
 Tests live in `hendrix.test` and are most easily run using Twisted's
 [trial](https://twistedmatrix.com/trac/wiki/TwistedTrial) test framework.
 ```
-/home/jsmith:~$ trail hendrix
+/home/jsmith:~$ trial hendrix
 hendrix.test.test_deploy
   DeployTests
     test_multiprocessing ...                                               [OK]
