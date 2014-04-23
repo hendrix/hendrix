@@ -4,12 +4,21 @@ Run these tests using nosetests
 import os
 import unittest
 from hendrix import deploy
+from twisted.internet import reactor
 
 
 class HendrixTestCase(unittest.TestCase):
     """
     This is where we collect our helper functions to test hendrix
     """
+
+    def tearDown(self):
+        """
+        cleans up the reactor after running startService on a
+        twisted.application.service
+        """
+        reactor.removeAll()
+
     def noSettingsDeploy(self, action='start', options={}):
         """
         Overrides the deploy functionality to test hendrix outside of the
