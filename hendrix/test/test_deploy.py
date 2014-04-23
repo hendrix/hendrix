@@ -1,6 +1,7 @@
 from hendrix.management.commands.options import options as hx_options
 from hendrix.test import HendrixTestCase
 from mock import patch
+from twisted.application import service
 from twisted.internet import reactor
 
 
@@ -26,6 +27,7 @@ class DeployTests(HendrixTestCase):
         self.withSettingsDeploy()
 
     def test_multiprocessing(self):
+        "test the expected behaviour of workers and associated functions"
         num_workers = 2
         deploy = self.withSettingsDeploy('start', {'workers': num_workers})
         with patch.object(reactor, 'run') as _run:
@@ -33,3 +35,9 @@ class DeployTests(HendrixTestCase):
                 deploy.run()
 
                 self.assertEqual(_spawnProcess.call_count, num_workers)
+
+    def test_addHendrix(self):
+        "test that addHendrix returns a MulitService"
+        deploy = self.withSettingsDeploy()
+        deploy.addHendrix()
+        self.assertIsInstance(deploy.hendrix, service.MultiService)
