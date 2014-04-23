@@ -235,7 +235,6 @@ class HendrixDeploy(object):
                     fd = port.fileno()
                     childFDs[fd] = fd
                     self.fds[name] = fd
-
                 args = self.getSpawnArgs()
                 transports = []
                 for i in range(self.options['workers']):

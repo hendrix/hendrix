@@ -3,7 +3,7 @@ Run these tests using nosetests
 """
 import os
 import unittest
-from hendrix.deploy import HendrixDeploy
+from hendrix import deploy
 
 
 class HendrixTestCase(unittest.TestCase):
@@ -17,13 +17,11 @@ class HendrixTestCase(unittest.TestCase):
         HOWEVER, as the plugin does rely on `from djanog.conf import settings`
         we should test that flow path also...
         """
-        options.update({'wsgi': 'hendrix.tests.wsgi'})
-        return HendrixDeploy(action, options)
+        options.update({'wsgi': 'hendrix.test.wsgi'})
+        return deploy.HendrixDeploy(action, options)
 
     def withSettingsDeploy(self, action='start', options={}):
         "Use the hendrix test project to test the bash deployment flow path"
-        os.environ.setdefault(
-            "DJANGO_SETTINGS_MODULE", "hendrix.tests.testproject.settings"
-        )
-        options.update({'settings': 'hendrix.tests.testproject.settings'})
-        return HendrixDeploy(action, options)
+        os.environ['DJANGO_SETTINGS_MODULE'] = "hendrix.test.testproject.settings"
+        options.update({'settings': 'hendrix.test.testproject.settings'})
+        return deploy.HendrixDeploy(action, options)

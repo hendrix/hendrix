@@ -52,7 +52,7 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'hendrix.tests.testproject.urls'
 
-WSGI_APPLICATION = 'hendrix.tests.testproject.wsgi.application'
+WSGI_APPLICATION = 'hendrix.test.testproject.wsgi.application'
 
 TEMPLATE_DIRS = ()
 
