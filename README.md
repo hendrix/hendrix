@@ -189,24 +189,28 @@ proxy server on a single process just the `-g` or `--global_cache` flags.
 
 
 ###Testing
-Tests live in `hendrix.tests` and are most easily run using [nose](https://nose.readthedocs.org/en/latest/).
+Tests live in `hendrix.test` and are most easily run using Twisted's
+[trial](https://twistedmatrix.com/trac/wiki/TwistedTrial) test framework.
 ```
-/home/jsmith:~$ nosetests -v
-test_multiprocessing (hendrix.tests.deploy_tests.DeployTests) ... ok
-A test to ensure that HendrixDeploy.options also has the complete set ... ok
-A placeholder test to ensure that instantiating HendrixDeploy through ... ok
-...
-[insert more tests here... given time]
+/home/jsmith:~$ trail hendrix
+hendrix.test.test_deploy
+  DeployTests
+    test_multiprocessing ...                                               [OK]
+    test_options_structure ...                                             [OK]
+    test_settings_doesnt_break ...                                         [OK]
 
-----------------------------------------------------------------------
-Ran >3 tests in >1.012s
+-------------------------------------------------------------------------------
+Ran 3 tests in 0.049s
 
-OK
+PASSED (successes=3)
 ```
-Adding tests is pretty straight forward - just add a module under `hendrix.tests`
-with the suffix `_tests.py` e.g. `cache_tests.py`. Inside that newly created
-module add any number of `unittest.TestCase` subclasses as you please.
-N.B. that in the `hendrix.tests` `__init__.py` file a subclass of TestCase
+**trial** will find your tests so long as you name the package/module such that
+it starts with "test" e.g. `hendrix/contrib/cache/test/test_services.py`.
+
+Note that the module needs to have a subclass of unittest.TestCase via the expected
+unittest pattern. For more info on *trial* go [here](https://twistedmatrix.com/trac/wiki/TwistedTrial).
+
+N.B. that in the `hendrix.test` `__init__.py` file a subclass of TestCase
 called `HendrixTestCase` has been created to help tests various use cases
 of `hendrix.deploy.HendrixDeploy`
 
