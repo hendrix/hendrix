@@ -1,5 +1,10 @@
 #!/bin/bash
 # a simple script to help daemonize the process
+error () {
+    echo -ne '\n\r\033[91mERROR: hx could not evaluate. Retry without daemonizing and with --traceback\033[0m'
+    exit 1
+}
+
 DAEMONIZE="0"
 LOUD="0"
 for arg in $@; do
@@ -11,9 +16,11 @@ for arg in $@; do
     fi
 done
 if [[ $DAEMONIZE = "1" ]]; then
-    python manage.py hx $@ &> /dev/null &
+    python manage.py hx $@ &> /dev/null || error &
 elif [[ $LOUD = "1" ]]; then
-    python manage.py hx $@
+    python manage.py hx $@ || error
 else
-    python -W ignore manage.py hx $@
+    python -W ignore manage.py hx $@ || error
 fi
+
+exit 0
