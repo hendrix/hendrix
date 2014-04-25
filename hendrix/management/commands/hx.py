@@ -1,5 +1,8 @@
+import cPickle as pickle
+import os
 import time
 import subprocess
+from sys import executable
 from path import path
 
 from .options import HX_OPTION_LIST
@@ -54,6 +57,7 @@ class Command(BaseCommand):
     option_list = HX_OPTION_LIST
 
     def handle(self, *args, **options):
+        action = args[0]
         if options['reload']:
             event_handler = Reload(options)
             observer = Observer()
@@ -66,7 +70,18 @@ class Command(BaseCommand):
                 observer.stop()
             observer.join()
             exit('\n')
+        elif options['daemonize']:
+            daemonize = options.pop('daemonize')
+            _options = []
+            store_true = ['--nocache', '--global_cache', '--dev']
+            store_false = []
+            for key, value in options.iteritems():
+                key = '--' + key
+                if (key in store_true and value) or (key in store_false and not value):
+                    _options += [key,]
+                elif value:
+                    _options += [key, str(value)]
+            subprocess.Popen(['hx', action] + _options)
         else:
-            action = args[0]
             deploy = HendrixDeploy(action, options)
             deploy.run()

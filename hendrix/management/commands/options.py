@@ -11,7 +11,11 @@ HX_OPTION_LIST = BaseCommand.option_list + (
         action='store_true',
         dest='reload',
         default=False,
-        help="Flag that watchdog should restart the server when changes to the codebase occur"
+        help=(
+            "Flag that watchdog should restart the server when changes to the "
+            "codebase occur. NOTE: Do NOT uset this flag with --daemonize "
+            "because it will not daemonize."
+        )
     ),
     make_option(
         '-l', '--loud',

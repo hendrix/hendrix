@@ -1,7 +1,7 @@
 #!/bin/bash
 # a simple script to help daemonize the process
 error () {
-    echo -ne '\n\r\033[91mERROR: hx could not evaluate. Retry without daemonizing and with --traceback\033[0m'
+    echo -e '\n\r\033[91mERROR: hx could not evaluate. Retry without daemonizing and with --traceback\033[0m'
     exit 1
 }
 
@@ -16,7 +16,7 @@ for arg in $@; do
     fi
 done
 if [[ $DAEMONIZE = "1" ]]; then
-    python manage.py hx $@ &> /dev/null || error &
+    python manage.py hx $@ &> /dev/null || error
 elif [[ $LOUD = "1" ]]; then
     python manage.py hx $@ || error
 else
