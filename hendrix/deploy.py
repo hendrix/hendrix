@@ -158,7 +158,7 @@ class HendrixDeploy(object):
             Colors.blue('Ready and Listening...')
             getattr(self, action)(fd)
         elif action == 'restart':
-            getattr(self, action)(sig=9, fd=fd)
+            getattr(self, action)(fd=fd)
         else:
             getattr(self, action)()
 
@@ -277,9 +277,11 @@ class HendrixDeploy(object):
                     pass
         os.remove(self.pid)
 
-    def restart(self, sig=9, fd=None):
-        self.stop(sig)
+    def restart(self, fd=None):
+        self.stop()
         time.sleep(1)  # wait a second to ensure the port is closed
+        # printing to stderr because daemonizing also closes stdout
+        sys.stderr.write('\033[94mStarting Hendrix...\r\n\033[0m')
         self.start(fd)
 
     def disownService(self, name):

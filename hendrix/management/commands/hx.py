@@ -1,8 +1,8 @@
-import cPickle as pickle
 import os
-import time
 import subprocess
-from sys import executable
+import sys
+import time
+import traceback
 from path import path
 
 from .options import HX_OPTION_LIST
@@ -14,25 +14,36 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
+def cleanOptions(options):
+    """
+    Takes an options dict and returns a tuple containing the daemonize boolean,
+    the reload boolean, and the parsed list of cleaned options as would be
+    expected to be passed to hx
+    """
+    daemonize = options.pop('daemonize')
+    _reload = options.pop('reload')
+    opts = []
+    store_true = ['--nocache', '--global_cache', '--dev', '--traceback']
+    store_false = []
+    for key, value in options.iteritems():
+        key = '--' + key
+        if (key in store_true and value) or (key in store_false and not value):
+            opts += [key,]
+        elif value:
+            opts += [key, str(value)]
+    return daemonize, _reload, opts
+
+
 class Reload(FileSystemEventHandler):
 
     def __init__(self, options, *args, **kwargs):
         super(Reload, self).__init__(*args, **kwargs)
-        self.reload = options.pop('reload')
+        daemonize, self.reload, self.options = cleanOptions(options)
         if not self.reload:
             raise RuntimeError(
                 'Reload should not be run if --reload has no been passed to '
                 'the command as an option.'
             )
-        self.options = []
-        store_true = ['--nocache', '--global_cache', '--daemonize', '--dev']
-        store_false = []
-        for key, value in options.iteritems():
-            key = '--' + key
-            if (key in store_true and value) or (key in store_false and not value):
-                self.options += [key,]
-            elif value:
-                self.options += [key, str(value)]
         self.process = subprocess.Popen(
             ['hx', 'start'] + self.options
         )
@@ -71,17 +82,19 @@ class Command(BaseCommand):
             observer.join()
             exit('\n')
         elif options['daemonize']:
-            daemonize = options.pop('daemonize')
-            _options = []
-            store_true = ['--nocache', '--global_cache', '--dev']
-            store_false = []
-            for key, value in options.iteritems():
-                key = '--' + key
-                if (key in store_true and value) or (key in store_false and not value):
-                    _options += [key,]
-                elif value:
-                    _options += [key, str(value)]
-            subprocess.Popen(['hx', action] + _options)
+            daemonize, _reload, opts = cleanOptions(options)
+            process = subprocess.Popen(['hx', action] + opts, stdout=subprocess.PIPE)
+            process.stdout.close()
+            time.sleep(3)
         else:
-            deploy = HendrixDeploy(action, options)
-            deploy.run()
+            try:
+                deploy = HendrixDeploy(action, options)
+                deploy.run()
+            except Exception, e:
+                if options.get('traceback'):
+                    tb = sys.exc_info()[2]
+                    msg = traceback.format_exc(tb)
+                else:
+                    msg = str(e)
+                sys.stderr.write('\33[91m'+ msg + '\33[0m')
+                os._exit(1)
