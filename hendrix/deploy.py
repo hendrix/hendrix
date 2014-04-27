@@ -220,9 +220,6 @@ class HendrixDeploy(object):
 
         if fd is None:
             # anything in this block is only run once
-
-            # TODO add global services here, possibly add a services kwarg on
-            # __init__
             self.addGlobalServices()
 
             self.hendrix.startService()
@@ -246,8 +243,6 @@ class HendrixDeploy(object):
             with open(self.pid, 'w') as pid_file:
                 pid_file.write('\n'.join(pids))
         else:
-            # Another process created the port, drop the tcp service and
-            # just start listening on it.
             fds = pickle.loads(fd)
             factories = {}
             for name in self.servers:
@@ -280,8 +275,6 @@ class HendrixDeploy(object):
     def restart(self, fd=None):
         self.stop()
         time.sleep(1)  # wait a second to ensure the port is closed
-        # printing to stderr because daemonizing also closes stdout
-        sys.stderr.write('\033[94mStarting Hendrix...\r\n\033[0m')
         self.start(fd)
 
     def disownService(self, name):

@@ -23,7 +23,7 @@ def cleanOptions(options):
     daemonize = options.pop('daemonize')
     _reload = options.pop('reload')
     opts = []
-    store_true = ['--nocache', '--global_cache', '--dev', '--traceback']
+    store_true = ['--nocache', '--global_cache', '--dev', '--traceback', '--quiet']
     store_false = []
     for key, value in options.iteritems():
         key = '--' + key
@@ -82,10 +82,12 @@ class Command(BaseCommand):
             observer.join()
             exit('\n')
         elif options['daemonize']:
+            if options['quiet']:
+                raise RuntimeError('Do not use --daemonize and --quiet together')
+            options['quiet'] = True
             daemonize, _reload, opts = cleanOptions(options)
-            process = subprocess.Popen(['hx', action] + opts, stdout=subprocess.PIPE)
-            process.stdout.close()
-            time.sleep(3)
+            process = subprocess.Popen(['hx', action] + opts)
+            time.sleep(2)
         else:
             try:
                 deploy = HendrixDeploy(action, options)

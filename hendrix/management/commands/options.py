@@ -25,6 +25,13 @@ HX_OPTION_LIST = BaseCommand.option_list + (
         help="Show warnings"
     ),
     make_option(
+        '-q', '--quiet',
+        action='store_true',
+        dest='quiet',
+        default=False,
+        help="Supress all output."
+    ),
+    make_option(
         '--http_port',
         type=int,
         dest='http_port',

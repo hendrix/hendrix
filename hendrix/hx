@@ -17,8 +17,13 @@ closed () {
 }
 
 hendrix () {
+    # This function controls the logic associated with calling the django
+    # command hx
+
+    # check for the loud, daemonize and quiet flags
     LOUD="0"
     DAEMONIZE="0"
+    QUIET="0"
     for arg in $@; do
         if [[ $arg = "-l" ]] || [[ $arg = "--loud" ]]; then
             LOUD="1"
@@ -26,15 +31,35 @@ hendrix () {
         if [[ $arg = "-d" ]] || [[ $arg = "--daemonize" ]]; then
             DAEMONIZE="1"
         fi
+        if [[ $arg = "-q" ]] || [[ $arg = "--quiet" ]]; then
+            QUIET="1"
+        fi
     done
+
+    # check that the flags used are kosher
+    if [[ $QUIET = "1" ]] && [[ $DAEMONIZE = "1" ]]; then
+        echoErr "\033[91mERROR: Do not use --daemonize and --quiet together"
+        echoErr "--daemonize defaults to quiet mode.\033[0m"
+        exit 1
+    fi
+
+    # user facing message
     if [[ "$1" = "start" ]] && [[ ! $DAEMONIZE = "1" ]]; then
         echoErr "\033[94mStarting Hendrix...\033[0m"
     fi
-    if [[ $LOUD = "1" ]]; then
+
+    # run the django manage command
+    if [[ $QUIET = "1" ]]; then
+        # This is only hit when either daemonizing the service or if you want
+        # to run it in a hanging quiet mode
+        python manage.py hx $@ &> /dev/null
+    elif [[ $LOUD = "1" ]]; then
         python manage.py hx $@
     else
         python -W ignore manage.py hx $@
     fi
+
+    # check the exit code
     EXIT_CODE=$?
     if [[ "$EXIT_CODE" =  "137" ]]; then  # checks if the the python command was killed
         closed
