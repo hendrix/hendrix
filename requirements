@@ -6,3 +6,4 @@ mock
 txsockjs
 pyopenssl
 django
+jinja2

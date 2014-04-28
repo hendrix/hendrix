@@ -1,0 +1,68 @@
+#!/usr/bin/env python -t
+
+import os
+import subprocess
+import sys
+import time
+import traceback
+from hendrix.management.commands.options import HendrixOptionParser
+from hendrix.contrib.color import Colors
+from path import path
+from os import environ as env
+
+settings_module = env.get('DJANGO_SETTINGS_MODULE')
+
+if __name__ == "__main__":
+
+    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
+    options = vars(options)
+
+    if args:
+        action = args[0]
+    try:
+        user_settings = options['settings']
+    except KeyError:
+        if not settings_module:
+            raise
+        else:
+            options['settings'] = settings_module
+
+    if user_settings:
+        env['DJANGO_SETTINGS_MODULE'] = user_settings
+
+    if options['pythonpath']:
+        project_path = path(options['pythonpath'])
+        if not project_path.exists():
+            raise
+        sys.path.append()
+    else:
+        sys.path.append(os.getcwd())
+
+    from hendrix.management.commands.hx import Command as HendrixCommand
+    from hendrix.management.commands.hx import cleanOptions
+
+    if options['quiet'] or options['daemonize']:
+        devnull = open(os.devnull, 'w')
+
+    if options['quiet'] and not options['daemonize']:
+        sys.stdout = devnull
+        sys.stderr = devnull
+    try:
+        if action == 'start' and not options['daemonize']:
+            Colors.blue('Starting Hendrix...')
+        elif action == 'stop':
+            Colors.green('Stopping Hendrix...')
+        if options['daemonize']:
+            daemonize, _reload, opts = cleanOptions(options)
+            redirect = devnull if not options['traceback'] else None
+            process = subprocess.Popen(['hx', action] + opts, stdout=redirect, stderr=redirect)
+            time.sleep(2)
+            if process.poll():
+                raise RuntimeError
+        else:
+            cmd = HendrixCommand()
+            cmd.handle(*args, **options)
+            Colors.green('\nHendrix successfully closed.')
+    except Exception:
+        Colors.red('ERROR: Could not %s hendrix. Try again using the --traceback flag for more information.' % action)
+        os._exit(1)

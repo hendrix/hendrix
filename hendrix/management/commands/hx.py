@@ -81,13 +81,6 @@ class Command(BaseCommand):
                 observer.stop()
             observer.join()
             exit('\n')
-        elif options['daemonize']:
-            if options['quiet']:
-                raise RuntimeError('Do not use --daemonize and --quiet together')
-            options['quiet'] = True
-            daemonize, _reload, opts = cleanOptions(options)
-            process = subprocess.Popen(['hx', action] + opts)
-            time.sleep(2)
         else:
             try:
                 deploy = HendrixDeploy(action, options)

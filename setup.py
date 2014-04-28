@@ -1,11 +1,24 @@
-from setuptools import setup, find_packages
+import errno
 import os
+from setuptools import setup, find_packages
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+def mkdir_p(path):
+    "recreate mkdir -p functionality"
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
 README = read('README.md')
+
+mkdir_p('/usr/local/share/hendrix')
 
 setup(
     name = "hendrix",
@@ -24,6 +37,10 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords = ["django", "twisted", "async", "logging"],
-    scripts = ['hendrix/hx',],
+    scripts = ['hendrix/utils/scripts/hx',],
+    data_files = [
+        ('/usr/local/bin', ['install-hendrix-service',]),
+        ('/usr/local/share/hendrix', ['hendrix/utils/templates/init.d.j2',]),
+    ],
     install_requires = open('requirements').readlines(),
 )

@@ -121,9 +121,11 @@ HX_OPTION_LIST = BaseCommand.option_list + (
 )
 
 
-def options():
+HendrixOptionParser = OptionParser(option_list=HX_OPTION_LIST)
+
+def options(argv=[]):
     """
     A helper function that returns a dictionary of the default key-values pairs
     """
-    parser = OptionParser(option_list=HX_OPTION_LIST)
-    return vars(parser.parse_args([])[0])
+    parser = HendrixOptionParser
+    return vars(parser.parse_args(argv)[0])

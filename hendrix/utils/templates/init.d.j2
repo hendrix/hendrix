@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+source {{venv_path}}/bin/activate
+cd {{project_root}}
+
+OPTS="{{hendrix_opts}}"
+
+hxd=`type -P hx`
+
+if [ ! -x $hxd ]; then
+  echo "ERROR: Can't execute hx."
+  exit 1
+fi
+
+start_service() {
+  $hxd start $OPTS -d
+}
+
+stop_service() {
+  echo -n " * Stopping hendrix... "
+  $hxd stop $OPTS
+}
+
+case "$1" in
+  start)
+    start_service
+    ;;
+  stop)
+    stop_service
+    ;;
+  restart)
+    stop_service
+    start_service
+    ;;
+  *)
+    echo "Usage: service hendrix {start|stop|restart}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
