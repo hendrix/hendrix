@@ -23,7 +23,7 @@ mkdir_p('/usr/local/share/hendrix')
 setup(
     name = "hendrix",
     packages = find_packages(),
-    version = "0.1.0",
+    version = "0.1.1",
     url = "https://github.com/hangarunderground/hendrix",
     description = "A deployment module for Django that uses Twisted.",
     long_description = "\n\n".join([README]),
@@ -39,7 +39,7 @@ setup(
     keywords = ["django", "twisted", "async", "logging"],
     scripts = ['hendrix/utils/scripts/hx',],
     data_files = [
-        ('/usr/local/bin', ['install-hendrix-service',]),
+        ('/usr/local/bin', ['hendrix/utils/scripts/install-hendrix-service',]),
         ('/usr/local/share/hendrix', ['hendrix/utils/templates/init.d.j2',]),
     ],
     install_requires = open('requirements').readlines(),
