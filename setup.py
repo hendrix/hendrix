@@ -23,8 +23,9 @@ mkdir_p('/usr/local/share/hendrix')
 setup(
     name = "hendrix",
     packages = find_packages(),
-    version = "0.1.1",
+    version = "v0.1.1-beta",
     url = "https://github.com/hangarunderground/hendrix",
+    download_url = "https://github.com/hangarunderground/hendrix/tarball/v0.1.1-beta",
     description = "A deployment module for Django that uses Twisted.",
     long_description = "\n\n".join([README]),
     classifiers = [
