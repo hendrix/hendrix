@@ -21,6 +21,8 @@ README = read('README.md')
 mkdir_p('/usr/local/share/hendrix')
 
 setup(
+    author = "hangarunderground",
+    author_email = "hendrix@reelio.com",
     name = "hendrix",
     packages = find_packages(),
     version = "v0.1.1-beta",
