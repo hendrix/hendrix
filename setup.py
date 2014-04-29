@@ -47,9 +47,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords = ["django", "twisted", "async", "logging"],
-    scripts = ['hendrix/utils/scripts/hx',],
+    scripts = [
+        'hendrix/utils/scripts/hx',
+        'hendrix/utils/scripts/install-hendrix-service'
+    ],
     data_files = [
-        ('/usr/local/bin', ['hendrix/utils/scripts/install-hendrix-service',]),
         ('/usr/local/share/hendrix', ['hendrix/utils/templates/init.d.j2',]),
     ],
     install_requires = readlines('requirements')
