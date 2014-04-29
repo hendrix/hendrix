@@ -1,16 +1,19 @@
 import errno
 import os
-from path import path
 from setuptools import setup, find_packages
 
 
+def file_name(rel_path):
+    dir_path = os.path.dirname(__file__)
+    return os.path.join(dir_path, rel_path)
+
 def read(rel_path):
-    with open(os.path.join(path(__file__).parent, rel_path)) as f:
+    with open(file_name(rel_path)) as f:
         ret = f.read()
     return ret
 
 def readlines(rel_path):
-    with open(os.path.join(path(__file__).parent, rel_path)) as f:
+    with open(file_name(rel_path), rel_path)) as f:
         ret = f.readlines()
     return ret
 
