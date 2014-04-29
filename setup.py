@@ -1,10 +1,14 @@
 import errno
 import os
+from path import path
 from setuptools import setup, find_packages
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def long_desc():
+    with open(os.path.join(path(__file__).parent, 'docs/long_desc.rst')) as f:
+        ret = f.read()
+    return ret
+
 
 def mkdir_p(path):
     "recreate mkdir -p functionality"
@@ -15,8 +19,6 @@ def mkdir_p(path):
             pass
         else:
             raise
-
-README = read('README.md')
 
 mkdir_p('/usr/local/share/hendrix')
 
@@ -29,7 +31,7 @@ setup(
     url = "https://github.com/hangarunderground/hendrix",
     download_url = "https://github.com/hangarunderground/hendrix/tarball/v0.1.1-beta",
     description = "A deployment module for Django that uses Twisted.",
-    long_description = "\n\n".join([README]),
+    long_description = long_desc(),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Framework :: Django',

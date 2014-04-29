@@ -1,5 +1,7 @@
 #Hendrix
-###Twisted meets Django: *Making deployment easy*
+**Twisted meets Django: *Making deployment easy***
+
+##Overview
 
 Hendrix is a **multi-threaded**, **multi-process** *and* **asynchronous**
 web server for *Django* projects. The idea here is to have a highly extensible
@@ -24,15 +26,24 @@ module and `deferToThread` and `callInThread` methods from within Django
 
 ###Installation
 
-`pip install -e git+git@github.com:hangarunderground/hendrix.git@master#egg=hendrix`
+Using pip
+
+    pip install hendrix
+
+or for the cutting edge...
+
+    pip install -e git+git@github.com:hangarunderground/hendrix.git@master#egg=hendrix
 
 ###Deployment/Usage
 
 Hendrix leverages the use of custom django management commands. That
-and a little bash magic makes `hx` available as a shortcut to all of
+and a little magic makes `hx` available as a shortcut to all of
 the functionality you'd expect from `python manage.py hx`.
 
-Include **hendrix** in your project's INSTALLED_APPS list
+Note: `hx` needs to know where your project lives so `cd` to where you house
+your Django project.
+
+You can but *don't* have to include "hendrix" in your project's INSTALLED_APPS list
 ```python
 INSTALLED_APPS = (
     ...,
@@ -40,11 +51,53 @@ INSTALLED_APPS = (
     ...
 )
 ```
+But if you really want to run Hendrix using `python manage.py hx [action]` then
+you have to include it.
 
-Change your working directory to where manage.py lives:
+###Ubuntu Servers
+If you're running an Ubuntu/Debian server you may want to install
+Hendrix as a service. To do this you can use the helper script `install-hendrix-service`.
+Here's how you do it:
 
-`cd /path/to/project/`
+1. If you don't already have a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+for you project install one and in that install your project's requirements (which now includes Hendrix):
 
+    ```bash
+    virtualenv --no-site-packages --distribute /path/to/new/venv
+
+    source /path/to/new/venv/bin/activate
+
+    pip install -r /path/to/myproject/requirements.txt
+    ```
+
+2. Create a hendrix.conf file. Don't worry it's yaml (so it's easy). You can
+copy the [example](https://github.com/hangarunderground/hendrix/blob/master/hendrix/utils/example-yaml.conf)
+and save it wherever you want. You could even do something like this if you want:
+
+    ```bash
+    cd /wherever
+
+    wget https://raw.githubusercontent.com/hangarunderground/hendrix/master/hendrix/utils/example-yaml.conf
+    mv example-yaml.conf hendrix.conf
+
+    # open the file in an editor and change the options
+    nano -c hendrix.conf
+    ```
+
+3. Finally, run your own version of the following command:
+
+    ```bash
+    sudo install-hendrix-service /wherever/hendrix.conf
+    ```
+
+Now you have hendrix running as a service on your server. Easy.
+Use the service as you would any other service i.e. `sudo service hendrix start`.
+
+Coming soon/if you want to build one: an [ansible galaxy](https://galaxy.ansible.com/)
+role would be great.
+
+###From the Command Line
+The following outlines how to use Hendrix in your day to day life/development.
 
 #####For help and a complete list of the options:
 
@@ -62,8 +115,9 @@ or
 
     hx stop
 
-*Note that stoping a server is dependent on the settings file and http_port
-used.*
+
+** *Note that stoping a server is dependent on the settings file and http_port
+used.* **
 
 E.g. Running a server on port 8000 with local_settings.py would yield
 8000_local_settings.pid which would be used to kill the server. I.e. if you
@@ -72,6 +126,10 @@ start with `hx start --settings local_settings` then stop by `hx stop --settings
 #####Restarting a server:
 
     hx restart
+
+
+
+##Features in more depth
 
 ###Serving Static Files
 Serving static files via **Hendrix** is optional but easy.

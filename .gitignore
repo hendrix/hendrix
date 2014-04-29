@@ -11,3 +11,4 @@ hendrix/pids
 *.pid
 venv
 _trial_temp*
+ignore*
