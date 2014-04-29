@@ -1,6 +1,5 @@
 import importlib
 import os
-import sys
 import time
 
 import cPickle as pickle
@@ -9,15 +8,16 @@ from os import environ
 from sys import executable
 from socket import AF_INET
 
-from hendrix import HENDRIX_DIR, import_wsgi, defaults
+from hendrix import defaults
 from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl, DevWSGIHandler
 from hendrix.contrib.color import Colors
 from hendrix.management.commands.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
+from hendrix.conf import get_pid
 from twisted.application.internet import TCPServer, SSLServer
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor
 from twisted.internet.ssl import PrivateCertificate
 from twisted.protocols.tls import TLSMemoryBIOFactory
 
@@ -163,13 +163,10 @@ class HendrixDeploy(object):
             getattr(self, action)()
 
 
-
     @property
     def pid(self):
         "The default location of the pid file for process management"
-        return '%s/%s_%s.pid' % (
-            HENDRIX_DIR, self.options['http_port'], self.options['settings'].replace('.', '_')
-        )
+        return get_pid(self.options)
 
     def getSpawnArgs(self):
         """

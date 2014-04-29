@@ -18,6 +18,9 @@ class HendrixTestCase(unittest.TestCase):
         twisted.application.service
         """
         reactor.removeAll()
+        os.remove(os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            '8080_hendrix.test.testproject.settings'.replace('.','_')+'.pid')
 
     def noSettingsDeploy(self, action='start', options={}):
         """
