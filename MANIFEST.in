@@ -1,0 +1,4 @@
+include hendrix/utils/scripts/install-hendrix-service
+include hendrix/utils/templates/*.j2
+include README.md LICENSE AUTHORS requirements
+include docs/*html
