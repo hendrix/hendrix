@@ -5,6 +5,11 @@ import os
 import unittest
 from hendrix import deploy
 from twisted.internet import reactor
+from hendrix.utils.conf import get_pid
+
+from hendrix.defaults import *
+
+TEST_SETTINGS = 'hendrix.test.testproject.settings'
 
 
 class HendrixTestCase(unittest.TestCase):
@@ -18,9 +23,11 @@ class HendrixTestCase(unittest.TestCase):
         twisted.application.service
         """
         reactor.removeAll()
-        os.remove(os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            '8080_hendrix.test.testproject.settings'.replace('.','_')+'.pid')
+
+        test_pid_file = get_pid({'settings':TEST_SETTINGS, 'http_port':HTTP_PORT})
+        if os.path.exists(test_pid_file):
+            os.remove(test_pid_file)
+
 
     def noSettingsDeploy(self, action='start', options={}):
         """
@@ -34,6 +41,6 @@ class HendrixTestCase(unittest.TestCase):
 
     def withSettingsDeploy(self, action='start', options={}):
         "Use the hendrix test project to test the bash deployment flow path"
-        os.environ['DJANGO_SETTINGS_MODULE'] = "hendrix.test.testproject.settings"
-        options.update({'settings': 'hendrix.test.testproject.settings'})
+        os.environ['DJANGO_SETTINGS_MODULE'] = TEST_SETTINGS
+        options.update({'settings': TEST_SETTINGS})
         return deploy.HendrixDeploy(action, options)
