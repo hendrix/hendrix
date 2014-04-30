@@ -13,7 +13,7 @@ def read(rel_path):
     return ret
 
 def readlines(rel_path):
-    with open(file_name(rel_path), rel_path)) as f:
+    with open(file_name(rel_path)) as f:
         ret = f.readlines()
     return ret
 
