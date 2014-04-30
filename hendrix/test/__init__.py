@@ -5,7 +5,7 @@ import os
 import unittest
 from hendrix import deploy
 from twisted.internet import reactor
-from hendrix.utils.conf import get_pid
+from hendrix.utils import get_pid
 
 from hendrix.defaults import *
 

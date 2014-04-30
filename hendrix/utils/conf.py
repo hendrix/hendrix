@@ -1,15 +1,6 @@
 import jinja2
 import yaml
 
-from hendrix import HENDRIX_DIR
-
-
-def get_pid(options):
-    return '%s/%s_%s.pid' % (
-        HENDRIX_DIR, options['http_port'], options[
-            'settings'].replace('.', '_')
-    )
-
 
 def generateInitd(conf_file):
     """

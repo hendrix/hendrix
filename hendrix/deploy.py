@@ -15,7 +15,7 @@ from hendrix.contrib.color import Colors
 from hendrix.management.commands.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
-from hendrix.utils.conf import get_pid
+from hendrix.utils import get_pid
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
 from twisted.internet.ssl import PrivateCertificate
@@ -161,7 +161,6 @@ class HendrixDeploy(object):
             getattr(self, action)(fd=fd)
         else:
             getattr(self, action)()
-
 
 
     @property
