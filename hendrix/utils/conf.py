@@ -1,8 +1,5 @@
 import jinja2
-import os
 import yaml
-from path import path
-
 
 
 def generateInitd(conf_file):
@@ -14,7 +11,7 @@ def generateInitd(conf_file):
         'virtualenv', 'project_path', 'settings', 'processes',
         'http_port', 'cache', 'cache_port', 'https_port', 'key', 'cert'
     ]
-    base_opts = ['--daemonize',]  # always daemonize
+    base_opts = ['--daemonize', ]  # always daemonize
     options = base_opts
     with open(conf_file, 'r') as cfg:
         conf = yaml.load(cfg)
@@ -47,7 +44,7 @@ def generateInitd(conf_file):
 
     with open('/usr/local/share/hendrix/init.d.j2', 'r') as f:
         TEMPLATE_FILE = f.read()
-    template = jinja2.Template( TEMPLATE_FILE )
+    template = jinja2.Template(TEMPLATE_FILE)
 
     initd_content = template.render(
         {
