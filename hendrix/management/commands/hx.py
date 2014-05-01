@@ -9,6 +9,7 @@ from .options import HX_OPTION_LIST
 from django.core.management.base import BaseCommand
 
 from hendrix.deploy import HendrixDeploy
+from hendrix.contrib.color import Colors
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -42,11 +43,11 @@ class Reload(FileSystemEventHandler):
         daemonize, self.reload, self.options = cleanOptions(options)
         if not self.reload:
             raise RuntimeError(
-                'Reload should not be run if --reload has no been passed to '
+                'Reload should not be run if --reload has not been passed to '
                 'the command as an option.'
             )
         self.process = subprocess.Popen(
-            ['hx', 'start'] + self.options
+            ['hx', 'start_reload'] + self.options
         )
 
     def on_any_event(self, event):
@@ -55,7 +56,7 @@ class Reload(FileSystemEventHandler):
         ext = path(event.src_path).ext
         if ext == '.py':
             self.process = self.restart()
-            print "Got it!"
+            Colors.warning("detected changes, restarting...")
 
     def restart(self):
         self.process.terminate()

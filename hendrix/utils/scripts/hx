@@ -67,7 +67,8 @@ if __name__ == "__main__":
         else:
             cmd = HendrixCommand()
             cmd.handle(*args, **options)
-            Colors.green('\nHendrix successfully closed.')
+            if not action == 'start_reload':
+                Colors.green('\nHendrix successfully closed.')
     except Exception:
         Colors.red('ERROR: Could not %s hendrix. Try again using the --traceback flag for more information.' % action)
         os._exit(1)
