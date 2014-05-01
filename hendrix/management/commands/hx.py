@@ -22,8 +22,9 @@ def cleanOptions(options):
     """
     daemonize = options.pop('daemonize')
     _reload = options.pop('reload')
+    dev = options.pop('dev')
     opts = []
-    store_true = ['--nocache', '--global_cache', '--dev', '--traceback', '--quiet']
+    store_true = ['--nocache', '--global_cache', '--traceback', '--quiet']
     store_false = []
     for key, value in options.iteritems():
         key = '--' + key

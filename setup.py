@@ -40,9 +40,9 @@ setup(
     author_email = "hendrix@reelio.com",
     name = "hendrix",
     packages = find_packages(),
-    version = "0.1.1",
+    version = "0.1.2",
     url = "https://github.com/hangarunderground/hendrix",
-    download_url = "https://github.com/hangarunderground/hendrix/tarball/v0.1.1-beta",
+    download_url = "https://github.com/hangarunderground/hendrix/tarball/v0.1.2-beta",
     description = "A deployment module for Django that uses Twisted.",
     long_description = read('docs/long_desc.html'),
     classifiers = [
