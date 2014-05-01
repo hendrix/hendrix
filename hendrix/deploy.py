@@ -154,7 +154,7 @@ class HendrixDeploy(object):
         action = self.action
         fd = self.options['fd']
 
-        if action == 'start':
+        if action.startswith('start'):
             Colors.blue('Ready and Listening...')
             getattr(self, action)(fd)
         elif action == 'restart':
@@ -268,6 +268,9 @@ class HendrixDeploy(object):
                     # OSError is raised when it trys to kill the child processes
                     pass
         os.remove(self.pid)
+
+    def start_reload(self, fd=None):
+        self.start(fd=fd)
 
     def restart(self, fd=None):
         self.stop()
