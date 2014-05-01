@@ -30,73 +30,73 @@ Using pip
 
     pip install hendrix
 
-or for the cutting edge...
 
-    pip install -e git+git@github.com:hangarunderground/hendrix.git@master#egg=hendrix
+###Running the Development Server
 
-###Deployment/Usage
+cd to the directory where your **manage.py** file is located and...
+    
+    hx start --reload
 
-Hendrix leverages the use of custom django management commands. That
-and a little magic makes `hx` available as a shortcut to all of
-the functionality you'd expect from `python manage.py hx`.
+This is roughly the equivalent of running the django devserver.
 
-Note: `hx` needs to know where your project lives so `cd` to where you house
-your Django project.
+see the examples below for more configuration options.
 
-You can but *don't* have to include "hendrix" in your project's INSTALLED_APPS list
-```python
-INSTALLED_APPS = (
-    ...,
-    'hendrix',
-    ...
-)
-```
-But if you really want to run Hendrix using `python manage.py hx [action]` then
-you have to include it.
+--
+###Deployment
 
-###Ubuntu Servers
+
+#####Ubuntu Servers
 If you're running an Ubuntu/Debian server you may want to install
 Hendrix as a service. To do this you can use the helper script `install-hendrix-service`.
 Here's how you do it:
 
-1. If you don't already have a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
-for you project install one and in that install your project's requirements (which now includes Hendrix):
+1. You'll need to use **virtualenv**. If you don't have that set up, follow [the virtualenv instructions here.](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+
+2. Paste the example below into a file called **hendrix.conf**
+
+3. Enter the following:
 
     ```bash
-    virtualenv --no-site-packages --distribute /path/to/new/venv
-
-    source /path/to/new/venv/bin/activate
-
-    pip install -r /path/to/myproject/requirements.txt
+    sudo install-hendrix-service hendrix.conf
     ```
-
-2. Create a hendrix.conf file. Don't worry it's yaml (so it's easy). You can
-copy the [example](https://github.com/hangarunderground/hendrix/blob/master/hendrix/utils/example-yaml.conf)
-and save it wherever you want. You could even do something like this if you want:
-
-    ```bash
-    cd /wherever
-
-    wget https://raw.githubusercontent.com/hangarunderground/hendrix/master/hendrix/utils/example-yaml.conf
-    mv example-yaml.conf hendrix.conf
-
-    # open the file in an editor and change the options
-    nano -c hendrix.conf
-    ```
-
-3. Finally, run your own version of the following command:
-
-    ```bash
-    sudo install-hendrix-service /wherever/hendrix.conf
-    ```
-
-Now you have hendrix running as a service on your server. Easy.
+    
+4. Now you have hendrix running as a service on your server. Easy.
 Use the service as you would any other service i.e. `sudo service hendrix start`.
 
-Coming soon/if you want to build one: an [ansible galaxy](https://galaxy.ansible.com/)
-role would be great.
 
-###From the Command Line
+#####Here is an example hendrix.conf.  It is in [Yaml](http://www.yaml.org) format.
+    
+    
+    # path to virtualenv
+    virtualenv: /home/anthony/venvs/hendrix
+    
+    #path to manage.py
+    project_path: /home/anthony/django/myproject
+    
+    #### everything below is optional #####
+    # settings, if you use different ones for production
+    settings: 'dot.path.to.settings'
+    
+    # default 1
+    processes: 1
+    
+    # default 8000
+    http_port: 8000
+    
+    # default false
+    cache: false
+    
+    # default 8080
+    cache_port: 8888
+    
+    # default 4430
+    https_port: 4430
+    
+    # key and cacert are both required if you want to run ssl
+    key: /path/to/my/priv.key
+
+
+##Examples
 The following outlines how to use Hendrix in your day to day life/development.
 
 #####For help and a complete list of the options:
@@ -111,12 +111,12 @@ or
 
     hx start -w 3
 
-#####Stoping that server:
+#####Stopping that server:
 
     hx stop
 
 
-** *Note that stoping a server is dependent on the settings file and http_port
+** *Note that stopping a server is dependent on the settings file and http_port
 used.* **
 
 E.g. Running a server on port 8000 with local_settings.py would yield
@@ -144,29 +144,6 @@ HENDRIX_CHILD_RESOURCES = (
 No other configuration is necessary.  You don't need to add anything to urls.py.
 
 You can also easily create your own custom static or other handlers by adding them to HENDRIX\_CHILD\_RESOURCES.
-
-
-###Running the Development Server
-```
-hx start --reload
-```
-This will reload your server every time a change is made to a python file in
-your project.
-
-#####Using "dev" mode
-You can also use the development mode, which colourfully prints requests.
-```bash
-hx start --dev
-```
-You could also mix it up with other options:
-```
-hx start --dev --reload --w 2
-```
-or
-```
-hx start --settings production_settings --dev
-```
-etcetera...
 
 
 ###SSL

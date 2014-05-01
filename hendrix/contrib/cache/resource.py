@@ -281,7 +281,7 @@ class CacheProxyResource(proxy.ReverseProxyResource):
             host = self.host
         else:
             host = "%s:%d" % (self.host, self.port)
-        request.received_headers['host'] = host
+        request.requestHeaders.addRawHeader('host', host)
         request.content.seek(0, 0)
         qs = urlparse.urlparse(request.uri)[4]
         if qs:
