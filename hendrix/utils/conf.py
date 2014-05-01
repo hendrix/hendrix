@@ -1,5 +1,6 @@
 import jinja2
 import yaml
+from . import SHARE_PATH
 
 
 def generateInitd(conf_file):
@@ -42,7 +43,7 @@ def generateInitd(conf_file):
     for key, value in conf.iteritems():
         options += ['--%s' % key, str(value)]
 
-    with open('/usr/local/share/hendrix/init.d.j2', 'r') as f:
+    with open(os.path.join(SHARE_PATH, 'init.d.j2'), 'r') as f:
         TEMPLATE_FILE = f.read()
     template = jinja2.Template(TEMPLATE_FILE)
 

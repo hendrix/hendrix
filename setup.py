@@ -1,5 +1,5 @@
 import errno
-import os
+import os, sys
 from setuptools import setup, find_packages
 
 
@@ -28,7 +28,12 @@ def mkdir_p(path):
         else:
             raise
 
-mkdir_p('/usr/local/share/hendrix')
+share_path = os.path.join(
+    os.path.dirname(sys.executable),
+    'share/hendrix'
+)
+
+mkdir_p(share_path)
 
 setup(
     author = "hangarunderground",
@@ -55,7 +60,7 @@ setup(
         'hendrix/utils/scripts/install-hendrix-service'
     ],
     data_files = [
-        ('/usr/local/share/hendrix', ['hendrix/utils/templates/init.d.j2',]),
+        (share_path, ['hendrix/utils/templates/init.d.j2',]),
     ],
     install_requires = readlines('requirements')
 )
