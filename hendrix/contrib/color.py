@@ -21,3 +21,7 @@ class Colors:
     @classmethod
     def green(cls, message):
         cls.end(cls.OKGREEN, message)
+
+    @classmethod
+    def warning(cls, message):
+        cls.end(cls.WARNING, message)
