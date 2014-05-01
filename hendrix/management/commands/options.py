@@ -22,7 +22,7 @@ HX_OPTION_LIST = BaseCommand.option_list + (
         action='store_true',
         dest='loud',
         default=False,
-        help="Show warnings"
+        help="Use the custom verbose WSGI handler that prints in color"
     ),
     make_option(
         '-q', '--quiet',

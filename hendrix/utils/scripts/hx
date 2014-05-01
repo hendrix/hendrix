@@ -49,9 +49,12 @@ if __name__ == "__main__":
         sys.stderr = devnull
 
     # if the dev option is given then also set reload to true
-    # note that clean options will remove reload so to honor that we use get 
+    # note that clean options will remove reload so to honor that we use get
     # in the second part of the conditional
     options['reload'] = True if options['dev'] else options.get('reload', False)
+    options['loud'] = True if options['dev'] else options['loud']
+    options['nocache'] = True if options['dev'] else options['nocache']
+
     try:
         if action == 'start' and not options['daemonize']:
             Colors.blue('Starting Hendrix...')

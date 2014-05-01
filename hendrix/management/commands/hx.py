@@ -25,7 +25,7 @@ def cleanOptions(options):
     _reload = options.pop('reload')
     dev = options.pop('dev')
     opts = []
-    store_true = ['--nocache', '--global_cache', '--traceback', '--quiet']
+    store_true = ['--nocache', '--global_cache', '--traceback', '--quiet', '--loud']
     store_false = []
     for key, value in options.iteritems():
         key = '--' + key

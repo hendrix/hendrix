@@ -47,7 +47,7 @@ class HendrixDeploy(object):
             self.resources = get_additional_resources(settings)
             self.options = HendrixDeploy.getConf(settings, self.options)
 
-        if not self.options['dev'] and self.use_settings:
+        if not self.options['loud'] and self.use_settings:
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
         else:
