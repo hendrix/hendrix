@@ -1,13 +1,65 @@
+import chalk
 import os
 import sys
 import importlib
 from twisted.web import resource, static
-from twisted.web.wsgi import WSGIResource
+from twisted.web.server import NOT_DONE_YET
+from twisted.web.wsgi import WSGIResource, _WSGIResponse
 
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class DevWSGIResource(WSGIResource):
+
+    def render(self, request):
+        """
+        Turn the request into the appropriate C{environ} C{dict} suitable to be
+        passed to the WSGI application object and then pass it on.
+
+        The WSGI application object is given almost complete control of the
+        rendering process.  C{NOT_DONE_YET} will always be returned in order
+        and response completion will be dictated by the application object, as
+        will the status, headers, and the response body.
+        """
+        response = LoudWSGIResponse(
+            self._reactor, self._threadpool, self._application, request)
+        response.start()
+        return NOT_DONE_YET
+
+
+class LoudWSGIResponse(_WSGIResponse):
+
+    def startResponse(self, status, headers, excInfo=None):
+        """
+        extends startResponse to call speakerBox in a thread
+        """
+        if self.started and excInfo is not None:
+            raise excInfo[0], excInfo[1], excInfo[2]
+        self.status = status
+        self.headers = headers
+        self.reactor.callInThread(self.speakerBox, status, headers)
+        return self.write
+
+    def speakerBox(self, status, headers):
+        "prints the response info in color"
+        code, message = status.split(None, 1)
+        message = 'Response [%s] => Request %s %s %s on pid %d' % (
+            code,
+            str(self.request.host),
+            self.request.method,
+            self.request.path,
+            os.getpid()
+        )
+        signal = int(code)/100
+        if signal == 2:
+            chalk.green(message)
+        elif signal == 3:
+            chalk.blue(message)
+        else:
+            chalk.red(message)
 
 
 class HendrixResource(resource.Resource):
@@ -23,9 +75,12 @@ class HendrixResource(resource.Resource):
     to ensure that django always gets the full path.
     """
 
-    def __init__(self, reactor, threads, application):
+    def __init__(self, reactor, threads, application, loud=False):
         resource.Resource.__init__(self)
-        self.wsgi_resource = WSGIResource(reactor, threads, application)
+        if loud:
+            self.wsgi_resource = DevWSGIResource(reactor, threads, application)
+        else:
+            self.wsgi_resource = WSGIResource(reactor, threads, application)
 
 
     def getChild(self, name, request):
@@ -141,5 +196,3 @@ def get_additional_resources(settings_module):
             additional_resources.append(getattr(resource_module, resource_name))
 
     return additional_resources
-
-

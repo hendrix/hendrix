@@ -1,40 +1,11 @@
-import chalk
-import os
-import sys
 import importlib
-try:
-    from django.core.handlers.wsgi import WSGIHandler
-except ImportError as e:
-    raise ImportError(
-        str(e) + '\n' +
-        'Hendrix is a Django plugin. As such Django must be installed.'
-    ), None, sys.exc_info()[2]
 from twisted.web.resource import Resource, ForbiddenResource
 from .async.resources import MessageResource
 
 
-class DevWSGIHandler(WSGIHandler):
-    def __call__(self, *args, **kwargs):
-        response = super(DevWSGIHandler, self).__call__(*args, **kwargs)
-        code = response.status_code
-        message = 'Response [%s] => Request %s:%s %s %s on pid %d' % (
-            code,
-            args[0]['REMOTE_ADDR'],
-            args[0]['SERVER_PORT'],
-            args[0]['REQUEST_METHOD'],
-            args[0]['PATH_INFO'],
-            os.getpid()
-        )
-        signal = code/100
-        if signal == 2:
-            chalk.green(message)
-        elif signal == 3:
-            chalk.blue(message)
-        else:
-            chalk.red(message)
-        return response
-
-
+class SettingsError(Exception):
+    "Because we don't to inherit ImproperlyConfigured..."
+    pass
 
 
 

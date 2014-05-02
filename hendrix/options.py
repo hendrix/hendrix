@@ -1,11 +1,54 @@
-from django.core.management.base import BaseCommand
-
 from hendrix import defaults
 
 from optparse import make_option, OptionParser
 
 
-HX_OPTION_LIST = BaseCommand.option_list + (
+def cleanOptions(options):
+    """
+    Takes an options dict and returns a tuple containing the daemonize boolean,
+    the reload boolean, and the parsed list of cleaned options as would be
+    expected to be passed to hx
+    """
+    daemonize = options.pop('daemonize')
+    _reload = options.pop('reload')
+    dev = options.pop('dev')
+    opts = []
+    store_true = ['--nocache', '--global_cache', '--traceback', '--quiet', '--loud']
+    store_false = []
+    for key, value in options.iteritems():
+        key = '--' + key
+        if (key in store_true and value) or (key in store_false and not value):
+            opts += [key,]
+        elif value:
+            opts += [key, str(value)]
+    return daemonize, _reload, opts
+
+
+HX_OPTION_LIST = (
+    make_option(
+        '-v', '--verbosity',
+        action='store',
+        dest='verbosity',
+        default='1',
+        type='choice',
+        choices=['0', '1', '2', '3'],
+        help='Verbosity level; 0=minimal output, 1=normal output, 2=verbose output, 3=very verbose output'),
+    make_option(
+        '--settings',
+        help=(
+            'The Python path to a settings module, e.g. "myproject.settings.main".'
+            ' If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment variable will be used.'
+        )
+    ),
+    make_option(
+        '--pythonpath',
+        help='A directory to add to the Python path, e.g. "/home/djangoprojects/myproject".'
+    ),
+    make_option(
+        '--traceback',
+        action='store_true',
+        help='Raise on exception'
+    ),
     make_option(
         '--reload',
         action='store_true',
@@ -121,7 +164,11 @@ HX_OPTION_LIST = BaseCommand.option_list + (
 )
 
 
-HendrixOptionParser = OptionParser(option_list=HX_OPTION_LIST)
+HendrixOptionParser = OptionParser(
+    description='hx is the interface to hendrix, use to start and stop your server',
+    usage='hx start|stop [options]',
+    option_list=HX_OPTION_LIST
+)
 
 def options(argv=[]):
     """

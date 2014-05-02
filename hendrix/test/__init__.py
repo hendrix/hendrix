@@ -1,6 +1,7 @@
 """
 Run these tests using nosetests
 """
+import mock
 import os
 import unittest
 from hendrix import deploy
@@ -17,6 +18,10 @@ class HendrixTestCase(unittest.TestCase):
     This is where we collect our helper functions to test hendrix
     """
 
+    def setUp(self):
+        self.old_run = reactor.run
+        reactor.run = object
+
     def tearDown(self):
         """
         cleans up the reactor after running startService on a
@@ -24,9 +29,11 @@ class HendrixTestCase(unittest.TestCase):
         """
         reactor.removeAll()
 
-        test_pid_file = get_pid({'settings':TEST_SETTINGS, 'http_port':HTTP_PORT})
+        test_pid_file = get_pid({'settings': TEST_SETTINGS, 'http_port': HTTP_PORT})
         if os.path.exists(test_pid_file):
             os.remove(test_pid_file)
+
+        reactor.run = self.old_run
 
 
     def noSettingsDeploy(self, action='start', options={}):

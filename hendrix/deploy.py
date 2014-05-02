@@ -10,9 +10,9 @@ from sys import executable
 from socket import AF_INET
 
 from hendrix import defaults
+from hendrix.contrib import ssl
 from hendrix.contrib.services.cache import CacheService
-from hendrix.contrib import ssl, DevWSGIHandler
-from hendrix.management.commands.options import options as hx_options
+from hendrix.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from hendrix.utils import get_pid
@@ -28,12 +28,13 @@ class HendrixDeploy(object):
     HendrixService on a single or multiple processes.
     """
 
-    def __init__(self, action='start', options={}):
+    def __init__(self, action='start', options={}, reactor=reactor):
         self.action = action
         self.options = hx_options()
         self.options.update(options)
         self.services = []
         self.resources = []
+        self.reactor = reactor
 
         self.use_settings = True  # because running the management command overrides self.options['wsgi']
         if self.options['wsgi']:
@@ -47,11 +48,9 @@ class HendrixDeploy(object):
             self.resources = get_additional_resources(settings)
             self.options = HendrixDeploy.getConf(settings, self.options)
 
-        if not self.options['loud'] and self.use_settings:
+        if self.use_settings:
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
-        else:
-            self.application = DevWSGIHandler()
 
         self.is_secure = self.options['key'] and self.options['cert']
 
@@ -108,7 +107,7 @@ class HendrixDeploy(object):
         "instantiates the HendrixService"
         self.hendrix = HendrixService(
             self.application, self.options['http_port'], resources=self.resources,
-            services=self.services
+            services=self.services, loud=self.options['loud']
         )
 
 
@@ -232,7 +231,7 @@ class HendrixDeploy(object):
                 args = self.getSpawnArgs()
                 transports = []
                 for i in range(self.options['workers']):
-                    transport = reactor.spawnProcess(
+                    transport = self.reactor.spawnProcess(
                         None, executable, args, childFDs=childFDs, env=environ
                     )
                     transports.append(transport)
@@ -254,9 +253,9 @@ class HendrixDeploy(object):
                     factory = TLSMemoryBIOFactory(
                         privateCert.options(), False, factory
                     )
-                port = reactor.adoptStreamPort(fds[name], AF_INET, factory)
+                port = self.reactor.adoptStreamPort(fds[name], AF_INET, factory)
 
-        reactor.run()
+        self.reactor.run()
 
     def stop(self, sig=9):
         with open(self.pid) as pid_file:

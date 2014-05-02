@@ -3,6 +3,9 @@ import sys
 from path import path
 
 
+__version__ = '0.1.3'
+
+
 empty = object()
 HENDRIX_DIR = path(__file__).abspath().dirname()
 VIRTUALENV = path(sys.executable).parent.parent

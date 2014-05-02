@@ -1,3 +1,4 @@
+from hendrix import __version__
 import errno
 import os, sys
 from setuptools import setup, find_packages
@@ -39,9 +40,9 @@ setup(
     author_email = "hendrix@reelio.com",
     name = "hendrix",
     packages = find_packages(),
-    version = "0.1.3",
+    version = __version__,
     url = "https://github.com/hangarunderground/hendrix",
-    download_url = "https://github.com/hangarunderground/hendrix/tarball/v0.1.3-beta",
+    download_url = "https://github.com/hangarunderground/hendrix/tarball/v"+__version__+"-beta",
     description = "A deployment module for Django that uses Twisted.",
     long_description = read('docs/long_desc.rst'),
     classifiers = [
