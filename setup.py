@@ -9,8 +9,7 @@ def file_name(rel_path):
 
 def read(rel_path):
     with open(file_name(rel_path)) as f:
-        ret = f.read()
-    return ret
+        return f.read()
 
 def readlines(rel_path):
     with open(file_name(rel_path)) as f:
@@ -44,7 +43,7 @@ setup(
     url = "https://github.com/hangarunderground/hendrix",
     download_url = "https://github.com/hangarunderground/hendrix/tarball/v0.1.3-beta",
     description = "A deployment module for Django that uses Twisted.",
-    long_description = read('docs/long_desc.html'),
+    long_description = read('docs/long_desc.rst'),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Framework :: Django',

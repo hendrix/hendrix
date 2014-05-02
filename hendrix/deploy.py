@@ -1,3 +1,4 @@
+import chalk
 import importlib
 import os
 import time
@@ -11,7 +12,6 @@ from socket import AF_INET
 from hendrix import defaults
 from hendrix.contrib.services.cache import CacheService
 from hendrix.contrib import ssl, DevWSGIHandler
-from hendrix.contrib.color import Colors
 from hendrix.management.commands.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
@@ -155,7 +155,7 @@ class HendrixDeploy(object):
         fd = self.options['fd']
 
         if action.startswith('start'):
-            Colors.blue('Ready and Listening...')
+            chalk.blue('Ready and Listening...')
             getattr(self, action)(fd)
         elif action == 'restart':
             getattr(self, action)(fd=fd)

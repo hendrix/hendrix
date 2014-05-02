@@ -1,3 +1,4 @@
+import chalk
 import os
 import sys
 import importlib
@@ -10,7 +11,6 @@ except ImportError as e:
     ), None, sys.exc_info()[2]
 from twisted.web.resource import Resource, ForbiddenResource
 from .async.resources import MessageResource
-from .color import Colors
 
 
 class DevWSGIHandler(WSGIHandler):
@@ -27,11 +27,11 @@ class DevWSGIHandler(WSGIHandler):
         )
         signal = code/100
         if signal == 2:
-            Colors.green(message)
+            chalk.green(message)
         elif signal == 3:
-            Colors.blue(message)
+            chalk.blue(message)
         else:
-            Colors.red(message)
+            chalk.red(message)
         return response
 
 

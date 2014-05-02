@@ -1,3 +1,4 @@
+import chalk
 import os
 import subprocess
 import sys
@@ -9,7 +10,6 @@ from .options import HX_OPTION_LIST
 from django.core.management.base import BaseCommand
 
 from hendrix.deploy import HendrixDeploy
-from hendrix.contrib.color import Colors
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -56,7 +56,7 @@ class Reload(FileSystemEventHandler):
         ext = path(event.src_path).ext
         if ext == '.py':
             self.process = self.restart()
-            Colors.warning("detected changes, restarting...")
+            chalk.yellow("Detected changes, restarting...")
 
     def restart(self):
         self.process.terminate()
@@ -93,5 +93,5 @@ class Command(BaseCommand):
                     msg = traceback.format_exc(tb)
                 else:
                     msg = str(e)
-                sys.stderr.write('\33[91m'+ msg + '\33[0m')
+                chalk.red(msg, pipe=chalk.stderr)
                 os._exit(1)
