@@ -34,7 +34,7 @@ Using pip
 ###Running the Development Server
 
 cd to the directory where your **manage.py** file is located and...
-    
+
     hx start --reload
 
 This is roughly the equivalent of running the django devserver.
@@ -59,39 +59,39 @@ Here's how you do it:
     ```bash
     sudo install-hendrix-service hendrix.conf
     ```
-    
+
 4. Now you have hendrix running as a service on your server. Easy.
 Use the service as you would any other service i.e. `sudo service hendrix start`.
 
 
 #####Here is an example hendrix.conf.  It is in [Yaml](http://www.yaml.org) format.
-    
-    
+
+
     # path to virtualenv
     virtualenv: /home/anthony/venvs/hendrix
-    
+
     #path to manage.py
     project_path: /home/anthony/django/myproject
-    
+
     #### everything below is optional #####
     # settings, if you use different ones for production
     settings: 'dot.path.to.settings'
-    
+
     # default 1
     processes: 1
-    
+
     # default 8000
     http_port: 8000
-    
+
     # default false
     cache: false
-    
+
     # default 8080
     cache_port: 8888
-    
+
     # default 4430
     https_port: 4430
-    
+
     # key and cacert are both required if you want to run ssl
     key: /path/to/my/priv.key
 
@@ -228,6 +228,12 @@ proxy server on a single process just use the `-g` or `--global_cache` flags.
 
 
 ###Testing
+
+In your virtualenv first run the following:
+
+    pip install -r requirements
+    pip install -r test-requirements
+
 Tests live in `hendrix.test` and are most easily run using Twisted's
 [trial](https://twistedmatrix.com/trac/wiki/TwistedTrial) test framework.
 ```

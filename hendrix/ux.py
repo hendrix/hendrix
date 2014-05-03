@@ -103,9 +103,10 @@ def main():
         if user_settings:
             env['DJANGO_SETTINGS_MODULE'] = user_settings
     else:
-        wsgi_path = path(options['wsgi'])
-        if not wsgi_path.exists():
-            raise IOError("The path '%s' does not exist" % wsgi_path)
+        try:
+            wsgi = HendrixDeploy.importWSGI(options['wsgi'])
+        except ImportError, e:
+            raise IOError("The path '%s' does not exist" % options['wsgi'])
 
     # sys.path logic
     if options['pythonpath']:

@@ -156,6 +156,7 @@ class HendrixDeploy(object):
         if action.startswith('start'):
             chalk.blue('Ready and Listening...')
             getattr(self, action)(fd)
+            self.reactor.run()
         elif action == 'restart':
             getattr(self, action)(fd=fd)
         else:
@@ -255,7 +256,6 @@ class HendrixDeploy(object):
                     )
                 port = self.reactor.adoptStreamPort(fds[name], AF_INET, factory)
 
-        self.reactor.run()
 
     def stop(self, sig=9):
         with open(self.pid) as pid_file:

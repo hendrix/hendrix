@@ -4,8 +4,7 @@ Run these tests using nosetests
 import mock
 import os
 import unittest
-from hendrix import deploy
-from twisted.internet import reactor
+from hendrix.deploy import HendrixDeploy
 from hendrix.utils import get_pid
 
 from hendrix.defaults import *
@@ -19,21 +18,25 @@ class HendrixTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.old_run = reactor.run
-        reactor.run = object
+        from twisted.internet import reactor
+
+        self.reactor = reactor
+
+
+    def deploy(self, action, options):
+        return HendrixDeploy(action, options, reactor=self.reactor)
+
 
     def tearDown(self):
         """
         cleans up the reactor after running startService on a
         twisted.application.service
         """
-        reactor.removeAll()
+        self.reactor.removeAll()
 
         test_pid_file = get_pid({'settings': TEST_SETTINGS, 'http_port': HTTP_PORT})
         if os.path.exists(test_pid_file):
             os.remove(test_pid_file)
-
-        reactor.run = self.old_run
 
 
     def noSettingsDeploy(self, action='start', options={}):
@@ -44,10 +47,11 @@ class HendrixTestCase(unittest.TestCase):
         we should test that flow path also...
         """
         options.update({'wsgi': 'hendrix.test.wsgi'})
-        return deploy.HendrixDeploy(action, options)
+        return self.deploy(action, options)
+
 
     def withSettingsDeploy(self, action='start', options={}):
         "Use the hendrix test project to test the bash deployment flow path"
         os.environ['DJANGO_SETTINGS_MODULE'] = TEST_SETTINGS
         options.update({'settings': TEST_SETTINGS})
-        return deploy.HendrixDeploy(action, options)
+        return self.deploy(action, options)

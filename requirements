@@ -1,10 +1,8 @@
-watchdog
-path.py
-zope.interface
 twisted
-mock
 txsockjs
 pyopenssl
-django
+zope.interface
+watchdog
+path.py
 jinja2
 pychalk

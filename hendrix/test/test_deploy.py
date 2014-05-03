@@ -12,10 +12,10 @@ class DeployTests(HendrixTestCase):
         A test to ensure that HendrixDeploy.options also has the complete set
         of options available
         """
-        deploy = self.noSettingsDeploy()
+        _deploy = self.noSettingsDeploy()
         options = hx_options()
         expected_keys = options.keys()
-        actual_keys = deploy.options.keys()
+        actual_keys = _deploy.options.keys()
         self.assertListEqual(expected_keys, actual_keys)
 
     def test_settings_doesnt_break(self):
@@ -28,19 +28,21 @@ class DeployTests(HendrixTestCase):
     def test_workers(self):
         "test the expected behaviour of workers and associated functions"
         num_workers = 2
-        deploy = self.withSettingsDeploy('start', {'workers': num_workers})
-        with patch.object(deploy.reactor, 'spawnProcess') as _spawnProcess:
-            deploy.run()
+        _deploy = self.withSettingsDeploy('start', {'workers': num_workers})
+        with patch.object(_deploy.reactor, 'spawnProcess') as _spawnProcess:
+            _deploy.addServices()
+            _deploy.start()
             self.assertEqual(_spawnProcess.call_count, num_workers)
 
     def test_no_workers(self):
-        deploy = self.withSettingsDeploy()
-        with patch.object(deploy.reactor, 'spawnProcess') as _spawnProcess:
-            deploy.run()
+        _deploy = self.withSettingsDeploy()
+        with patch.object(_deploy.reactor, 'spawnProcess') as _spawnProcess:
+            _deploy.addServices()
+            _deploy.start()
             self.assertEqual(_spawnProcess.call_count, 0)
 
     def test_addHendrix(self):
         "test that addHendrix returns a MulitService"
-        deploy = self.withSettingsDeploy()
-        deploy.addHendrix()
-        self.assertIsInstance(deploy.hendrix, service.MultiService)
+        _deploy = self.withSettingsDeploy()
+        _deploy.addHendrix()
+        self.assertIsInstance(_deploy.hendrix, service.MultiService)
