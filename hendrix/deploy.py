@@ -42,6 +42,7 @@ class HendrixDeploy(object):
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
             self.use_settings = False
         else:
+            os.environ['DJANGO_SETTINGS_MODULE'] = self.options['settings']
             django_conf = importlib.import_module('django.conf')
             settings = getattr(django_conf, 'settings')
             self.services = get_additional_services(settings)

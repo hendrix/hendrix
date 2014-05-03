@@ -35,6 +35,9 @@ HX_OPTION_LIST = (
         help='Verbosity level; 0=minimal output, 1=normal output, 2=verbose output, 3=very verbose output'),
     make_option(
         '--settings',
+        dest='settings',
+        type=str,
+        default='',
         help=(
             'The Python path to a settings module, e.g. "myproject.settings.main".'
             ' If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment variable will be used.'

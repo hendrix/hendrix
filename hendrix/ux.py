@@ -12,7 +12,6 @@ from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
 from hendrix.deploy import HendrixDeploy
 from path import path
-from os import environ as env
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -78,8 +77,6 @@ def launch(*args, **options):
             os._exit(1)
 
 
-
-
 def main():
     "The function to execute when running hx"
     options, args = HendrixOptionParser.parse_args(sys.argv[1:])
@@ -90,18 +87,17 @@ def main():
     # settings logic
     if not options['wsgi']:
         user_settings = options['settings']
-        settings_module = env.get('DJANGO_SETTINGS_MODULE')
+        settings_module = os.environ.get('DJANGO_SETTINGS_MODULE')
         if not settings_module and not user_settings:
             msg = (
                 'Either specify:\n--settings mysettings.dot.path\nOR\n'
                 'export DJANGO_SETTINGS_MODULE="mysettings.dot.path"'
             )
             raise SettingsError(msg), None, sys.exc_info()[2]
-        else:
-            options['settings'] = user_settings = settings_module
-
-        if user_settings:
-            env['DJANGO_SETTINGS_MODULE'] = user_settings
+        elif user_settings:
+            options['settings'] = user_settings
+        elif settings_module:
+            options['settings'] = settings_module
     else:
         try:
             wsgi = HendrixDeploy.importWSGI(options['wsgi'])
