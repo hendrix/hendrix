@@ -1,5 +1,8 @@
-from hendrix import HENDRIX_DIR
 import os, sys
+from path import path
+
+
+HENDRIX_DIR = path(__file__).abspath().dirname()
 
 SHARE_PATH = os.path.join(
     os.path.dirname(sys.executable),
