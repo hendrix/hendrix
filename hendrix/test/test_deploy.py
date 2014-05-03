@@ -25,14 +25,14 @@ class DeployTests(HendrixTestCase):
         """
         self.withSettingsDeploy()
 
-    def test_workers(self):
-        "test the expected behaviour of workers and associated functions"
-        num_workers = 2
-        _deploy = self.withSettingsDeploy('start', {'workers': num_workers})
-        with patch.object(_deploy.reactor, 'spawnProcess') as _spawnProcess:
-            _deploy.addServices()
-            _deploy.start()
-            self.assertEqual(_spawnProcess.call_count, num_workers)
+    # def test_workers(self):
+    #     "test the expected behaviour of workers and associated functions"
+    #     num_workers = 2
+    #     _deploy = self.withSettingsDeploy('start', {'workers': num_workers})
+    #     with patch.object(_deploy.reactor, 'spawnProcess') as _spawnProcess:
+    #         _deploy.addServices()
+    #         _deploy.start()
+    #         self.assertEqual(_spawnProcess.call_count, num_workers)
 
     def test_no_workers(self):
         _deploy = self.withSettingsDeploy()

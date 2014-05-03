@@ -148,7 +148,7 @@ def main():
             'ERROR: %s\nCould not %s hendrix. Try again using the --traceback '
             'flag for more information.'
         )
-        chalk.red(msg % (str(e),action), pipe=chalk.stderr)
+        chalk.red(msg % (str(e), action), pipe=chalk.stderr)
         if options['traceback']:
             raise
         else:
