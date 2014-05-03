@@ -77,13 +77,7 @@ def launch(*args, **options):
             os._exit(1)
 
 
-def main():
-    "The function to execute when running hx"
-    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
-    options = vars(options)
-
-    action = args[0]
-
+def djangoVsWsgi(options):
     # settings logic
     if not options['wsgi']:
         user_settings = options['settings']
@@ -100,10 +94,14 @@ def main():
             options['settings'] = settings_module
     else:
         try:
-            wsgi = HendrixDeploy.importWSGI(options['wsgi'])
-        except ImportError, e:
-            raise IOError("The path '%s' does not exist" % options['wsgi'])
+            HendrixDeploy.importWSGI(options['wsgi'])
+        except ImportError:
+            raise ImportError("The path '%s' does not exist" % options['wsgi'])
 
+    return options
+
+
+def exposeProject(options):
     # sys.path logic
     if options['pythonpath']:
         project_path = path(options['pythonpath'])
@@ -114,18 +112,38 @@ def main():
         sys.path.append(os.getcwd())
 
 
-    # terminal noise/info logic
-    if options['quiet'] or options['daemonize']:
-        devnull = open(os.devnull, 'w')
-    if options['quiet'] and not options['daemonize']:
-        sys.stdout = devnull
-        sys.stderr = devnull
-
+def devFriendly(options):
     # if the dev option is given then also set reload to true
     # note that clean options will remove reload so to honor that we use get
     # in the second part of the conditional
     options['reload'] = True if options['dev'] else options.get('reload', False)
     options['loud'] = True if options['dev'] else options['loud']
+    return options
+
+def noiseControl(options):
+    # terminal noise/info logic
+    devnull = open(os.devnull, 'w')
+    if options['quiet'] and not options['daemonize']:
+        sys.stdout = devnull
+        sys.stderr = devnull
+    redirect = devnull if not options['traceback'] else None
+    return redirect
+
+
+def main():
+    "The function to execute when running hx"
+    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
+    options = vars(options)
+
+    action = args[0]
+
+    options = djangoVsWsgi(options)
+
+    exposeProject(options)
+
+    options = devFriendly(options)
+
+    redirect = noiseControl(options)
 
     try:
         if action == 'start' and not options['daemonize']:
@@ -134,7 +152,6 @@ def main():
             chalk.green('Stopping Hendrix...')
         if options['daemonize']:
             daemonize, _reload, opts = cleanOptions(options)
-            redirect = devnull if not options['traceback'] else None
             process = subprocess.Popen(['hx', action] + opts, stdout=redirect, stderr=redirect)
             time.sleep(2)
             if process.poll():

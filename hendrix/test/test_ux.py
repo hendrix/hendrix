@@ -1,0 +1,167 @@
+import os
+import sys
+from . import HendrixTestCase, TEST_SETTINGS
+from hendrix.contrib import SettingsError
+from hendrix.options import options as hx_options
+from hendrix import ux
+from mock import patch
+from path import path
+
+
+class TestMain(HendrixTestCase):
+
+    def setUp(self):
+        super(TestMain, self).setUp()
+        self.DEFAULTS = hx_options()
+        os.environ['DJANGO_SETTINGS_MODULE'] = ''
+        self.devnull = open(os.devnull, 'w')
+        self.args_list = ['hx', 'start']
+
+    def tearDown(self):
+        super(TestMain, self).tearDown()
+        self.devnull.close()
+
+    def test_settings_from_system_variable(self):
+        django_settings = 'django.inanity'
+        os.environ['DJANGO_SETTINGS_MODULE'] = django_settings
+        options = self.DEFAULTS
+        self.assertEqual(options['settings'], '')
+        options = ux.djangoVsWsgi(options)
+        self.assertEqual(options['settings'], django_settings)
+
+    def test_settings_wsgi_absense(self):
+        self.assertRaises(SettingsError, ux.djangoVsWsgi, self.DEFAULTS)
+
+    def test_user_settings_overrides_system_variable(self):
+        django_settings = 'django.inanity'
+        os.environ['DJANGO_SETTINGS_MODULE'] = django_settings
+        options = self.DEFAULTS
+        user_settings = 'myproject.settings'
+        options['settings'] = user_settings
+        self.assertEqual(options['settings'], user_settings)
+        options = ux.djangoVsWsgi(options)
+        self.assertEqual(options['settings'], user_settings)
+
+    def test_wsgi_correct_wsgi_path_works(self):
+        wsgi_dot_path = 'hendrix.test.wsgi'
+        options = self.DEFAULTS
+        options.update({'wsgi': wsgi_dot_path})
+        options = ux.djangoVsWsgi(options)
+        self.assertEqual(options['wsgi'], wsgi_dot_path)
+
+    def test_wsgi_wrong_path_raises(self):
+        wsgi_dot_path = '_this.leads.nowhere.man'
+        options = self.DEFAULTS
+        options.update({'wsgi': wsgi_dot_path})
+
+        self.assertRaises(ImportError, ux.djangoVsWsgi, options)
+
+    def test_cwd_exposure(self):
+        cwd = os.getcwd()
+        _path = sys.path
+        sys.path = [ p for p in _path if p != cwd ]
+        self.assertTrue(cwd not in sys.path)
+        ux.exposeProject(self.DEFAULTS)
+        self.assertTrue(cwd in sys.path)
+
+    def test_pythonpath(self):
+        options = self.DEFAULTS
+        test_path = os.path.join(
+            path(os.getcwd()).parent,
+            'hendrix/test/testproject'
+        )
+        options['pythonpath'] = test_path
+        ux.exposeProject(options)
+        self.assertTrue(test_path in sys.path)
+        sys.path = [ p for p in sys.path if p != test_path ]
+
+    def test_shitty_pythonpath(self):
+        options = self.DEFAULTS
+        test_path = '/if/u/have/this/path/you/suck'
+        options['pythonpath'] = test_path
+        self.assertRaises(IOError, ux.exposeProject, options)
+
+    def test_dev_friendly_options(self):
+        options = self.DEFAULTS
+        options['dev'] = True
+        self.assertFalse(options['reload'])
+        self.assertFalse(options['loud'])
+        options = ux.devFriendly(options)
+        self.assertTrue(options['reload'])
+        self.assertTrue(options['loud'])
+
+    def test_noise_control_quiet(self):
+        options = self.DEFAULTS
+        options['quiet'] = True
+        stdout = sys.stdout
+        stderr = sys.stderr
+        redirect = ux.noiseControl(options)
+        self.assertEqual(sys.stdout.name, self.devnull.name)
+        self.assertEqual(sys.stderr.name, self.devnull.name)
+        sys.stdout = stdout
+        sys.stderr = stderr
+
+        self.assertEqual(redirect.name, self.devnull.name)
+
+    def test_noise_control_daemonize(self):
+        options = self.DEFAULTS
+        options['quiet'] = True
+        options['daemonize'] = True
+        stdout = sys.stdout
+        stderr = sys.stderr
+        redirect = ux.noiseControl(options)
+        self.assertEqual(sys.stdout.name, stdout.name)
+        self.assertEqual(sys.stderr.name, stderr.name)
+
+        self.assertEqual(redirect.name, self.devnull.name)
+
+    def test_noise_control_traceback(self):
+        options = self.DEFAULTS
+        options['quiet'] = True
+        options['daemonize'] = True
+        options['traceback'] = True
+        stdout = sys.stdout
+        stderr = sys.stderr
+        redirect = ux.noiseControl(options)
+        self.assertEqual(sys.stdout.name, stdout.name)
+        self.assertEqual(sys.stderr.name, stderr.name)
+
+        self.assertEqual(redirect, None)
+
+    def test_noise_control_quiet_traceback(self):
+        options = self.DEFAULTS
+        options['quiet'] = True
+        options['traceback'] = True
+        stdout = sys.stdout
+        stderr = sys.stderr
+        redirect = ux.noiseControl(options)
+        self.assertEqual(sys.stdout.name, self.devnull.name)
+        self.assertEqual(sys.stderr.name, self.devnull.name)
+        sys.stdout = stdout
+        sys.stderr = stderr
+
+        self.assertEqual(redirect, None)
+
+    def test_main_with_daemonize(self):
+        sys.argv = self.args_list + ['-d', '--settings', TEST_SETTINGS]
+        class Process(object):
+            def poll(self):
+                return 0
+        with patch('time.sleep') as sleep:
+            with patch('subprocess.Popen') as popen:
+                popen.return_value = Process()
+                ux.main()
+                self.assertTrue(popen.called)
+                self.assertTrue('--settings' in popen.call_args[0][0])
+        sys.argv = []
+
+
+    def test_options_structure(self):
+        """
+        A test to ensure that HendrixDeploy.options also has the complete set
+        of options available
+        """
+        deploy = self.wsgiDeploy()
+        expected_keys = self.DEFAULTS.keys()
+        actual_keys = deploy.options.keys()
+        self.assertListEqual(expected_keys, actual_keys)
