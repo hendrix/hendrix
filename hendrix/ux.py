@@ -40,9 +40,9 @@ class Reload(FileSystemEventHandler):
             chalk.yellow("Detected changes, restarting...")
 
     def restart(self):
-        # self.process.terminate()
+        self.process.kill()
         process = subprocess.Popen(
-            ['hx', 'restart'] + self.options
+            ['hx', 'start_reload'] + self.options
         )
         return process
 
