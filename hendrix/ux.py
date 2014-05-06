@@ -40,7 +40,7 @@ class Reload(FileSystemEventHandler):
             chalk.yellow("Detected changes, restarting...")
 
     def restart(self):
-        self.process.terminate()
+        # self.process.terminate()
         process = subprocess.Popen(
             ['hx', 'restart'] + self.options
         )
@@ -61,6 +61,8 @@ def launch(*args, **options):
                 time.sleep(1)
         except KeyboardInterrupt:
             observer.stop()
+            subprocess.Popen(['killall', 'python'])
+            chalk.green('\nHendrix successfully closed.')
         observer.join()
         exit('\n')
     else:
@@ -84,10 +86,10 @@ def djangoVsWsgi(options):
         settings_module = os.environ.get('DJANGO_SETTINGS_MODULE')
         if not settings_module and not user_settings:
             msg = (
-                'Either specify:\n--settings mysettings.dot.path\nOR\n'
+                '\nEither specify:\n--settings mysettings.dot.path\nOR\n'
                 'export DJANGO_SETTINGS_MODULE="mysettings.dot.path"'
             )
-            raise SettingsError(msg), None, sys.exc_info()[2]
+            raise SettingsError(chalk.format_red(msg)), None, sys.exc_info()[2]
         elif user_settings:
             options['settings'] = user_settings
         elif settings_module:
@@ -158,7 +160,7 @@ def main():
                 raise RuntimeError
         else:
             launch(*args, **options)
-            if not action == 'start_reload':
+            if action not in ['start_reload', 'restart']:
                 chalk.green('\nHendrix successfully closed.')
     except Exception, e:
         msg = (
