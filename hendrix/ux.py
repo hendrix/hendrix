@@ -37,6 +37,7 @@ class Reload(FileSystemEventHandler):
         ext = path(event.src_path).ext
         if ext == '.py':
             self.process = self.restart()
+            chalk.eraser()
             chalk.yellow("Detected changes, restarting...")
 
     def restart(self):
@@ -61,8 +62,9 @@ def launch(*args, **options):
                 time.sleep(1)
         except KeyboardInterrupt:
             observer.stop()
-            subprocess.Popen(['killall', 'python'])
+            pid = os.getpid()
             chalk.green('\nHendrix successfully closed.')
+            os.kill(pid, 15)
         observer.join()
         exit('\n')
     else:
