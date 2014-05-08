@@ -63,6 +63,7 @@ def launch(*args, **options):
         except KeyboardInterrupt:
             observer.stop()
             pid = os.getpid()
+            chalk.eraser()
             chalk.green('\nHendrix successfully closed.')
             os.kill(pid, 15)
         observer.join()
@@ -151,6 +152,7 @@ def main():
 
     try:
         if action == 'start' and not options['daemonize']:
+            chalk.eraser()
             chalk.blue('Starting Hendrix...')
         elif action == 'stop':
             chalk.green('Stopping Hendrix...')
@@ -163,6 +165,7 @@ def main():
         else:
             launch(*args, **options)
             if action not in ['start_reload', 'restart']:
+                chalk.eraser()
                 chalk.green('\nHendrix successfully closed.')
     except Exception, e:
         msg = (

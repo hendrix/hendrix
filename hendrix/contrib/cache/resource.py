@@ -152,7 +152,12 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
         cached_resource = self.getCachedResource(request)
         if cached_resource:
             reactor.callInThread(
-                responseInColor, request, '200 OK', cached_resource, 'Cached ', 'underscore'
+                responseInColor,
+                request,
+                '200 OK',
+                cached_resource,
+                'Cached',
+                'underscore'
             )
             return cached_resource
         # original logic
