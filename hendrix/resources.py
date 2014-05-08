@@ -1,7 +1,7 @@
-import chalk
 import os
 import sys
 import importlib
+from hendrix.utils import responseInColor
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
@@ -40,26 +40,8 @@ class LoudWSGIResponse(_WSGIResponse):
             raise excInfo[0], excInfo[1], excInfo[2]
         self.status = status
         self.headers = headers
-        self.reactor.callInThread(self.speakerBox, status, headers)
+        self.reactor.callInThread(responseInColor, self.request, status, headers)
         return self.write
-
-    def speakerBox(self, status, headers):
-        "prints the response info in color"
-        code, message = status.split(None, 1)
-        message = 'Response [%s] => Request %s %s %s on pid %d' % (
-            code,
-            str(self.request.host),
-            self.request.method,
-            self.request.path,
-            os.getpid()
-        )
-        signal = int(code)/100
-        if signal == 2:
-            chalk.green(message)
-        elif signal == 3:
-            chalk.blue(message)
-        else:
-            chalk.red(message)
 
 
 class HendrixResource(resource.Resource):

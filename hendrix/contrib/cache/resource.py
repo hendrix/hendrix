@@ -1,29 +1,16 @@
 import cStringIO
-from datetime import datetime
-import gzip
 import urlparse
 
-from hendrix.defaults import DEFAULT_MAX_AGE
+from . import decompressBuffer, compressBuffer
+from .backends.memory_cache import MemoryCacheBackend
 
-from urllib import quote as urlquote
-from time import strptime
+from hendrix.utils import responseInColor
+
 from twisted.internet import reactor, defer, threads
-from twisted.web import proxy, resource, client
+from twisted.web import proxy, client
 from twisted.web.server import NOT_DONE_YET
+from urllib import quote as urlquote
 
-PREFIX = "/CACHE"
-
-
-def processURI(uri, prefix=''):
-    """
-    helper function to return just the path (uri) and whether or not it's busted
-    """
-    components = urlparse.urlparse(uri)
-    query = dict(urlparse.parse_qsl(components.query))
-    bust = True
-    bust &= bool(query)  # bust the cache if the query has stuff in it
-    bust &= query.get('cache') != 'true'  # bust the cache if the query key 'cache' isn't true
-    return prefix + components.path, bust
 
 
 class CacheClient(proxy.ProxyClient):
@@ -39,39 +26,35 @@ class CacheClient(proxy.ProxyClient):
         self.buffer = cStringIO.StringIO()
         self._response = None
 
-    def closeBuffer(self):
-        self.buffer.close()
-
-    def connectionMade(self):
-        proxy.ProxyClient.connectionMade(self)
-
-    def connectionLost(self, reason):
-        proxy.ProxyClient.connectionLost(self, reason)
-
-    def dataReceived(self, transport):
-        proxy.ProxyClient.dataReceived(self, transport)
-
     def handleHeader(self, key, value):
         "extends handleHeader to save headers to a local response object"
-        if key.lower() == 'location':
-            value = self.modLocationPort(value, 8000)
-        proxy.ProxyClient.handleHeader(self, key, value)
-        self._response.headers[key.lower()] = value
+        key_lower = key.lower()
+        if key_lower == 'location':
+            value = self.modLocationPort(value)
+        self._response.headers[key_lower] = value
+        if key_lower != 'cache-control':
+            # This causes us to not pass on the 'cache-control' parameter
+            # to the browser
+            # TODO: we should have a means of giving the user the option to
+            # configure how they want to manage browser-side cache control
+            proxy.ProxyClient.handleHeader(self, key, value)
 
     def handleStatus(self, version, code, message):
         "extends handleStatus to instantiate a local response object"
-        # if int(code) != 301:
         proxy.ProxyClient.handleStatus(self, version, code, message)
         # client.Response is currently just a container for needed data
         self._response = client.Response(version, code, message, {}, None)
 
-    def modLocationPort(self, location, port):
-        "ensures that the location port is a the given port value"
+    def modLocationPort(self, location):
+        """
+        Ensures that the location port is a the given port value
+        Used in `handleHeader`
+        """
         components = urlparse.urlparse(location)
-        _value = getattr(components, 'port')
-        if _value != port:
-            _components = components._asdict()  # returns an ordered dict of urlparse.ParseResult components
-            _components['netloc'] = '%s:%d' % (components.hostname, port)
+        reverse_proxy_port = self.father.getHost().port
+        reverse_proxy_host = self.father.getHost().host
+        _components = components._asdict()  # returns an ordered dict of urlparse.ParseResult components
+        _components['netloc'] = '%s:%d' % (reverse_proxy_host, reverse_proxy_port)
         return urlparse.urlunparse(_components.values())
 
     def handleResponseEnd(self):
@@ -82,33 +65,17 @@ class CacheClient(proxy.ProxyClient):
         """
         try:
             if not self._finished:
-                content = self.buffer.getvalue()
-                reactor.callInThread(self.cacheContent, content, self.father)
+                reactor.callInThread(
+                    self.resource.cacheContent,
+                    self.father,
+                    self._response,
+                    self.buffer
+                )
             proxy.ProxyClient.handleResponseEnd(self)
         except RuntimeError:
             # because we don't care if the user hits
             # refresh before the request is done
             pass
-
-    def cacheContent(self, content, request):
-        """
-        Caches the content in a gzipped format given that a `cache_it` flag is
-        True
-        """
-        code = int(self._response.code)
-        cache_it = False
-        # only cache the content if it was successful and requested using GET
-        uri, bust = processURI(request.uri, PREFIX)
-        if request.method == "GET" and code/100 == 2 and not bust:
-            cache_control = self._response.headers.get('cache-control')
-            if cache_control:
-                params = dict(urlparse.parse_qsl(cache_control))
-                if int(params.get('max-age', '0')) > 0:
-                    cache_it = True
-            if cache_it:
-                content = self.compressBuffer(content)
-                self.resource.putCache(content, uri, self._response.headers)
-        self.closeBuffer()
 
 
     def handleResponsePart(self, buffer):
@@ -153,73 +120,7 @@ class CacheClientFactory(proxy.ProxyClientFactory):
             self.headers, self.data, self.father, self.resource)
 
 
-
-class CachedResource(resource.Resource):
-
-    isLeaf = True
-
-    def __init__(self, content=None, headers=None):
-        resource.Resource.__init__(self)
-        self.content = content
-        self.headers = headers
-        self.created = datetime.now()
-
-    def decompressBuffer(self, buffer):
-        "complements the compressBuffer function in CacheClient"
-        zbuf = cStringIO.StringIO(buffer)
-        zfile = gzip.GzipFile(fileobj=zbuf)
-        deflated = zfile.read()
-        zfile.close()
-        return deflated
-
-    def decompressContent(self):
-        self.content = self.decompressBuffer(self.content)
-
-    def render(self, request):
-        return self.content
-
-    def getMaxAge(self):
-        "get the max-age in seconds from the saved headers data"
-        max_age = 0
-        cache_control = self.headers.get('cache_control')
-        if cache_control:
-            params = dict(urlparse.parse_qsl(cache_control))
-            max_age = int(params.get('max-age', '0'))
-        return max_age
-
-    def convertTimeString(self, timestr):
-        """
-        Returns a datetime instance from a str formatted as follows
-            e.g. 'Mon, 03 Mar 2014 12:12:12 GMT'
-        """
-        time_struc = strptime(timestr, '%a, %d %b %Y %H:%M:%S GMT')
-        return datetime(*time_struc[:6])
-
-    def getLastModified(self):
-        "returns the GMT last-modified datetime or None"
-        last_modified = self.headers.get('last-modified')
-        if last_modified:
-            last_modified = self.convertTimeString(last_modified)
-        return last_modified
-
-    def getDate(self):
-        "returns the GMT response datetime or None"
-        date = self.headers.get('date')
-        if date:
-            date = self.convertTimeString(date)
-        return date
-
-    def isFresh(self):
-        "returns True if cached object is still fresh"
-        max_age = self.getMaxAge()
-        date = self.getDate()
-        is_fresh = False
-        if max_age and date:
-            delta_time = datetime.now() - date
-            is_fresh = delta_time.total_seconds() < max_age
-        return is_fresh
-
-class CacheProxyResource(proxy.ReverseProxyResource):
+class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
     """
     This is a state persistent subclass of the built-in ReverseProxyResource.
     """
@@ -248,25 +149,12 @@ class CacheProxyResource(proxy.ReverseProxyResource):
         """
         Retrieve a static or dynamically generated child resource from me.
         """
-        # start caching logic
-        is_secure = request.isSecure()
-        uri, bust = processURI(request.uri, PREFIX)  # the prefix namespaces these resources
-        # Reasons not to bother looking in the Cache
-        #     * it's been busted
-        #     * it's a secure request
-        #     * it's not a GET request
-        #     * it's not actually in the cache
-        if uri in self.children and not is_secure and request.method == "GET" and not bust:
-            child = self.children[uri]
-            is_fresh = child.isFresh()
-            if is_fresh:
-                encodings = request.getHeader('accept-encoding')
-                if encodings and 'gzip' in encodings:
-                    request.responseHeaders.addRawHeader('content-encoding', 'gzip')
-                    request.responseHeaders.addRawHeader('content-length', len(child.content))
-                else:
-                    child.decompressContent()
-                return child
+        cached_resource = self.getCachedResource(request)
+        if cached_resource:
+            reactor.callInThread(
+                responseInColor, request, '200 OK', cached_resource, 'Cached ', 'underscore'
+            )
+            return cached_resource
         # original logic
         if path in self.children:
             return self.children[path]
@@ -300,16 +188,8 @@ class CacheProxyResource(proxy.ReverseProxyResource):
 
         return NOT_DONE_YET
 
-    def decompressBuffer(self, buffer):
-        "complements the compressBuffer function in CacheClient"
-        zbuf = cStringIO.StringIO(buffer)
-        zfile = gzip.GzipFile(fileobj=zbuf)
-        deflated = zfile.read()
-        zfile.close()
-        return deflated
-
     def decompressContent(self):
-        self.content = self.decompressBuffer(self.content)
+        self.content = decompressBuffer(self.content)
 
     def getGlobalSelf(self):
         """
@@ -326,11 +206,3 @@ class CacheProxyResource(proxy.ReverseProxyResource):
             except AttributeError:
                 pass
         return
-
-    def putCache(self, content, url, headers):
-        """
-        instantiates the CachedResource and adds to the global
-        ReverseProxyResource children
-        """
-        resource = CachedResource(content, headers)
-        self.putChild(url, resource)
