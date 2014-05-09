@@ -1,11 +1,12 @@
-| Hendrix is a full featured webserver specifically designed to deploy
+Overview
+========
+Hendrix is a full featured webserver specifically designed to deploy
 `Django <https://www.djangoproject.com/>`__ projects using
 `Twisted <https://twistedmatrix.com/trac/>`__.
-| 
-|  A key tenent of Hendrix's design is ease of use backed by the power
+
+A key tenent of Hendrix's design is ease of use backed by the power
 of Twisted.
-| 
-|  Features include but are not limited to:
+Features include but are not limited to:
 
 -  Concurrency
 -  Asynchronous Tasks
