@@ -35,7 +35,7 @@ Using pip
 
 cd to the directory where your **manage.py** file is located and...
 
-    hx start --reload
+    hx start --dev
 
 This is roughly the equivalent of running the django devserver.
 
