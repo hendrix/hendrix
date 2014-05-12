@@ -32,6 +32,7 @@ class HendrixService(service.MultiService):
         # create the base resource and add any additional static resources
         resource = HendrixResource(reactor, threads, application, loud=loud)
         if resources:
+            resources = sorted(resources, key=lambda r: r.namespace)
             for res in resources:
                 resource.putNamedChild(res)
 

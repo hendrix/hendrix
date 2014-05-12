@@ -139,6 +139,9 @@ a default static file handler is built into Hendrix which can be used by adding 
 ```
 HENDRIX_CHILD_RESOURCES = (
     'hendrix.contrib.resources.static.DefaultDjangoStaticResource',
+
+    # uncomment if you would like to serve the django admin static files
+    #'hendrix.contrib.resources.static.DjangoAdminStaticResource',
 )
 ```
 No other configuration is necessary.  You don't need to add anything to urls.py.
