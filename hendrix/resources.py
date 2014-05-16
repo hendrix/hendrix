@@ -63,6 +63,7 @@ class HendrixResource(resource.Resource):
             self.wsgi_resource = DevWSGIResource(reactor, threads, application)
         else:
             self.wsgi_resource = WSGIResource(reactor, threads, application)
+        self._hx_children = {}
 
 
     def getChild(self, name, request):
