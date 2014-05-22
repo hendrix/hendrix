@@ -35,7 +35,7 @@ Using pip
 
 cd to the directory where your **manage.py** file is located and...
 
-    hx start --reload
+    hx start --dev
 
 This is roughly the equivalent of running the django devserver.
 
@@ -139,6 +139,9 @@ a default static file handler is built into Hendrix which can be used by adding 
 ```
 HENDRIX_CHILD_RESOURCES = (
     'hendrix.contrib.resources.static.DefaultDjangoStaticResource',
+
+    # uncomment if you would like to serve the django admin static files
+    #'hendrix.contrib.resources.static.DjangoAdminStaticResource',
 )
 ```
 No other configuration is necessary.  You don't need to add anything to urls.py.

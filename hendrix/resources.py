@@ -63,6 +63,7 @@ class HendrixResource(resource.Resource):
             self.wsgi_resource = DevWSGIResource(reactor, threads, application)
         else:
             self.wsgi_resource = WSGIResource(reactor, threads, application)
+        self._hx_children = {}
 
 
     def getChild(self, name, request):
@@ -81,14 +82,44 @@ class HendrixResource(resource.Resource):
         putNamedChild takes either an instance of hendrix.contrib.NamedResource
         or any resource.Resource with a "namespace" attribute as a means of
         allowing application level control of resource namespacing.
+
+        if a child is already found at an existing path,
+        resources with paths that are children of those physical paths
+        will be added as children of those resources
+
         """
         try:
             path = resource.namespace
-            self.putChild(path, resource)
+            existing = None
+            
+                
+            """
+                if a path is passed in:
+                     /static/admin/
+                     
+                check to see if the first element of this path is already in _hx_children.
+                    /static
+                    
+                if it is:
+                     take everything after the matching key from the incoming path
+                     and putChild the new incoming resource at 
+                     the nested portion of the incoming path.
+                    
+            """
+            
+            
+            if path.split('/')[:1][0].rstrip('/') in self._hx_children:
+                existing = self._hx_children.get(path.split('/')[0])
+                if existing:
+                    subpath = '/'.join(path.split('/')[1:])
+                    existing.putChild(subpath, resource)
+            if not existing:
+                self.putChild(path, resource)
+            self._hx_children[path] = resource
+
         except AttributeError, e:
             msg = '%r improperly configured. additional_resources instances must have a namespace attribute'%resource
             raise AttributeError(msg), None, sys.exc_info()[2]
-
 
 
 class NamedResource(resource.Resource):
