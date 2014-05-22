@@ -1,4 +1,3 @@
-import os
 import sys
 import importlib
 from hendrix.utils import responseInColor
@@ -40,7 +39,9 @@ class LoudWSGIResponse(_WSGIResponse):
             raise excInfo[0], excInfo[1], excInfo[2]
         self.status = status
         self.headers = headers
-        self.reactor.callInThread(responseInColor, self.request, status, headers)
+        self.reactor.callInThread(
+            responseInColor, self.request, status, headers
+        )
         return self.write
 
 
@@ -63,8 +64,6 @@ class HendrixResource(resource.Resource):
             self.wsgi_resource = DevWSGIResource(reactor, threads, application)
         else:
             self.wsgi_resource = WSGIResource(reactor, threads, application)
-        self._hx_children = {}
-
 
     def getChild(self, name, request):
         """
@@ -77,7 +76,7 @@ class HendrixResource(resource.Resource):
         # re-establishes request.postpath so to contain the entire path
         return self.wsgi_resource
 
-    def putNamedChild(self, resource):
+    def putNamedChild(self, res):
         """
         putNamedChild takes either an instance of hendrix.contrib.NamedResource
         or any resource.Resource with a "namespace" attribute as a means of
@@ -89,19 +88,40 @@ class HendrixResource(resource.Resource):
 
         """
         try:
-            path = resource.namespace
-            existing = None
-            if path.split('/')[:1][0].rstrip('/') in self._hx_children:
-                existing = self._hx_children.get(path.split('/')[0])
-                if existing:
-                    subpath = '/'.join(path.split('/')[1:])
-                    existing.putChild(subpath, resource)
-            if not existing:
-                self.putChild(path, resource)
-            self._hx_children[path] = resource
+            EmptyResource = resource.Resource
+            namespace = res.namespace
+            parts = namespace.strip('/').split('/')
 
-        except AttributeError, e:
-            msg = '%r improperly configured. additional_resources instances must have a namespace attribute'%resource
+            # initialise parent and children
+            parent = self
+            children = self.children
+            # loop through all of the path parts except for the last one
+            for name in parts[:-1]:
+                child = children.get(name)
+                if not child:
+                    # if the child does not exist then create an empty one
+                    # and associate it to the parent
+                    child = EmptyResource()
+                    parent.putChild(name, child)
+                # update parent and children for the next iteration
+                parent = child
+                children = parent.children
+
+            name = parts[-1]  # get the path part that we care about
+            if children.get(name):
+                logger.warning(
+                    'A resource already exists at this path. Check '
+                    'your resources list to ensure each path is '
+                    'unique. The previous resource will be overridden.'
+                )
+            parent.putChild(name, res)
+        except AttributeError:
+            # raise an attribute error if the resource `res` doesn't contain
+            # the attribute `namespace`
+            msg = (
+                '%r improperly configured. additional_resources instances must'
+                ' have a namespace attribute'
+            ) % resource
             raise AttributeError(msg), None, sys.exc_info()[2]
 
 
@@ -123,7 +143,6 @@ class NamedResource(resource.Resource):
         resource.Resource.__init__(self)
         self.namespace = namespace
 
-
     def getChild(self, path, request):
         """
         By default this resource will yield a ForbiddenResource instance unless
@@ -144,7 +163,6 @@ class MediaResource(static.File):
         return resource.ForbiddenResource()
 
 
-
 def DjangoStaticResource(path, rel_url='static'):
     """
     takes an app level file dir to find the site root and servers static files
@@ -154,7 +172,9 @@ def DjangoStaticResource(path, rel_url='static'):
         from hendrix.resources import DjangoStaticResource
         StaticResource = DjangoStaticResource('/abspath/to/static/folder')
         ... OR ...
-        StaticResource = DjangoStaticResource('/abspath/to/static/folder', 'custom-static-relative-url')
+        StaticResource = DjangoStaticResource(
+            '/abspath/to/static/folder', 'custom-static-relative-url'
+        )
 
         [...in settings...]
         HENDRIX_CHILD_RESOURCES = (
@@ -171,15 +191,15 @@ def DjangoStaticResource(path, rel_url='static'):
 
 def get_additional_resources(settings_module):
     """
-        if HENDRIX_CHILD_RESOURCES is specified in settings_module,
-        it should be a list resources subclassed from hendrix.contrib.NamedResource
+    if HENDRIX_CHILD_RESOURCES is specified in settings_module,
+    it should be a list resources subclassed from hendrix.contrib.NamedResource
 
-        example:
+    example:
 
-            HENDRIX_CHILD_RESOURCES = (
-              'apps.offload.resources.LongRunningProcessResource',
-              'apps.chat.resources.ChatResource',
-            )
+        HENDRIX_CHILD_RESOURCES = (
+          'apps.offload.resources.LongRunningProcessResource',
+          'apps.chat.resources.ChatResource',
+        )
     """
 
     additional_resources = []
@@ -189,6 +209,8 @@ def get_additional_resources(settings_module):
             path_to_module, resource_name = module_path.rsplit('.', 1)
             resource_module = importlib.import_module(path_to_module)
 
-            additional_resources.append(getattr(resource_module, resource_name))
+            additional_resources.append(
+                getattr(resource_module, resource_name)
+            )
 
     return additional_resources

@@ -1,10 +1,9 @@
-import sys
 import importlib
 from .resources import HendrixResource
 from twisted.application import internet, service
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
-from twisted.web import server, resource, static
+from twisted.web import server
 
 import logging
 
