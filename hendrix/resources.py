@@ -91,6 +91,23 @@ class HendrixResource(resource.Resource):
         try:
             path = resource.namespace
             existing = None
+            
+                
+            """
+                if a path is passed in:
+                     /static/admin/
+                     
+                check to see if the first element of this path is already in _hx_children.
+                    /static
+                    
+                if it is:
+                     take everything after the matching key from the incoming path
+                     and putChild the new incoming resource at 
+                     the nested portion of the incoming path.
+                    
+            """
+            
+            
             if path.split('/')[:1][0].rstrip('/') in self._hx_children:
                 existing = self._hx_children.get(path.split('/')[0])
                 if existing:
