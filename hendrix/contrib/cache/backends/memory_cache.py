@@ -4,6 +4,7 @@ local memory cache backend
 from . import CacheBackend
 from hendrix.contrib.cache import CachedResource
 
+
 class MemoryCacheBackend(CacheBackend):
 
     _cache = {}
@@ -21,7 +22,8 @@ class MemoryCacheBackend(CacheBackend):
 
     def resourceExists(self, uri):
         """
-        Returns a boolean indicating whether or not the resource is in the cache
+        Returns a boolean indicating whether or not the resource is in the
+        cache
         """
         return uri in self.cache
 

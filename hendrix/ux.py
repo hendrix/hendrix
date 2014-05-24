@@ -16,7 +16,6 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
-
 class Reload(FileSystemEventHandler):
 
     def __init__(self, options, *args, **kwargs):
@@ -48,9 +47,11 @@ class Reload(FileSystemEventHandler):
         return process
 
 
-
 def launch(*args, **options):
-    "launch acts on the user specified action and options by executing Hedrix.run"
+    """
+    launch acts on the user specified action and options by executing
+    Hedrix.run
+    """
     action = args[0]
     if options['reload']:
         event_handler = Reload(options)
@@ -125,6 +126,7 @@ def devFriendly(options):
     options['loud'] = True if options['dev'] else options['loud']
     return options
 
+
 def noiseControl(options):
     # terminal noise/info logic
     devnull = open(os.devnull, 'w')
@@ -158,7 +160,9 @@ def main():
             chalk.green('Stopping Hendrix...')
         if options['daemonize']:
             daemonize, _reload, opts = cleanOptions(options)
-            process = subprocess.Popen(['hx', action] + opts, stdout=redirect, stderr=redirect)
+            process = subprocess.Popen(
+                ['hx', action] + opts, stdout=redirect, stderr=redirect
+            )
             time.sleep(2)
             if process.poll():
                 raise RuntimeError

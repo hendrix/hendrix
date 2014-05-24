@@ -2,10 +2,10 @@
     Signals for easy use in django projects
 """
 
-import django.dispatch
+from django import dispatch
 
-short_task = django.dispatch.Signal(providing_args=["args", "kwargs"])
+short_task = dispatch.Signal(providing_args=["args", "kwargs"])
 
-long_task = django.dispatch.Signal(providing_args=["args", "kwargs"])
+long_task = dispatch.Signal(providing_args=["args", "kwargs"])
 
-message_signal = django.dispatch.Signal(providing_args=["data", "dispatcher"])
+message_signal = dispatch.Signal(providing_args=["data", "dispatcher"])

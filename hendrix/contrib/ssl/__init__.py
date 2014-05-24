@@ -12,7 +12,6 @@ from twisted.application import internet
 
 class SSLServer(internet.SSLServer):
 
-
     def __init__(self, port, site, key, cacert):
         sslContext = ssl.DefaultOpenSSLContextFactory(
             key,  # '/path/to/key.pem',
@@ -20,8 +19,8 @@ class SSLServer(internet.SSLServer):
         )
         internet.SSLServer.__init__(
             self,
-            port, # integer port
-            site, # our site object, see the web howto
+            port,  # integer port
+            site,  # our site object, see the web howto
             contextFactory=sslContext,
         )
 

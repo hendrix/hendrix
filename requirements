@@ -5,4 +5,4 @@ zope.interface
 watchdog
 path.py
 jinja2
-pychalk==0.0.4
+pychalk==0.0.5

@@ -6,11 +6,10 @@ from .backends.memory_cache import MemoryCacheBackend
 
 from hendrix.utils import responseInColor
 
-from twisted.internet import reactor, defer, threads
+from twisted.internet import reactor
 from twisted.web import proxy, client
 from twisted.web.server import NOT_DONE_YET
 from urllib import quote as urlquote
-
 
 
 class CacheClient(proxy.ProxyClient):
@@ -53,8 +52,11 @@ class CacheClient(proxy.ProxyClient):
         components = urlparse.urlparse(location)
         reverse_proxy_port = self.father.getHost().port
         reverse_proxy_host = self.father.getHost().host
-        _components = components._asdict()  # returns an ordered dict of urlparse.ParseResult components
-        _components['netloc'] = '%s:%d' % (reverse_proxy_host, reverse_proxy_port)
+        # returns an ordered dict of urlparse.ParseResult components
+        _components = components._asdict()
+        _components['netloc'] = '%s:%d' % (
+            reverse_proxy_host, reverse_proxy_port
+        )
         return urlparse.urlunparse(_components.values())
 
     def handleResponseEnd(self):
@@ -77,7 +79,6 @@ class CacheClient(proxy.ProxyClient):
             # refresh before the request is done
             pass
 
-
     def handleResponsePart(self, buffer):
         """
         Sends the content to the browser and keeps a local copy of it.
@@ -86,7 +87,6 @@ class CacheClient(proxy.ProxyClient):
         """
         self.father.write(buffer)
         self.buffer.write(buffer)
-
 
     def compressBuffer(self, buffer):
         """
@@ -116,8 +116,10 @@ class CacheClientFactory(proxy.ProxyClientFactory):
         self.resource = resource
 
     def buildProtocol(self, addr):
-        return self.protocol(self.command, self.rest, self.version,
-            self.headers, self.data, self.father, self.resource)
+        return self.protocol(
+            self.command, self.rest, self.version,
+            self.headers, self.data, self.father, self.resource
+        )
 
 
 class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
@@ -137,8 +139,8 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
 
     def getChild(self, path, request):
         """
-        This is necessary because the parent class would call proxy.ReverseProxyResource
-        instead of CacheProxyResource
+        This is necessary because the parent class would call
+        proxy.ReverseProxyResource instead of CacheProxyResource
         """
         return CacheProxyResource(
             self.host, self.port, self.path + '/' + urlquote(path, safe=""),
@@ -198,9 +200,9 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
 
     def getGlobalSelf(self):
         """
-        This searches the reactor for the original instance of CacheProxyResource.
-        This is necessary because with each call of getChild a new instance of
-        CacheProxyResource is created.
+        This searches the reactor for the original instance of
+        CacheProxyResource. This is necessary because with each call of
+        getChild a new instance of CacheProxyResource is created.
         """
         transports = self.reactor.getReaders()
         for transport in transports:

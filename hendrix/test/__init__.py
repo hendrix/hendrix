@@ -1,7 +1,6 @@
 """
 Run these tests using nosetests
 """
-import mock
 import os
 import unittest
 
@@ -11,7 +10,7 @@ from hendrix.defaults import *
 from hendrix.utils import get_pid
 
 from twisted.internet import reactor
-from twisted.internet.test.reactormixins import ReactorBuilder
+
 
 TEST_SETTINGS = 'hendrix.test.testproject.settings'
 
@@ -27,19 +26,19 @@ class HendrixTestCase(unittest.TestCase):
     def deploy(self, action, options):
         return HendrixDeploy(action, options, reactor=self.reactor)
 
-
     def tearDown(self):
         """
         cleans up the reactor after running startService on a
         twisted.application.service
         """
-        test_pid_file = get_pid({'settings': TEST_SETTINGS, 'http_port': HTTP_PORT})
+        test_pid_file = get_pid(
+            {'settings': TEST_SETTINGS, 'http_port': HTTP_PORT}
+        )
         if os.path.exists(test_pid_file):
             os.remove(test_pid_file)
 
         self.reactor.disconnectAll()
         return self.reactor.removeAll()
-
 
     def wsgiDeploy(self, action='start', options={}):
         """
@@ -53,7 +52,6 @@ class HendrixTestCase(unittest.TestCase):
         if not options.get('wsgi'):
             options.update({'wsgi': 'hendrix.test.wsgi'})
         return self.deploy(action, options)
-
 
     def settingsDeploy(self, action='start', options={}):
         "Use the hendrix test project to test the bash deployment flow path"

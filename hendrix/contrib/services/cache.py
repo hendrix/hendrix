@@ -1,6 +1,6 @@
 from hendrix.contrib.cache.resource import CacheProxyResource
 from hendrix.services import TCPServer
-from twisted.web import server, proxy
+from twisted.web import server
 
 
 class CacheService(TCPServer):

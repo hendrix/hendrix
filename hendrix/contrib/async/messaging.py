@@ -2,6 +2,7 @@ import copy
 import json
 import uuid
 
+
 class RecipientManager(object):
     """
         This class manages all the transports addressable by a single address.
@@ -14,11 +15,10 @@ class RecipientManager(object):
         if transport is not None:
             self.transports[transport.uid] = transport
 
-
     def __repr__(self):
-
-        return 'RecipientManager object at %s with %d recipients'%(self.address,len(self.transports))
-
+        return 'RecipientManager object at %s with %d recipients' % (
+            self.address, len(self.transports)
+        )
 
     def add(self, transport):
         """
@@ -26,8 +26,7 @@ class RecipientManager(object):
         """
         self.transports[transport.uid] = transport
 
-
-    def send(self, string): #usually a json string...
+    def send(self, string):  # usually a json string...
         """
             sends whatever it is to each transport
         """
@@ -44,13 +43,14 @@ class RecipientManager(object):
 
 class MessageDispatcher(object):
     """
-    MessageDispatcher is a PubSub state machine that routes data packets through
-    an attribute called "recipients". The recipients attribute is a dict
-    structure where the keys are unique addresses and the values are instances
-    of RecipientManager. "address"es (i.e. RecipientManagers) are created and/or
-    subscribed to. Subscribing to an address results in registering a clients
-    websocket (i.e. the transport associated to the SockJSResource protocol)
-    within a dict that is internal to the Manager called "transports".
+    MessageDispatcher is a PubSub state machine that routes data packets
+    through an attribute called "recipients". The recipients attribute is a
+    dict structure where the keys are unique addresses and the values are
+    instances of RecipientManager. "address"es (i.e. RecipientManagers) are
+    created and/or subscribed to. Subscribing to an address results in
+    registering a clientswebsocket (i.e. the transport associated to the
+    SockJSResource protocol) within a dict that is internal to the Manager
+    called "transports".
     RecipientManager's purpose is to expose functions that MessageDispatcher
     can leverage to execute the PubSub process.
     N.B. subscribing a client to an address opens that client to all data
@@ -60,7 +60,6 @@ class MessageDispatcher(object):
 
     def __init__(self, *args, **kwargs):
         self.recipients = {}
-
 
     def add(self, transport, address=None):
         """
@@ -88,7 +87,6 @@ class MessageDispatcher(object):
             if not len(recManager.transports):
                 del self.recipients[address]
 
-
     def send(self, address, data_dict):
 
         """
@@ -106,7 +104,6 @@ class MessageDispatcher(object):
                 if recipient:
                     recipient.send(json.dumps(data_dict))
 
-
     def subscribe(self, transport, data):
         """
             adds a transport to a channel
@@ -114,7 +111,10 @@ class MessageDispatcher(object):
 
         self.add(transport, address=data.get('hx_subscribe'))
 
-        self.send(data.get('hx_subscribe'), {'message':"%r is listening"%transport})
+        self.send(
+            data.get('hx_subscribe'),
+            {'message': "%r is listening" % transport}
+        )
 
 
 def send_json_message(address, message, **kwargs):
@@ -123,7 +123,7 @@ def send_json_message(address, message, **kwargs):
     """
 
     data = {
-        'message':message,
+        'message': message,
     }
 
     if not kwargs.get('subject_id'):
@@ -147,13 +147,13 @@ def send_callback_json_message(value, *args, **kwargs):
 
     return value
 
+
 def send_errback_json_message(error, *args, **kwargs):
 
     kwargs['error'] = error.getErrorMessage()
     send_json_message(args[0], args[1], **kwargs)
 
     error.trap(RuntimeError)
-
 
 
 hxdispatcher = MessageDispatcher()

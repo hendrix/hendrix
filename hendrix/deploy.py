@@ -36,7 +36,8 @@ class HendrixDeploy(object):
         self.resources = []
         self.reactor = reactor
 
-        self.use_settings = True  # because running the management command overrides self.options['wsgi']
+        self.use_settings = True
+        # because running the management command overrides self.options['wsgi']
         if self.options['wsgi']:
             wsgi_dot_path = self.options['wsgi']
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
@@ -57,7 +58,6 @@ class HendrixDeploy(object):
 
         self.servers = []
 
-
     @classmethod
     def importWSGI(cls, wsgi_dot_path):
         wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
@@ -75,7 +75,11 @@ class HendrixDeploy(object):
             if port and options.get(port_name) == default:
                 options[port_name] = port
 
-        _opts = [('key', 'hx_private_key'), ('cert', 'hx_certficate'), ('wsgi', 'wsgi_application')]
+        _opts = [
+            ('key', 'hx_private_key'),
+            ('cert', 'hx_certficate'),
+            ('wsgi', 'wsgi_application')
+        ]
         for opt_name, settings_name in _opts:
             opt = getattr(settings, settings_name.upper(), None)
             if opt:
@@ -84,7 +88,6 @@ class HendrixDeploy(object):
         if not options['settings']:
             options['settings'] = environ['DJANGO_SETTINGS_MODULE']
         return options
-
 
     def addServices(self):
         """
@@ -102,22 +105,19 @@ class HendrixDeploy(object):
 
         self.catalogServers(self.hendrix)
 
-
-
     def addHendrix(self):
         "instantiates the HendrixService"
         self.hendrix = HendrixService(
-            self.application, self.options['http_port'], resources=self.resources,
-            services=self.services, loud=self.options['loud']
+            self.application, self.options['http_port'],
+            resources=self.resources, services=self.services,
+            loud=self.options['loud']
         )
-
 
     def catalogServers(self, hendrix):
         "collects a list of service names serving on TCP or SSL"
         for service in hendrix.services:
-            if isinstance(service, TCPServer) or isinstance(service, SSLServer):
+            if isinstance(service, (TCPServer, SSLServer)):
                 self.servers.append(service.name)
-
 
     def getCacheService(self):
         cache_port = self.options.get('cache_port')
@@ -132,7 +132,6 @@ class HendrixDeploy(object):
         _cache.setName('cache_proxy')
         _cache.setServiceParent(self.hendrix)
 
-
     def addSSLService(self):
         "adds a SSLService to the instaitated HendrixService"
         https_port = self.options['https_port']
@@ -146,7 +145,6 @@ class HendrixDeploy(object):
 
         _ssl.setName('main_web_ssl')
         _ssl.setServiceParent(self.hendrix)
-
 
     def run(self):
         "sets up the desired services and runs the requested action"
@@ -163,7 +161,6 @@ class HendrixDeploy(object):
         else:
             getattr(self, action)()
 
-
     @property
     def pid(self):
         "The default location of the pid file for process management"
@@ -178,7 +175,7 @@ class HendrixDeploy(object):
             executable,  # path to python executable e.g. /usr/bin/python
         ]
         if not self.options['loud']:
-            _args += ['-W', 'ignore',]
+            _args += ['-W', 'ignore']
         _args += [
             'manage.py',
             'hx',
@@ -206,12 +203,10 @@ class HendrixDeploy(object):
             _args += ['--wsgi', self.options['wsgi']]
         return _args
 
-
     def addGlobalServices(self):
         if self.options.get('global_cache') and not self.options.get('nocache'):
             _cache = self.getCacheService()
             _cache.startService()
-
 
     def start(self, fd=None):
         pids = [str(os.getpid())]  # script pid
@@ -222,7 +217,8 @@ class HendrixDeploy(object):
 
             self.hendrix.startService()
             if self.options['workers']:
-                # Create a new listening port and several other processes to help out.
+                # Create a new listening port and several other processes to
+                # help out.
                 childFDs = {0: 0, 1: 1, 2: 2}
                 self.fds = {}
                 for name in self.servers:
@@ -255,8 +251,9 @@ class HendrixDeploy(object):
                     factory = TLSMemoryBIOFactory(
                         privateCert.options(), False, factory
                     )
-                port = self.reactor.adoptStreamPort(fds[name], AF_INET, factory)
-
+                port = self.reactor.adoptStreamPort(
+                    fds[name], AF_INET, factory
+                )
 
     def stop(self, sig=9):
         with open(self.pid) as pid_file:
@@ -265,7 +262,7 @@ class HendrixDeploy(object):
                 try:
                     os.kill(int(pid), sig)
                 except OSError:
-                    # OSError is raised when it trys to kill the child processes
+                    # OSError raised when it trys to kill the child processes
                     pass
         os.remove(self.pid)
 

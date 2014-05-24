@@ -14,12 +14,14 @@ class HendrixService(service.MultiService):
     """
     HendrixService is a constructor that facilitates the collection of services
     and the extension of resources on the website by subclassing MultiService.
-    'application' refers to an instance of django.core.handlers.wsgi.WSGIHandler
-    'resources' refers to a list of twisted Resources with a namespace attribute
+    'application' refers to a django.core.handlers.wsgi.WSGIHandler
+    'resources' refers to a list of Resources with a namespace attribute
     'services' refers to a list of twisted Services to add to the collection.
     """
 
-    def __init__(self, application, port=80, resources=None, services=None, loud=False):
+    def __init__(
+            self, application, port=80, resources=None, services=None,
+            loud=False):
         service.MultiService.__init__(self)
 
         # Create, start and add a thread pool service, which is made available
@@ -35,16 +37,16 @@ class HendrixService(service.MultiService):
             for res in resources:
                 resource.putNamedChild(res)
 
-
         factory = server.Site(resource)
         # add a tcp server that binds to port=port
         main_web_tcp = TCPServer(port, factory)
-        main_web_tcp.setName('main_web_tcp')  # to get this at runtime use hedrix_service.getServiceNamed('main_web_tcp')
+        main_web_tcp.setName('main_web_tcp')
+        # to get this at runtime use
+        # hedrix_service.getServiceNamed('main_web_tcp')
         main_web_tcp.setServiceParent(self)
 
         # add any additional services
         if services:
-            logger.info('loaded %r at %r'%(srv,srv_name))
             for srv_name, srv in services:
                 srv.setName(srv_name)
                 srv.setServiceParent(self)
@@ -99,7 +101,9 @@ def get_additional_services(settings_module):
         for name, module_path in settings_module.HENDRIX_SERVICES:
             path_to_module, service_name = module_path.rsplit('.', 1)
             resource_module = importlib.import_module(path_to_module)
-            additional_services.append((name, getattr(resource_module, service_name)))
+            additional_services.append(
+                (name, getattr(resource_module, service_name))
+            )
     return additional_services
 
 

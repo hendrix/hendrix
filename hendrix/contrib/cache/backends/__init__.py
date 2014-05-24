@@ -18,7 +18,7 @@ class CacheBackend(object):
         `cache` is the interface to be used in the addResource and
         resourceExists methods.
         """
-        raise RuntimeError(
+        raise NotImplementedError(
             'You need to override the "cache" method before implementing'
             'the cache backend'
         )
@@ -28,7 +28,7 @@ class CacheBackend(object):
         Adds the a hendrix.contrib.cache.resource.CachedResource to the
         ReverseProxy cache connection
         """
-        raise RuntimeError(
+        raise NotImplementedError(
             'You need to override the "addResource" method before implementing'
             'the cache backend'
         )
@@ -38,28 +38,31 @@ class CacheBackend(object):
         Returns a hendrix.contrib.cache.resource.CachedResource from the
         ReverseProxy cache connection
         """
-        raise RuntimeError(
+        raise NotImplementedError(
             'You need to override the "addResource" method before implementing'
             'the cache backend'
         )
 
     def resourceExists(self, uri):
         """
-        Returns a boolean indicating whether or not the resource is in the cache
+        Returns a boolean indicating whether or not the resource is in the
+        cache
         """
-        raise RuntimeError(
-            'You need to override "resourceExists" to have your backend work...'
+        raise NotImplementedError(
+            'You need to override "resourceExists" to have your backend work..'
         )
 
     def processURI(self, uri, prefix=''):
         """
-        helper function to return just the path (uri) and whether or not it's busted
+        helper function to return just the path (uri) and whether or not it's
+        busted
         """
         components = urlparse.urlparse(uri)
         query = dict(urlparse.parse_qsl(components.query))
         bust = True
         bust &= bool(query)  # bust the cache if the query has stuff in it
-        bust &= query.get('cache') != 'true'  # bust the cache if the query key 'cache' isn't true
+        # bust the cache if the query key 'cache' isn't true
+        bust &= query.get('cache') != 'true'
         return prefix + components.path, bust
 
     def cacheContent(self, request, response, buffer):
@@ -93,7 +96,8 @@ class CacheBackend(object):
         """
         # start caching logic
         is_secure = request.isSecure()
-        uri, bust = self.processURI(request.uri, PREFIX)  # the prefix namespaces these resources
+        # the prefix namespaces these resources
+        uri, bust = self.processURI(request.uri, PREFIX)
         # Reasons not to bother looking in the Cache
         #     * it's been busted
         #     * it's a secure request
@@ -106,8 +110,12 @@ class CacheBackend(object):
                 if is_fresh:
                     encodings = request.getHeader('accept-encoding')
                     if encodings and 'gzip' in encodings:
-                        request.responseHeaders.addRawHeader('content-encoding', 'gzip')
-                        request.responseHeaders.addRawHeader('content-length', len(child.content))
+                        request.responseHeaders.addRawHeader(
+                            'content-encoding', 'gzip'
+                        )
+                        request.responseHeaders.addRawHeader(
+                            'content-length', len(child.content)
+                        )
                     else:
                         child = decompressBuffer(child.content)
                     return child
