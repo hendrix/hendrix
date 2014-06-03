@@ -1,5 +1,6 @@
 import chalk
-import os, sys
+import os
+import sys
 from path import path
 
 
@@ -9,6 +10,7 @@ SHARE_PATH = os.path.join(
     os.path.dirname(sys.executable),
     'share/hendrix'
 )
+
 
 def get_pid(options):
     """returns The default location of the pid file for process management"""

@@ -1,4 +1,5 @@
 import jinja2
+import os
 import yaml
 from . import SHARE_PATH
 
@@ -38,7 +39,7 @@ def generateInitd(conf_file):
         processes = conf.pop('processes')
         workers = int(processes) - 1
     if workers > 0:
-        options += ['--workers', workers]
+        options += ['--workers', str(workers)]
 
     for key, value in conf.iteritems():
         options += ['--%s' % key, str(value)]
