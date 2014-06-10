@@ -3,7 +3,6 @@ A module to encapsulate the user experience logic
 """
 
 import chalk
-import logging
 import os
 import subprocess
 import sys
@@ -133,11 +132,7 @@ def devFriendly(options):
 
 def noiseControl(options):
     # terminal noise/info logic
-    # devnull = open(os.devnull, 'w')
-    # if options['quiet'] and not options['daemonize']:
-    #     sys.stdout = devnull
-    #     sys.stderr = devnull
-    # redirect = devnull if not options['traceback'] else None
+    # allows the specification of the log file location
     if not options['loud']:
         log_path = options['log']
         log.startLogging(DailyLogFile.fromFullPath(log_path))
