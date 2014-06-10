@@ -59,7 +59,7 @@ class TestMain(HendrixTestCase):
     def test_cwd_exposure(self):
         cwd = os.getcwd()
         _path = sys.path
-        sys.path = [ p for p in _path if p != cwd ]
+        sys.path = [p for p in _path if p != cwd]
         self.assertTrue(cwd not in sys.path)
         ux.exposeProject(self.DEFAULTS)
         self.assertTrue(cwd in sys.path)
@@ -73,7 +73,7 @@ class TestMain(HendrixTestCase):
         options['pythonpath'] = test_path
         ux.exposeProject(options)
         self.assertTrue(test_path in sys.path)
-        sys.path = [ p for p in sys.path if p != test_path ]
+        sys.path = [p for p in sys.path if p != test_path]
 
     def test_shitty_pythonpath(self):
         options = self.DEFAULTS
@@ -90,19 +90,6 @@ class TestMain(HendrixTestCase):
         self.assertTrue(options['reload'])
         self.assertTrue(options['loud'])
 
-    def test_noise_control_quiet(self):
-        options = self.DEFAULTS
-        options['quiet'] = True
-        stdout = sys.stdout
-        stderr = sys.stderr
-        redirect = ux.noiseControl(options)
-        self.assertEqual(sys.stdout.name, self.devnull.name)
-        self.assertEqual(sys.stderr.name, self.devnull.name)
-        sys.stdout = stdout
-        sys.stderr = stderr
-
-        self.assertEqual(redirect.name, self.devnull.name)
-
     def test_noise_control_daemonize(self):
         options = self.DEFAULTS
         options['quiet'] = True
@@ -113,7 +100,7 @@ class TestMain(HendrixTestCase):
         self.assertEqual(sys.stdout.name, stdout.name)
         self.assertEqual(sys.stderr.name, stderr.name)
 
-        self.assertEqual(redirect.name, self.devnull.name)
+        self.assertEqual(redirect, None)
 
     def test_noise_control_traceback(self):
         options = self.DEFAULTS
@@ -128,33 +115,19 @@ class TestMain(HendrixTestCase):
 
         self.assertEqual(redirect, None)
 
-    def test_noise_control_quiet_traceback(self):
-        options = self.DEFAULTS
-        options['quiet'] = True
-        options['traceback'] = True
-        stdout = sys.stdout
-        stderr = sys.stderr
-        redirect = ux.noiseControl(options)
-        self.assertEqual(sys.stdout.name, self.devnull.name)
-        self.assertEqual(sys.stderr.name, self.devnull.name)
-        sys.stdout = stdout
-        sys.stderr = stderr
-
-        self.assertEqual(redirect, None)
-
     def test_main_with_daemonize(self):
         sys.argv = self.args_list + ['-d', '--settings', TEST_SETTINGS]
+
         class Process(object):
             def poll(self):
                 return 0
-        with patch('time.sleep') as sleep:
+        with patch('time.sleep'):
             with patch('subprocess.Popen') as popen:
                 popen.return_value = Process()
                 ux.main()
                 self.assertTrue(popen.called)
                 self.assertTrue('--settings' in popen.call_args[0][0])
         sys.argv = []
-
 
     def test_options_structure(self):
         """
