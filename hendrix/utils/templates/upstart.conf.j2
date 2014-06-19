@@ -1,3 +1,11 @@
+# put this Ubuntu upstart file at /etc/init/{{app_name}}.conf
+#
+# usage:
+#     sudo start {{app_name}}
+#     sudo stop {{app_name}}
+#     sudo restart {{app_name}}
+#
+
 start on static-network-up
 stop on shutdown
 
