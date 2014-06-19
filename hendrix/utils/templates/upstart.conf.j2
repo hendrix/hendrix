@@ -1,0 +1,23 @@
+# put this Ubuntu upstart file at /etc/init/{{app_name}}.conf
+#
+# usage:
+#     sudo start {{app_name}}
+#     sudo stop {{app_name}}
+#     sudo restart {{app_name}}
+#
+
+start on static-network-up
+stop on shutdown
+
+console log
+respawn
+
+setuid {{user}}
+setgid {{group}}
+
+script
+    env PYTHONPATH={{manage_path}}
+    cd {{manage_path}}
+    . {{path_to_bin_activate}}
+    exec hx start {{options}}
+end script
