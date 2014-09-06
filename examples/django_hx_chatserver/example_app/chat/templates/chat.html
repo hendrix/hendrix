@@ -106,12 +106,18 @@
 
   var setup_chat = function(sock){
 
+    //this is
     $('#chat_entry').on('keypress',function(e){
       //send on enter key pressed...
       if (e.keyCode === 13){
         $el = $(this);
+
         sock.send(
           JSON.stringify({
+
+            // make sure what you put in the socket is what your
+            // backend code is expecting
+
             message:$el.val(),
             sender :$('#nickname').val() || 'anonymous',
             channel:SOCKET_ADDRESS
@@ -120,6 +126,8 @@
     })
 
     sock.onmessage = function(e) {
+    //
+
      var data = JSON.parse(e.data);
      if(data.html){
        $('#empty').remove();
