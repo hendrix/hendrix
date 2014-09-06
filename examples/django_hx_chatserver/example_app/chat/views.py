@@ -17,13 +17,13 @@ def home(request, chat_channel_name=None):
     if not chat_channel_name:
         chat_channel_name = 'homepage'
 
-    ctx = {
+    context = {
         'address': chat_channel_name,
         'history': [],
     }
 
     if ChatMessage.objects.filter(channel=chat_channel_name).exists():
-        ctx['history'] = ChatMessage.objects.filter(
+        context['history'] = ChatMessage.objects.filter(
             channel=chat_channel_name)
 
-    return render(request, 'chat.html', ctx)
+    return render(request, 'chat.html', context)
