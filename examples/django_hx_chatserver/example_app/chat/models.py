@@ -21,13 +21,16 @@ def save_chat_message(*args, **kwargs):
 
     """
     kwargs will always include:
-    {
-     'data': # will always be exactly what your client sent on the socket
+    
+     'data': 
+        # will always be exactly what your client sent on the socket
         # in this case...
         {u'message': u'hi', u'sender': u'anonymous', u'channel': u'homepage'},
-     'dispatcher': # the dispatcher that will allow for broadcasting a response
+     
+     'dispatcher': 
+        # the dispatcher that will allow for broadcasting a response
       <hendrix.contrib.async.messaging.MessageDispatcher object at 0x10ddb1c10>,
-    }
+    
     """
 
     data = kwargs.get('data')
@@ -41,6 +44,8 @@ def save_chat_message(*args, **kwargs):
 
         t = loader.get_template('message.html')
 
+        # now send broadcast a message back to anyone listening
+        # on the channel
         kwargs.get('dispatcher').send(cm.channel, {
             'html': t.render(Context({'message': cm}))
         })
