@@ -1,10 +1,9 @@
 import chalk
 import os
 import sys
-from path import path
 
 
-HENDRIX_DIR = path(__file__).abspath().dirname()
+HENDRIX_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SHARE_PATH = os.path.join(
     os.path.dirname(sys.executable),
