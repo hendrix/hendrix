@@ -10,7 +10,6 @@ from sys import executable
 from socket import AF_INET
 
 from hendrix import defaults
-from hendrix.contrib import ssl
 from hendrix.contrib.services.cache import CacheService
 from hendrix.options import options as hx_options
 from hendrix.resources import get_additional_resources
@@ -18,8 +17,6 @@ from hendrix.services import get_additional_services, HendrixService
 from hendrix.utils import get_pid
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
-from twisted.internet.ssl import PrivateCertificate
-from twisted.protocols.tls import TLSMemoryBIOFactory
 
 
 class HendrixDeploy(object):
@@ -141,6 +138,7 @@ class HendrixDeploy(object):
         _tcp = self.hendrix.getServiceNamed('main_web_tcp')
         factory = _tcp.factory
 
+        from hendrix.contrib import ssl
         _ssl = ssl.SSLServer(https_port, factory, key, cert)
 
         _ssl.setName('main_web_ssl')
@@ -245,6 +243,8 @@ class HendrixDeploy(object):
             self.hendrix.startService()
             for name, factory in factories.iteritems():
                 if name == 'main_web_ssl':
+                    from twisted.internet.ssl import PrivateCertificate
+                    from twisted.protocols.tls import TLSMemoryBIOFactory
                     privateCert = PrivateCertificate.loadPEM(
                         open(self.options['cert']).read() + open(self.options['key']).read()
                     )
