@@ -5,8 +5,8 @@ from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
 
-
 import logging
+import chalk
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +158,7 @@ class MediaResource(static.File):
     (gives the client a 403 instead of letting them browse
     a static directory).
     '''
+
     def directoryListing(self):
         # Override to forbid directory listing
         return resource.ForbiddenResource()
@@ -186,6 +187,7 @@ def DjangoStaticResource(path, rel_url='static'):
     rel_url = rel_url.strip('/')
     StaticFilesResource = MediaResource(path)
     StaticFilesResource.namespace = rel_url
+    chalk.green("Adding media resource for URL '%s' at path '%s'" % (rel_url, path))
     return StaticFilesResource
 
 
