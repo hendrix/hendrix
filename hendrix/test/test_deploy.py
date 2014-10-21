@@ -36,7 +36,6 @@ class DeployTests(HendrixTestCase):
         deploy.addHendrix()
         self.assertIsInstance(deploy.hendrix, service.MultiService)
 
-
     def test_flask_deployment(self):
         deploy = self.wsgiDeploy(options={'wsgi': 'hendrix.test.flasky.app'})
         deploy.addServices()
@@ -45,4 +44,3 @@ class DeployTests(HendrixTestCase):
         tcp_readers = [ p for p in readers if isinstance(p, tcp.Port) ]
         ports = [ p.port for p in tcp_readers ]
         self.assertTrue(8000 in ports)
-        self.assertTrue(8080 in ports)

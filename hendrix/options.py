@@ -127,8 +127,8 @@ HX_OPTION_LIST = (
         help='Make it so that there is only one cache server'
     ),
     make_option(
-        '-n', '--nocache',
-        dest='nocache',
+        '-c', '--cache',
+        dest='cache',
         action='store_true',
         default=False,
         help='Disable page cache'

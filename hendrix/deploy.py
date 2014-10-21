@@ -86,6 +86,7 @@ class HendrixDeploy(object):
                 options[opt_name] = opt
 
         if not options['settings']:
+            print environ['DJANGO_SETTINGS_MODULE']
             options['settings'] = environ['DJANGO_SETTINGS_MODULE']
         return options
 
@@ -97,7 +98,7 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
-        if not self.options.get('global_cache') and not self.options.get('nocache'):
+        if not self.options.get('global_cache') and self.options.get('cache'):
             self.addLocalCacheService()
 
         if self.is_secure:
@@ -153,7 +154,11 @@ class HendrixDeploy(object):
         fd = self.options['fd']
 
         if action.startswith('start'):
-            chalk.blue('Ready and Listening...')
+            chalk.blue(
+                'Ready and Listening on port %d...' % self.options.get(
+                    'http_port'
+                )
+            )
             getattr(self, action)(fd)
             self.reactor.run()
         elif action == 'restart':
@@ -191,8 +196,8 @@ class HendrixDeploy(object):
                 '--key', self.options.get('key'),
                 '--cert', self.options.get('cert')
             ]
-        if self.options['nocache']:
-            _args.append('--nocache')
+        if self.options['cache']:
+            _args.append('--cache')
         if self.options['dev']:
             _args.append('--dev')
         if self.options['traceback']:
@@ -204,7 +209,7 @@ class HendrixDeploy(object):
         return _args
 
     def addGlobalServices(self):
-        if self.options.get('global_cache') and not self.options.get('nocache'):
+        if self.options.get('global_cache') and self.options.get('cache'):
             _cache = self.getCacheService()
             _cache.startService()
 
