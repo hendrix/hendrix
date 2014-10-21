@@ -13,3 +13,4 @@ venv
 _trial_temp*
 ignore*
 *.log
+*.log.*
