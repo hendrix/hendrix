@@ -8,9 +8,11 @@ def file_name(rel_path):
     dir_path = os.path.dirname(__file__)
     return os.path.join(dir_path, rel_path)
 
+
 def read(rel_path):
     with open(file_name(rel_path)) as f:
         return f.read()
+
 
 def readlines(rel_path):
     with open(file_name(rel_path)) as f:
@@ -22,7 +24,7 @@ def mkdir_p(path):
     "recreate mkdir -p functionality"
     try:
         os.makedirs(path)
-    except OSError as exc: # Python >2.5
+    except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
