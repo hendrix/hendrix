@@ -13,7 +13,7 @@ import time
 import traceback
 from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
-from hendrix.deploy import HendrixDeploy
+from hendrix.deploy import base, ssl, cache, hybrid
 from path import path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -77,6 +77,14 @@ def launch(*args, **options):
         exit('\n')
     else:
         try:
+            if options['key'] and options['cert'] and options['cache']:
+                HendrixDeploy = hybrid.HendrixDeployHybrid
+            elif options['key'] and options['cert']:
+                HendrixDeploy = ssl.HendrixDeploySSL
+            elif options['cache']:
+                HendrixDeploy = cache.HendrixDeployCache
+            else:
+                HendrixDeploy = base.HendrixDeploy
             deploy = HendrixDeploy(action, options)
             deploy.run()
         except Exception, e:
@@ -125,7 +133,7 @@ def djangoVsWsgi(options):
             options['settings'] = settings_mod
     else:
         try:
-            HendrixDeploy.importWSGI(options['wsgi'])
+            base.HendrixDeploy.importWSGI(options['wsgi'])
         except ImportError:
             raise ImportError("The path '%s' does not exist" % options['wsgi'])
 

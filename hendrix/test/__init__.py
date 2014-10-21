@@ -5,7 +5,7 @@ import os
 import unittest
 
 from hendrix.contrib import SettingsError
-from hendrix.deploy import HendrixDeploy
+from hendrix.deploy.base import HendrixDeploy
 from hendrix.defaults import *
 from hendrix.utils import get_pid
 
