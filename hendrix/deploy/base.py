@@ -55,7 +55,13 @@ class HendrixDeploy(object):
 
     @classmethod
     def importWSGI(cls, wsgi_dot_path):
-        wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
+        chalk.blue("Looking for WSGI application %s" % wsgi_dot_path)
+        try:
+            wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
+        except AttributeError:
+            pid = os.getpid()
+            chalk.red("Unable to discern a WSGI application from '%s'" % wsgi_dot_path)
+            os.kill(pid, 15)
         wsgi = importlib.import_module(wsgi_module)
         return getattr(wsgi, application_name, None)
 
