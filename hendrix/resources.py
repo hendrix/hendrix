@@ -187,7 +187,9 @@ def DjangoStaticResource(path, rel_url='static'):
     rel_url = rel_url.strip('/')
     StaticFilesResource = MediaResource(path)
     StaticFilesResource.namespace = rel_url
-    chalk.green("Adding media resource for URL '%s' at path '%s'" % (rel_url, path))
+    chalk.green(
+        "Adding media resource for URL '%s' at path '%s'" % (rel_url, path)
+    )
     return StaticFilesResource
 
 

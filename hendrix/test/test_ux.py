@@ -4,8 +4,7 @@ from . import HendrixTestCase, TEST_SETTINGS
 from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
 from hendrix import ux
-from mock import patch, Mock
-from path import path
+from mock import patch
 
 
 class TestMain(HendrixTestCase):
@@ -74,7 +73,7 @@ class TestMain(HendrixTestCase):
     def test_pythonpath(self):
         options = self.DEFAULTS
         test_path = os.path.join(
-            path(os.getcwd()).parent,
+            os.path.dirname(os.getcwd()),
             'hendrix/test/testproject'
         )
         options['pythonpath'] = test_path
