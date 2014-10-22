@@ -14,7 +14,6 @@ import traceback
 from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, ssl, cache, hybrid
-from path import path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -39,7 +38,7 @@ class Reload(FileSystemEventHandler):
     def on_any_event(self, event):
         if event.is_directory:
             return
-        ext = path(event.src_path).ext
+        ext = os.path.splitext(event.src_path)[1]
         if ext == '.py':
             self.process = self.restart()
             chalk.eraser()
@@ -143,8 +142,8 @@ def djangoVsWsgi(options):
 def exposeProject(options):
     # sys.path logic
     if options['pythonpath']:
-        project_path = path(options['pythonpath'])
-        if not project_path.exists():
+        project_path = options['pythonpath']
+        if not os.path.exists(project_path):
             raise IOError("The path '%s' does not exist" % project_path)
         sys.path.append(project_path)
     else:
