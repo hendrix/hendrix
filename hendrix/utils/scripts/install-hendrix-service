@@ -3,7 +3,6 @@
 import argparse
 import sys
 from hendrix.utils.conf import generateInitd
-from path import path
 
 
 parser = argparse.ArgumentParser(
@@ -17,9 +16,9 @@ def main():
         raise RuntimeError("Only run this script on linux machines.")
 
     parsed_args = parser.parse_args(sys.argv[1:])
-    conf_path = path(parsed_args.conf_path)
+    conf_path = parsed_args.conf_path
 
-    if not conf_path.exists():
+    if not os.path.exists(conf_path):
         raise RuntimeError("The configuration file specified does not exist.")
 
     initd = generateInitd(conf_path)
@@ -28,7 +27,7 @@ def main():
     with open(initd_path, 'w') as hendrix_initd:
         hendrix_initd.write(initd)
 
-    path(initd_path).chmod(0751)
+    os.chmod(initd_path, 0751)
 
     msg = (
         '\033[94mHendrix is now installed as a system wide service\n'

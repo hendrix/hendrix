@@ -2,16 +2,18 @@
 A module to encapsulate the user experience logic
 """
 
+from __future__ import with_statement
+
 import chalk
 import os
+import re
 import subprocess
 import sys
 import time
 import traceback
 from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
-from hendrix.deploy import HendrixDeploy
-from path import path
+from hendrix.deploy import base, ssl, cache, hybrid
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -36,7 +38,7 @@ class Reload(FileSystemEventHandler):
     def on_any_event(self, event):
         if event.is_directory:
             return
-        ext = path(event.src_path).ext
+        ext = os.path.splitext(event.src_path)[1]
         if ext == '.py':
             self.process = self.restart()
             chalk.eraser()
@@ -74,6 +76,14 @@ def launch(*args, **options):
         exit('\n')
     else:
         try:
+            if options['key'] and options['cert'] and options['cache']:
+                HendrixDeploy = hybrid.HendrixDeployHybrid
+            elif options['key'] and options['cert']:
+                HendrixDeploy = ssl.HendrixDeploySSL
+            elif options['cache']:
+                HendrixDeploy = cache.HendrixDeployCache
+            else:
+                HendrixDeploy = base.HendrixDeploy
             deploy = HendrixDeploy(action, options)
             deploy.run()
         except Exception, e:
@@ -86,24 +96,43 @@ def launch(*args, **options):
             os._exit(1)
 
 
+def findSettingsModule():
+    "Find the settings module dot path within django's mnanage.py file"
+    try:
+        with open('manage.py', 'r') as manage:
+            settings_mod = re.search(
+                r"([\"\'](?P<module>[a-z\.]+)[\"\'])", manage.read()
+            ).group("module")
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_mod)
+    except IOError, e:
+        msg = (
+            str(e) + '\nPlease ensure that you are in the same directory '
+            'as django\'s "manage.py" file.'
+        )
+        raise IOError(chalk.format_red(msg)), None, sys.exc_info()[2]
+    return settings_mod
+
+
 def djangoVsWsgi(options):
     # settings logic
     if not options['wsgi']:
+        settings_mod = findSettingsModule()
         user_settings = options['settings']
-        settings_module = os.environ.get('DJANGO_SETTINGS_MODULE')
-        if not settings_module and not user_settings:
+        if not settings_mod and not user_settings:
             msg = (
                 '\nEither specify:\n--settings mysettings.dot.path\nOR\n'
                 'export DJANGO_SETTINGS_MODULE="mysettings.dot.path"'
             )
             raise SettingsError(chalk.format_red(msg)), None, sys.exc_info()[2]
         elif user_settings:
+            # if the user specified the settings to use then these take
+            # precedence
             options['settings'] = user_settings
-        elif settings_module:
-            options['settings'] = settings_module
+        elif settings_mod:
+            options['settings'] = settings_mod
     else:
         try:
-            HendrixDeploy.importWSGI(options['wsgi'])
+            base.HendrixDeploy.importWSGI(options['wsgi'])
         except ImportError:
             raise ImportError("The path '%s' does not exist" % options['wsgi'])
 
@@ -113,8 +142,8 @@ def djangoVsWsgi(options):
 def exposeProject(options):
     # sys.path logic
     if options['pythonpath']:
-        project_path = path(options['pythonpath'])
-        if not project_path.exists():
+        project_path = options['pythonpath']
+        if not os.path.exists(project_path):
             raise IOError("The path '%s' does not exist" % project_path)
         sys.path.append(project_path)
     else:
@@ -125,8 +154,9 @@ def devFriendly(options):
     # if the dev option is given then also set reload to true
     # note that clean options will remove reload so to honor that we use get
     # in the second part of the conditional
-    options['reload'] = True if options['dev'] else options.get('reload', False)
-    options['loud'] = True if options['dev'] else options['loud']
+    dev_mode = options['dev']
+    options['reload'] = True if dev_mode else options.get('reload', False)
+    options['loud'] = True if dev_mode else options['loud']
     return options
 
 
@@ -146,9 +176,9 @@ def main():
 
     action = args[0]
 
-    options = djangoVsWsgi(options)
-
     exposeProject(options)
+
+    options = djangoVsWsgi(options)
 
     options = devFriendly(options)
 

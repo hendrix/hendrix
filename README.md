@@ -15,7 +15,7 @@ servers.
 gzipped files. It's also possible to extend the current caching functionality by
 subclassing the hendrix `CacheService` and adding a reference to that subclass within a
 `HENDRIX_SERVICES` tuple of tuples e.g. `(('name', 'app.MyCustomCache'),)` in your
-Django settings file. Just use the `--nocache` flag to turn caching off.
+Django settings file. Just use the `--cache` flag to turn caching on.
 * **Built-in SSL Support** - SSL is also process distributed, just provide the options
 --key /path/to/private.key and --cert /path/to/signed.cert to enable SSL
 and process distributed TLS
@@ -217,7 +217,7 @@ and that's it! Hendrix will do the rest. Django docs examples [here](https://doc
 
 #####Turning cache off
 
-You can turn caching off by passing the flags `-n` or `--nocache`. You can also change which
+You can turn caching on by passing the flags `-c` or `--cache`. You can also change which
 port you want to use with the `--cache_port` option.
 
 #####Global Vs Local

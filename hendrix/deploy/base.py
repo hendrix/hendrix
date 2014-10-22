@@ -6,26 +6,21 @@ import time
 import cPickle as pickle
 
 from os import environ
-from sys import executable
 from socket import AF_INET
 
 from hendrix import defaults
-from hendrix.contrib import ssl
-from hendrix.contrib.services.cache import CacheService
 from hendrix.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
 from hendrix.utils import get_pid
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
-from twisted.internet.ssl import PrivateCertificate
-from twisted.protocols.tls import TLSMemoryBIOFactory
 
 
 class HendrixDeploy(object):
     """
-    HendrixDeploy encapsulates the necessary information needed to deploy the
-    HendrixService on a single or multiple processes.
+    HendrixDeploy encapsulates the necessary information needed to deploy
+    the HendrixService on a single or multiple processes.
     """
 
     def __init__(self, action='start', options={}, reactor=reactor):
@@ -60,12 +55,14 @@ class HendrixDeploy(object):
 
     @classmethod
     def importWSGI(cls, wsgi_dot_path):
-        chalk.blue("Looking for WSGI application %s" % wsgi_dot_path)
         try:
             wsgi_module, application_name = wsgi_dot_path.rsplit('.', 1)
         except AttributeError:
             pid = os.getpid()
-            chalk.red("Unable to discern a WSGI application from '%s'" % wsgi_dot_path)
+            chalk.red(
+                "Unable to discern a WSGI application from '%s'" %
+                wsgi_dot_path
+            )
             os.kill(pid, 15)
         wsgi = importlib.import_module(wsgi_module)
         return getattr(wsgi, application_name, None)
@@ -103,14 +100,6 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
-        if not self.options.get('global_cache') and not self.options.get('nocache'):
-            self.addLocalCacheService()
-
-        if self.is_secure:
-            self.addSSLService()
-
-        self.catalogServers(self.hendrix)
-
     def addHendrix(self):
         "instantiates the HendrixService"
         self.hendrix = HendrixService(
@@ -125,41 +114,19 @@ class HendrixDeploy(object):
             if isinstance(service, (TCPServer, SSLServer)):
                 self.servers.append(service.name)
 
-    def getCacheService(self):
-        cache_port = self.options.get('cache_port')
-        http_port = self.options.get('http_port')
-        return CacheService(
-            host='localhost', from_port=cache_port, to_port=http_port, path=''
-        )
-
-    def addLocalCacheService(self):
-        "adds a CacheService to the instatiated HendrixService"
-        _cache = self.getCacheService()
-        _cache.setName('cache_proxy')
-        _cache.setServiceParent(self.hendrix)
-
-    def addSSLService(self):
-        "adds a SSLService to the instaitated HendrixService"
-        https_port = self.options['https_port']
-        key = self.options['key']
-        cert = self.options['cert']
-
-        _tcp = self.hendrix.getServiceNamed('main_web_tcp')
-        factory = _tcp.factory
-
-        _ssl = ssl.SSLServer(https_port, factory, key, cert)
-
-        _ssl.setName('main_web_ssl')
-        _ssl.setServiceParent(self.hendrix)
-
     def run(self):
         "sets up the desired services and runs the requested action"
         self.addServices()
+        self.catalogServers(self.hendrix)
         action = self.action
         fd = self.options['fd']
 
         if action.startswith('start'):
-            chalk.blue('Ready and Listening...')
+            chalk.blue(
+                'Ready and Listening on port %d...' % self.options.get(
+                    'http_port'
+                )
+            )
             getattr(self, action)(fd)
             self.reactor.run()
         elif action == 'restart':
@@ -173,75 +140,41 @@ class HendrixDeploy(object):
         return get_pid(self.options)
 
     def getSpawnArgs(self):
-        """
-        For the child processes we don't need to specify the SSL or caching
-        parameters as
-        """
         _args = [
-            executable,  # path to python executable e.g. /usr/bin/python
-        ]
-        if not self.options['loud']:
-            _args += ['-W', 'ignore']
-        _args += [
-            'manage.py',
             'hx',
-            'start',
+            'start',  # action
+
+            # kwargs
             '--http_port', str(self.options['http_port']),
             '--https_port', str(self.options['https_port']),
             '--cache_port', str(self.options['cache_port']),
             '--workers', '0',
             '--fd', pickle.dumps(self.fds),
         ]
-        if self.is_secure:
-            _args += [
-                '--key', self.options.get('key'),
-                '--cert', self.options.get('cert')
-            ]
-        if self.options['nocache']:
-            _args.append('--nocache')
+
+        # args/signals
         if self.options['dev']:
             _args.append('--dev')
         if self.options['traceback']:
             _args.append('--traceback')
-        if self.options['global_cache']:
-            _args.append('--global_cache')
+
         if not self.use_settings:
             _args += ['--wsgi', self.options['wsgi']]
         return _args
 
     def addGlobalServices(self):
-        if self.options.get('global_cache') and not self.options.get('nocache'):
-            _cache = self.getCacheService()
-            _cache.startService()
+        """
+        This is where we put service that we don't want to be duplicated on
+        worker subprocesses
+        """
+        pass
 
     def start(self, fd=None):
-        pids = [str(os.getpid())]  # script pid
-
         if fd is None:
             # anything in this block is only run once
             self.addGlobalServices()
-
             self.hendrix.startService()
-            if self.options['workers']:
-                # Create a new listening port and several other processes to
-                # help out.
-                childFDs = {0: 0, 1: 1, 2: 2}
-                self.fds = {}
-                for name in self.servers:
-                    port = self.hendrix.get_port(name)
-                    fd = port.fileno()
-                    childFDs[fd] = fd
-                    self.fds[name] = fd
-                args = self.getSpawnArgs()
-                transports = []
-                for i in range(self.options['workers']):
-                    transport = self.reactor.spawnProcess(
-                        None, executable, args, childFDs=childFDs, env=environ
-                    )
-                    transports.append(transport)
-                    pids.append(str(transport.pid))
-            with open(self.pid, 'w') as pid_file:
-                pid_file.write('\n'.join(pids))
+            self.launchWorkers()
         else:
             fds = pickle.loads(fd)
             factories = {}
@@ -250,16 +183,35 @@ class HendrixDeploy(object):
                 factories[name] = factory
             self.hendrix.startService()
             for name, factory in factories.iteritems():
-                if name == 'main_web_ssl':
-                    privateCert = PrivateCertificate.loadPEM(
-                        open(self.options['cert']).read() + open(self.options['key']).read()
-                    )
-                    factory = TLSMemoryBIOFactory(
-                        privateCert.options(), False, factory
-                    )
-                port = self.reactor.adoptStreamPort(
-                    fds[name], AF_INET, factory
+                self.addSubprocesses(fds, name, factory)
+
+    def launchWorkers(self):
+        pids = [str(os.getpid())]  # script pid
+        if self.options['workers']:
+            # Create a new listening port and several other processes to
+            # help out.
+            childFDs = {0: 0, 1: 1, 2: 2}
+            self.fds = {}
+            for name in self.servers:
+                port = self.hendrix.get_port(name)
+                fd = port.fileno()
+                childFDs[fd] = fd
+                self.fds[name] = fd
+            args = self.getSpawnArgs()
+            transports = []
+            for i in range(self.options['workers']):
+                transport = self.reactor.spawnProcess(
+                    None, 'hx', args, childFDs=childFDs, env=environ
                 )
+                transports.append(transport)
+                pids.append(str(transport.pid))
+        with open(self.pid, 'w') as pid_file:
+            pid_file.write('\n'.join(pids))
+
+    def addSubprocesses(self, fds, name, factory):
+        self.reactor.adoptStreamPort(  # outputs port
+            fds[name], AF_INET, factory
+        )
 
     def stop(self, sig=9):
         with open(self.pid) as pid_file:

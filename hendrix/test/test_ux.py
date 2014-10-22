@@ -5,7 +5,6 @@ from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
 from hendrix import ux
 from mock import patch
-from path import path
 
 
 class TestMain(HendrixTestCase):
@@ -16,31 +15,38 @@ class TestMain(HendrixTestCase):
         os.environ['DJANGO_SETTINGS_MODULE'] = ''
         self.devnull = open(os.devnull, 'w')
         self.args_list = ['hx', 'start']
+        self.patcher = patch('hendrix.ux.findSettingsModule')
+        self.patcher.start()
 
     def tearDown(self):
         super(TestMain, self).tearDown()
         self.devnull.close()
+        self.patcher.stop()
 
     def test_settings_from_system_variable(self):
         django_settings = 'django.inanity'
-        os.environ['DJANGO_SETTINGS_MODULE'] = django_settings
-        options = self.DEFAULTS
-        self.assertEqual(options['settings'], '')
-        options = ux.djangoVsWsgi(options)
-        self.assertEqual(options['settings'], django_settings)
+        with patch('hendrix.ux.findSettingsModule') as findSettingsMod:
+            findSettingsMod.return_value = django_settings
+            options = self.DEFAULTS
+            self.assertEqual(options['settings'], '')
+            options = ux.djangoVsWsgi(options)
+            self.assertEqual(options['settings'], django_settings)
 
     def test_settings_wsgi_absense(self):
-        self.assertRaises(SettingsError, ux.djangoVsWsgi, self.DEFAULTS)
+        with patch('hendrix.ux.findSettingsModule') as findSettingsMod:
+            findSettingsMod.return_value = ""
+            self.assertRaises(SettingsError, ux.djangoVsWsgi, self.DEFAULTS)
 
     def test_user_settings_overrides_system_variable(self):
         django_settings = 'django.inanity'
-        os.environ['DJANGO_SETTINGS_MODULE'] = django_settings
-        options = self.DEFAULTS
-        user_settings = 'myproject.settings'
-        options['settings'] = user_settings
-        self.assertEqual(options['settings'], user_settings)
-        options = ux.djangoVsWsgi(options)
-        self.assertEqual(options['settings'], user_settings)
+        with patch('hendrix.ux.findSettingsModule') as findSettingsMod:
+            findSettingsMod.return_value = django_settings
+            options = self.DEFAULTS
+            user_settings = 'myproject.settings'
+            options['settings'] = user_settings
+            self.assertEqual(options['settings'], user_settings)
+            options = ux.djangoVsWsgi(options)
+            self.assertEqual(options['settings'], user_settings)
 
     def test_wsgi_correct_wsgi_path_works(self):
         wsgi_dot_path = 'hendrix.test.wsgi'
@@ -67,7 +73,7 @@ class TestMain(HendrixTestCase):
     def test_pythonpath(self):
         options = self.DEFAULTS
         test_path = os.path.join(
-            path(os.getcwd()).parent,
+            os.path.dirname(os.getcwd()),
             'hendrix/test/testproject'
         )
         options['pythonpath'] = test_path

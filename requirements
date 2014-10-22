@@ -3,6 +3,6 @@ txsockjs
 pyopenssl
 zope.interface
 watchdog
-path.py
 jinja2
 pychalk==0.0.5
+service_identity
