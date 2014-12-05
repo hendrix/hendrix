@@ -1,6 +1,7 @@
 from hendrix import __version__
 import errno
-import os, sys
+import os
+import sys
 from setuptools import setup, find_packages
 
 
@@ -44,7 +45,10 @@ setup(
     packages=find_packages(),
     version=__version__,
     url="https://github.com/hangarunderground/hendrix",
-    download_url="https://github.com/hangarunderground/hendrix/tarball/v"+__version__+"-beta",
+    download_url=(
+        "https://github.com/hangarunderground/hendrix/tarball/"
+        "v"+__version__+"-beta"
+    ),
     description="A deployment module for Django that uses Twisted.",
     long_description=read('docs/long_desc.rst'),
     classifiers=[
@@ -64,5 +68,6 @@ setup(
     data_files=[
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
-    install_requires=readlines('requirements')
+    install_requires=readlines('requirements'),
+    extras_require={'ssl': ['pyopenssl', ]}
 )

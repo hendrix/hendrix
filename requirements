@@ -1,6 +1,5 @@
 twisted
 txsockjs
-pyopenssl
 zope.interface
 watchdog
 jinja2
