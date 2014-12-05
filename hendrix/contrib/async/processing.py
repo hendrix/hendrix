@@ -16,7 +16,8 @@ def parse_signal_args(kwargs):
 
     # we have 2 arguments that we need to pull from the 'args' tuple
     func = args[0]  # the function we will be calling
-    args = args[1:][0]  # and the arguments to it
+    # args[1:][0] is a tuple...
+    args = args[1:][0][0]
 
     # and then any keyword args
     kwargs = kwargs['kwargs']
