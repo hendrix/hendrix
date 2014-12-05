@@ -110,6 +110,8 @@ def findSettingsModule():
             'as django\'s "manage.py" file.'
         )
         raise IOError(chalk.format_red(msg)), None, sys.exc_info()[2]
+    except AttributeError:
+        settings_mod = ''
     return settings_mod
 
 
@@ -121,7 +123,10 @@ def djangoVsWsgi(options):
         if not settings_mod and not user_settings:
             msg = (
                 '\nEither specify:\n--settings mysettings.dot.path\nOR\n'
-                'export DJANGO_SETTINGS_MODULE="mysettings.dot.path"'
+                'export DJANGO_SETTINGS_MODULE="mysettings.dot.path"\nOR\n'
+                'in your manage.py file specify '
+                'os.environ.setdefault("DJANGO_SETTINGS_MODULE", '
+                '"mysettings.dot.path")'
             )
             raise SettingsError(chalk.format_red(msg)), None, sys.exc_info()[2]
         elif user_settings:
