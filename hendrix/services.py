@@ -35,7 +35,11 @@ class HendrixService(service.MultiService):
         if resources:
             resources = sorted(resources, key=lambda r: r.namespace)
             for res in resources:
-                resource.putNamedChild(res)
+                if hasattr(res, 'get_resources'):
+                    for sub_res in res.get_resources():
+                        resource.putNamedChild(sub_res)
+                else:
+                    resource.putNamedChild(res)
 
         factory = server.Site(resource)
         # add a tcp server that binds to port=port
