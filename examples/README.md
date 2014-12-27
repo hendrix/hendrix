@@ -4,6 +4,13 @@
 
 * cd into any example directory
 
-* ./install.sh
+* run: 
 
-* if things go well, navigate a browser to http://localhost:8000
+ ```
+ ./install.sh 
+ 
+ ```
+
+* if things go well, you should see: "Ready and Listening on port 8000..."
+
+* navigate a browser to http://localhost:8000
