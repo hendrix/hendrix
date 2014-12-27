@@ -24,12 +24,18 @@ class DjangoStaticsFinder:
 
         existing = []
         for finder in finders.get_finders():
-            for _, storage in finder.list([]):
-                if not storage.base_location in existing:
+            for staticfile, storage in finder.list([]):
+                dirname = os.path.dirname(staticfile)
+                path = os.path.join(storage.base_location, dirname)
+
+                if not path in existing:
+
                     yield DjangoStaticResource(
-                        storage.location,
-                        settings.STATIC_URL + '%s/' % storage.base_location
+                        path,
+                        settings.STATIC_URL + '%s/' % dirname
                     )
+
+                    existing.append(path)
 
 """
 The rest is for compatibility with existing code based on the deprecated
