@@ -1,0 +1,165 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}chat - {{address|default:"global"}}{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- styles -->
+    <style>
+      body {
+        padding: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        background-color: #092e20;
+        font-family: Arial, san-serif;
+      }
+
+      div#container{
+        min-width:55em;
+        max-width: 100em;
+        margin: 0 auto;
+        background-color: rgb(35, 79, 50);
+        min-height: 10em;
+        padding:10px;
+      }
+
+      div#header{
+        background-color:#94da3a;
+        border-bottom:6px solid #092e20;
+        padding:.5em;
+        color:white;
+        font-size:2em;
+      }
+
+      input[type="text"]{
+        margin:10px;
+        padding:10px;
+        font-size:1.2em;
+        border-radius: 5px;
+      }
+
+      #chat{
+        width:60%;
+      }
+
+      #chat_entry{
+        width:100%;
+      }
+
+      #history{
+        background-color:#eee;
+        padding:10px;
+        margin:10px;
+        border-radius:5px;
+        width:100%;
+        height: 300px;
+        overflow: auto;
+      }
+
+      #history li{
+        list-style: none;
+        padding:6px;
+        margin:2px;]
+        font-size:1.1em;
+      }
+
+      #history li:nth-child(even){
+        background-color: #ccc;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="header">
+      Django Chat
+      </div>      
+      <div id="chat">
+        <div style="color:white">your nickname: <input id="nickname" type="text" size="10" placeholder="anonymous"></div>
+        <ul id="history">
+          {% for message in history %}
+            {% include 'message.html' %}
+          {% empty %}
+          <li id="empty">no chat history</li>
+          {% endfor %}
+        </ul>
+        <input id="chat_entry" type="text">
+      </div>
+    </div>
+  </body>
+
+  <!-- JQUERY is not needed but lets just be nice to ourselves... -->
+  <script src="{% static 'js/jquery-1.11.0.js' %}"></script>
+  <!-- sock.js is very highly recomended (required even!) for implementing websockets. -->
+  <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+
+  <script type="text/javascript">
+
+  {% if address %}
+    SOCKET_ADDRESS='{{address}}';
+  {% else %}
+    SOCKET_ADDRESS=null;
+  {% endif %}
+
+  var setup_chat = function(sock){
+
+    //this is
+    $('#chat_entry').on('keypress',function(e){
+      //send on enter key pressed...
+      if (e.keyCode === 13){
+        $el = $(this);
+
+        sock.send(
+          JSON.stringify({
+
+            // make sure what you put in the socket is what your
+            // backend code is expecting
+
+            message:$el.val(),
+            sender :$('#nickname').val() || 'anonymous',
+            channel:SOCKET_ADDRESS
+          }))
+
+        $(this).val('');
+      }
+    })
+
+    sock.onmessage = function(e) {
+    //
+
+     var data = JSON.parse(e.data);
+     if(data.html){
+       $('#empty').remove();
+       $('#history').append($(data.html));
+       $("#history").animate({ scrollTop: $('#history')[0].scrollHeight}, 1000);
+     }
+    }
+  }
+
+  $(function(){
+
+    var sock = new SockJS('/messages/main/');
+    
+    sock.onopen = function() {
+
+     // "hx_subscribe" is a keyword that tells hendrix to subscribe the
+     // socket transport associated with this web browser session
+     // with a given channel
+
+     this.send(JSON.stringify({'hx_subscribe':SOCKET_ADDRESS}));
+
+     // we need to wait until we have a socket connection established before
+     // hooking up the events.
+
+     setup_chat(this);
+
+     $("#history").animate({ scrollTop: $('#history')[0].scrollHeight}, 1000);
+    };
+  })
+
+  </script>
+
+</html>
