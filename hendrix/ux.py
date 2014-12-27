@@ -124,6 +124,8 @@ def findSettingsModule():
             'as django\'s "manage.py" file.'
         )
         raise IOError(chalk.format_red(msg)), None, sys.exc_info()[2]
+    except AttributeError:
+        settings_mod = ''
     return settings_mod
 
 
