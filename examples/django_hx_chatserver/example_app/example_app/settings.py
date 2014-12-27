@@ -39,7 +39,7 @@ INSTALLED_APPS = (
 )
 
 INSTALLED_APPS += (
-    'chat',
+    'chat', # your app goes here.
 )
 
 MIDDLEWARE_CLASSES = (
@@ -89,9 +89,10 @@ STATIC_URL = '/static/'
 
 # THIS IS THE ONLY THING THAT NEEDS TO BE ADDED TO SETTINGS
 
-STATIC_ROOT = BASE_DIR + '/staticfiles'
+STATIC_ROOT = BASE_DIR + '/servedstatics'
+
 
 HENDRIX_CHILD_RESOURCES = (
-    'hendrix.contrib.resources.static.DefaultDjangoStaticResource',
     'hendrix.contrib.async.resources.MessageResource',
+    'hendrix.contrib.resources.static.DjangoStaticsFinder'
 )
