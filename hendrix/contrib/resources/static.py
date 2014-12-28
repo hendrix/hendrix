@@ -28,7 +28,7 @@ class DjangoStaticsFinder:
                 dirname = os.path.dirname(staticfile)
                 path = os.path.join(storage.base_location, dirname)
 
-                if not path in existing:
+                if not path in existing and dirname:
 
                     yield DjangoStaticResource(
                         path,
