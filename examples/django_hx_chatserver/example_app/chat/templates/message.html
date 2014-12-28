@@ -1,0 +1,16 @@
+
+		<li>
+        <div style="position:relative">
+          <div style="margin:5px">
+          <span class="who">{{message.sender}}</span>
+          said:
+          </div>
+          <span style="font-size:1.5em;">{{message.content}}</span>
+          <span style="float:right;color:#999;position:absolute;top:0px;right:0px">
+          at
+          <span >{{message.date_created|date:"h:i"}}</span>
+          on
+          <span>{{message.date_created|date:"Y/m/d"}}</span>
+          </span>
+        </div>
+    </li>
