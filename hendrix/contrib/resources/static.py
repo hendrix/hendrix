@@ -37,6 +37,14 @@ class DjangoStaticsFinder:
 
                     existing.append(path)
 
+        # add a handler for MEDIA files if configured
+        if settings.MEDIA_ROOT and settings.MEDIA_URL:
+            yield DjangoStaticResource(
+                            settings.MEDIA_ROOT,
+                            settings.MEDIA_URL
+            )
+
+
 """
 The rest is for compatibility with existing code based on the deprecated
 classes below.
