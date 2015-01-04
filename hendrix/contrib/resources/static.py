@@ -40,8 +40,8 @@ class DjangoStaticsFinder:
         # add a handler for MEDIA files if configured
         if settings.MEDIA_ROOT and settings.MEDIA_URL:
             yield DjangoStaticResource(
-                            settings.MEDIA_ROOT,
-                            settings.MEDIA_URL
+                settings.MEDIA_ROOT,
+                settings.MEDIA_URL
             )
 
 
