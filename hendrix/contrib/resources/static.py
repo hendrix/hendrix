@@ -26,7 +26,7 @@ class DjangoStaticsFinder:
         for finder in finders.get_finders():
             for staticfile, storage in finder.list([]):
                 dirname = os.path.dirname(staticfile)
-                path = os.path.join(storage.base_location, dirname)
+                path = os.path.join(storage.base_location, dirname.split('/')[0])
 
                 if not path in existing and dirname:
 
