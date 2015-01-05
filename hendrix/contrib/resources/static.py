@@ -26,7 +26,7 @@ class DjangoStaticsFinder:
         for finder in finders.get_finders():
             for staticfile, storage in finder.list([]):
                 dirname = os.path.dirname(staticfile)
-                path = os.path.join(storage.base_location, dirname)
+                path = os.path.join(storage.base_location, dirname.split('/')[0])
 
                 if not path in existing and dirname:
 
@@ -36,6 +36,14 @@ class DjangoStaticsFinder:
                     )
 
                     existing.append(path)
+
+        # add a handler for MEDIA files if configured
+        if settings.MEDIA_ROOT and settings.MEDIA_URL:
+            yield DjangoStaticResource(
+                            settings.MEDIA_ROOT,
+                            settings.MEDIA_URL
+            )
+
 
 """
 The rest is for compatibility with existing code based on the deprecated
