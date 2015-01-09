@@ -4,6 +4,12 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 
 
+def generate_resources_for_location(disk_root, url):
+    for root, dirs, files in os.walk(disk_root):
+        yield DjangoStaticResource(
+            root,
+            url.strip('/') + '%s' % root.split(disk_root)[-1]
+        )
 
 class DjangoStaticsFinder:
     """ 
@@ -20,16 +26,15 @@ class DjangoStaticsFinder:
             '*.less',
             '*.scss',
             '*.styl',
+            '*.json',
         ]
 
         existing = []
         for finder in finders.get_finders():
             for staticfile, storage in finder.list([]):
                 dirname = os.path.dirname(staticfile)
-                path = os.path.join(storage.base_location, dirname.split('/')[0])
-
+                path = os.path.join(storage.base_location, dirname)
                 if not path in existing and dirname:
-
                     yield DjangoStaticResource(
                         path,
                         settings.STATIC_URL + '%s/' % dirname
@@ -39,17 +44,17 @@ class DjangoStaticsFinder:
 
         # add a handler for MEDIA files if configured
         if settings.MEDIA_ROOT and settings.MEDIA_URL:
-            yield DjangoStaticResource(
-                settings.MEDIA_ROOT,
-                settings.MEDIA_URL
-            )
+            for resource in generate_resources_for_location(settings.MEDIA_ROOT, settings.MEDIA_URL):
+                yield resource
+
+        if not settings.DEBUG:
+            for resource in generate_resources_for_location(settings.STATIC_ROOT, settings.STATIC_URL):
+                yield resource
 
 
-"""
-The rest is for compatibility with existing code based on the deprecated
-classes below.
+#The rest is for compatibility with existing code based on the deprecated
+#classes below.
 
-"""
 try:
     DefaultDjangoStaticResource = DjangoStaticResource(
         settings.STATIC_ROOT, settings.STATIC_URL
@@ -68,4 +73,3 @@ try:
     )
 except:
     raise
-
