@@ -12,7 +12,7 @@ Hendrix seeks to add to this discussion by focusing on:
 
 * Being more feature-rich instead of more lightweight
 * Being implemented more fully instead of more simply
-* Adopting an agnosticism about WSGI and web applications
+* Adopting an agnosticism about the status of WSGI and web applications as network services
 
 More about the hendrix philosophy [here](philosophy.md).
 

@@ -2,7 +2,7 @@
 
 ## The hx command
 
-The simplest way to start hendrix for a Django project is to run the following command from the root of hte project (ie, where manage.py is or was):
+The simplest way to start hendrix for a Django project is to run the following command from the root of the project (ie, where manage.py is or was):
 
 ```bash
 hx start --dev
