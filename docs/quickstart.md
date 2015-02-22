@@ -1,11 +1,40 @@
 # Quickstart
 
-## The hx command
+##Installation
+
+In your python virtualenv:
+
+```bash
+$ pip install hendrix
+```
+
+The following python packages are dependencies that should be automaticly installed.
+
+```bash
+twisted
+txsockjs
+zope.interface
+watchdog
+jinja2
+pychalk==0.0.5
+service_identity
+```
+
+###Extra Setup for SSL
+
+```bash
+$ sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+$ pip install cryptography
+```
+
+
+
+## The 'hx' command
 
 The simplest way to start hendrix for a Django project is to run the following command from the root of the project (ie, where manage.py is or was):
 
 ```bash
-hx start --dev
+$ hx start --dev
 ```
 
 The '--dev' option simply causes hendrix to emit output and elicit behavior similar to the Django runserver:
@@ -14,12 +43,12 @@ The '--dev' option simply causes hendrix to emit output and elicit behavior simi
 * '--loud' is implied: stdout and stderr will emit directly
 * '--daemonize' is  disabled: the process will run in foreground of the currenty TTY.
 
-## hendrix As a "service"
+### Install hendrix As a "service"
 
 To install hendrix as a system service, you'll need to create hendrix.conf (See example below) and run the following.
 
 ```bash
-sudo install-hendrix-service /path/to/hendrix.conf
+$ sudo install-hendrix-service /path/to/hendrix.conf
 ```
 hendrix.conf is is YAML format.  Here's an example.
 
@@ -56,13 +85,13 @@ key: /path/to/my/priv.key
 Then, to start the service.
 
 ```bash
-sudo service hendrix start|stop
+$ sudo service hendrix start|stop
 ```
 You may want to use something like supervisor, systemd, or upstart to launch hendrix on your remote metal.
 
 Hendrix [ships with an upstart template](https://github.com/hangarunderground/hendrix/blob/master/hendrix/utils/templates/upstart.conf.j2) for this purpose; it can easily be modified to work with other similar services.
 
-## Hendrix From Python
+## Starting Hendrix with Python
 Launching your application from within your Python codebase, whether in your local development debugger or in the orchestration logic for your production fleet, can be an empowering and eye-opening experience.
 
 Pythonic launch logic is an area where hendrix shines:

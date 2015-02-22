@@ -6,7 +6,7 @@
 
 ## Overview
 
-Python has wonderful web technologies and solutions for exposing web applications as network resources, such as uWSGI and Gunicorn.
+Python has wonderful web technologies and solutions for exposing web applications and network resources, such as uWSGI and Gunicorn.
 
 Hendrix seeks to add to this discussion by focusing on:
 
