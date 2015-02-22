@@ -6,6 +6,10 @@
 
 ## Overview
 
+###Twisted
+Twisted is what makes this all possible. Mostly. Check it out [here](https://twistedmatrix.com/trac/).
+
+### Hendrix
 Python has wonderful web technologies and solutions for exposing web applications and network resources, such as uWSGI and Gunicorn.
 
 Hendrix seeks to add to this discussion by focusing on:
@@ -24,3 +28,12 @@ More about the hendrix philosophy [here](philosophy.md).
 ## Getting started
 
 See the [Quickstart](quickstart.md) or [FAQ](faq.md).
+
+## History
+It started as a fork of the
+[slashRoot deployment module](https://github.com/SlashRoot/WHAT/tree/44f50ee08c5d7acb74ed8a4ce928e85eb2dc714f/deployment).
+
+The name is the result of some inane psychological formula wherein the
+'twisted' version of Django Reinhardt is Jimi Hendrix.
+
+Hendrix is currently maintained by [Reelio](reelio.com).

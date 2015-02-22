@@ -1,3 +1,5 @@
+#Philosphy
+
 ### Your WSGI app is just another network resource, and ports 80 and 443 are just ports.
 
 The simplest use case for Hendrix is to launch your Django app in a typical and well-established way.  However, once your app is handed over to Twisted, it is treated like just another network resource.  

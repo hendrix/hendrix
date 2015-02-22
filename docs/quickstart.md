@@ -2,7 +2,9 @@
 
 ##Installation
 
-In your python virtualenv:
+You'll need to use **virtualenv**. If you don't have that set up, follow [the virtualenv instructions here.](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+
+Inside your python virtuaenv:
 
 ```bash
 $ pip install hendrix
@@ -27,15 +29,16 @@ $ sudo apt-get install build-essential libssl-dev libffi-dev python-dev
 $ pip install cryptography
 ```
 
-
-
 ## The 'hx' command
+
+### Development Server
 
 The simplest way to start hendrix for a Django project is to run the following command from the root of the project (ie, where manage.py is or was):
 
 ```bash
 $ hx start --dev
 ```
+This is roughly the equivalent of running the django devserver.
 
 The '--dev' option simply causes hendrix to emit output and elicit behavior similar to the Django runserver:
 
@@ -43,7 +46,41 @@ The '--dev' option simply causes hendrix to emit output and elicit behavior simi
 * '--loud' is implied: stdout and stderr will emit directly
 * '--daemonize' is  disabled: the process will run in foreground of the currenty TTY.
 
-### Install hendrix As a "service"
+## Normal Usage
+The following outlines how to use Hendrix in your day to day life/development.
+
+#####For help and a complete list of the options:
+
+```bash
+$ hx -h
+```
+or
+```bash
+$ hx --help
+```
+
+#####Starting a server with 4 processes (1 parent and 3 child processes):
+```bash
+$ hx start -w 3
+```
+#####Stopping that server:
+```bash
+$ hx stop
+```
+
+** *Note that stopping a server is dependent on the settings file and http_port
+used.* **
+
+E.g. Running a server on port 8000 with local_settings.py would yield
+8000_local_settings.pid which would be used to kill the server. I.e. if you
+start with `hx start --settings local_settings` then stop by `hx stop --settings local_settings`
+
+#####Restarting a server:
+```bash
+$ hx restart
+```
+
+### Install hendrix As a "service" (Ubuntu/Debian)
 
 To install hendrix as a system service, you'll need to create hendrix.conf (See example below) and run the following.
 
@@ -96,7 +133,7 @@ Launching your application from within your Python codebase, whether in your loc
 
 Pythonic launch logic is an area where hendrix shines:
 
-```
+```python
 from hendrix.deploy.base import HendrixDeploy
 
 options = {'settings': 'settings.location'}

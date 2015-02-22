@@ -1,3 +1,5 @@
+# Deploying Other Services
+
 Remember: hendrix treats your web app like just another network resource.
 
 If you need to deploy network resources other than your web app, hendrix is happy to handle them.
