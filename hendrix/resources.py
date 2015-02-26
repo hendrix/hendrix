@@ -10,13 +10,21 @@ from twisted.web.wsgi import WSGIResource, _WSGIResponse
 import logging
 import chalk
 from twisted.internet.threads import deferToThread
+import threading
+import  uuid
 
 logger = logging.getLogger(__name__)
 
 
 class HendrixWSGIResponse(_WSGIResponse):
-    
+
+    def __init__(self, *args, **kwargs):
+        super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
+        
+
     def run(self, *args, **kwargs):
+        self.thread = threading.current_thread()
+        self.thread.response_object = self
         ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
         self.follow_response_tasks()
         return ran
@@ -47,7 +55,7 @@ class HendrixWSGIResource(WSGIResource):
     
     ResponseClass = HendrixWSGIResponse
     
-    def render(self, request):
+    def render(self, request):        
         response = self.ResponseClass(
             self._reactor, self._threadpool, self._application, request)
         response.start()
@@ -80,7 +88,7 @@ class HendrixResource(resource.Resource):
         if loud:
             self.wsgi_resource = DevWSGIResource(reactor, threads, application)
         else:
-            self.wsgi_resource = WSGIResource(reactor, threads, application)
+            self.wsgi_resource = HendrixWSGIResource(reactor, threads, application)
 
     def getChild(self, name, request):
         """

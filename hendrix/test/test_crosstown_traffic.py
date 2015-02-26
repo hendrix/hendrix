@@ -19,33 +19,25 @@ reactor = MemoryReactor()
 reactor.callFromThread = fakeCallFromThread
 
 
-class TestNameSpace(object):
-    async_task_was_run = False
 
 
 class PostResponseTest(TestCase):
        
-    def test_llamas(self):
-        
-        def application(environ, start_response):
-            start_response('200 OK', [('Content-type','text/plain')])
-        
-            @crosstown_traffic.follow_response()
-            def finish_thing():
-                TestNameSpace.async_task_was_run = True
-        
-            return ['The synchronous response']
+    def test_crosstown_trafic_is_resolved_after_request(self):
 
-        hr = HendrixWSGIResource(reactor, tp, application)
+        hr = HendrixWSGIResource(reactor, tp, self.application)
         request = DummyRequest('/nowhere/')
         request.isSecure = lambda: False
         request.content = "Nothing really here."
         
         # Async thing hasn't yet occured.
-        self.assertFalse(TestNameSpace.async_task_was_run)        
+        self.assertFalse(TestNameSpace.async_task_was_run)
         
         # but now...
         response = hr.render(request)
         
         # It has.
         self.assertTrue(TestNameSpace.async_task_was_run)
+    
+    def test_contemporaneous_requests(self):
+        
