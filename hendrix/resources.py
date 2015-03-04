@@ -30,9 +30,14 @@ class HendrixWSGIResponse(_WSGIResponse):
         return ran
     
     def follow_response_tasks(self):
-        tasks = crosstown_traffic.task_to_follow_response
+        tasks = crosstown_traffic.get_tasks_to_follow_current_response()
+        
+        if tasks:
+            logger.info("Resolving crosstown_traffic for %s" % self)
+        
         for task in tasks:
-            self.reactor.callFromThread(task)
+            logger.info("Calling in thread: '%s'" % task.__name__)
+            self.reactor.callInThread(task)
 
 
 class LoudWSGIResponse(HendrixWSGIResponse):
@@ -65,9 +70,6 @@ class HendrixWSGIResource(WSGIResource):
 class DevWSGIResource(HendrixWSGIResource):
 
     ResponseClass = LoudWSGIResponse
-
-
-
 
 
 class HendrixResource(resource.Resource):

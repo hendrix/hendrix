@@ -9,6 +9,20 @@ from .messaging import send_callback_json_message, send_json_message, send_errba
 import inspect
 
 
+class CrosstownTraffic(object):
+    
+    def __init__(self):
+        self.tasks = {}
+    
+    def finish(self, thing):
+        def decorator(f):
+            deferToThread(f)
+        return decorator
+
+crosstown_traffic = CrosstownTraffic()
+
+
+
 def parse_signal_args(kwargs):
 
     # because of the way django signals work, args will be in kwargs
