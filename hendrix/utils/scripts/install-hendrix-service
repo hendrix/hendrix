@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import os
 from hendrix.utils.conf import generateInitd
 
 
