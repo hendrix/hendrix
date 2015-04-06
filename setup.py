@@ -50,7 +50,7 @@ setup(
         "v"+__version__+"-beta"
     ),
     description="A deployment module for Django that uses Twisted.",
-    long_description=read('docs/long_desc.rst'),
+    long_description=read('docs/index.md'),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Django',
