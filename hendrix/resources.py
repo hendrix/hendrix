@@ -1,35 +1,46 @@
 import sys
 import importlib
 from hendrix.utils import responseInColor
+from hendrix.contrib.async import crosstown_traffic
+
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
 
 import logging
 import chalk
+from twisted.internet.threads import deferToThread
+import threading
+import  uuid
 
 logger = logging.getLogger(__name__)
 
 
-class DevWSGIResource(WSGIResource):
+class HendrixWSGIResponse(_WSGIResponse):
 
-    def render(self, request):
-        """
-        Turn the request into the appropriate C{environ} C{dict} suitable to be
-        passed to the WSGI application object and then pass it on.
+    def __init__(self, *args, **kwargs):
+        super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
+        
 
-        The WSGI application object is given almost complete control of the
-        rendering process.  C{NOT_DONE_YET} will always be returned in order
-        and response completion will be dictated by the application object, as
-        will the status, headers, and the response body.
-        """
-        response = LoudWSGIResponse(
-            self._reactor, self._threadpool, self._application, request)
-        response.start()
-        return NOT_DONE_YET
+    def run(self, *args, **kwargs):
+        self.thread = threading.current_thread()
+        self.thread.response_object = self
+        ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
+        self.follow_response_tasks()
+        return ran
+    
+    def follow_response_tasks(self):
+        tasks = crosstown_traffic.get_tasks_to_follow_current_response()
+        
+        if tasks:
+            logger.info("Resolving crosstown_traffic for %s" % self)
+        
+        for task in tasks:
+            logger.info("Calling in thread: '%s'" % task.__name__)
+            self.reactor.callInThread(task)
 
 
-class LoudWSGIResponse(_WSGIResponse):
+class LoudWSGIResponse(HendrixWSGIResponse):
 
     def startResponse(self, status, headers, excInfo=None):
         """
@@ -43,6 +54,22 @@ class LoudWSGIResponse(_WSGIResponse):
             responseInColor, self.request, status, headers
         )
         return self.write
+    
+
+class HendrixWSGIResource(WSGIResource):
+    
+    ResponseClass = HendrixWSGIResponse
+    
+    def render(self, request):        
+        response = self.ResponseClass(
+            self._reactor, self._threadpool, self._application, request)
+        response.start()
+        return NOT_DONE_YET
+
+        
+class DevWSGIResource(HendrixWSGIResource):
+
+    ResponseClass = LoudWSGIResponse
 
 
 class HendrixResource(resource.Resource):
@@ -63,7 +90,7 @@ class HendrixResource(resource.Resource):
         if loud:
             self.wsgi_resource = DevWSGIResource(reactor, threads, application)
         else:
-            self.wsgi_resource = WSGIResource(reactor, threads, application)
+            self.wsgi_resource = HendrixWSGIResource(reactor, threads, application)
 
     def getChild(self, name, request):
         """

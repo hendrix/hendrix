@@ -34,8 +34,15 @@ class HendrixDeploy(object):
         self.use_settings = True
         # because running the management command overrides self.options['wsgi']
         if self.options['wsgi']:
-            wsgi_dot_path = self.options['wsgi']
-            self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
+            if hasattr(self.options['wsgi'], '__call__'):
+                # If it has a __call__, we assume that it is the application object itself.
+                self.application = self.options['wsgi']
+                self.options['wsgi_app_name'] = "%s.%s" % (self.application.__module__, self.application.__name__)
+            else:
+                # Otherwise, we'll try to discern an application in the belief that this is a dot path.
+                wsgi_dot_path = self.options['wsgi']
+                self.application = HendrixDeploy.importWSGI(wsgi_dot_path)  # will raise AttributeError if we can't import it.
+                self.options['wsgi_app_name'] = wsgi_dot_path
             self.use_settings = False
         else:
             os.environ['DJANGO_SETTINGS_MODULE'] = self.options['settings']

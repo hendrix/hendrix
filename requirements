@@ -1,5 +1,5 @@
 twisted
-txsockjs
+# txsockjs
 zope.interface
 watchdog
 jinja2

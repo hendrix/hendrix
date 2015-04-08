@@ -26,7 +26,11 @@ class HendrixService(service.MultiService):
 
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
-        threads = ThreadPool()
+        threads = ThreadPool(name="Hendrix Service")
+        
+        # Testing threads 1-2-3
+        threads.adjustPoolsize(3, 5)
+        
         reactor.addSystemEventTrigger('after', 'shutdown', threads.stop)
         ThreadPoolService(threads).setServiceParent(self)
 
