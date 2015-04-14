@@ -1,5 +1,6 @@
 import sys
 import importlib
+import inspect
 from hendrix.utils import responseInColor
 from hendrix.contrib.async import crosstown_traffic
 
@@ -20,7 +21,6 @@ class HendrixWSGIResponse(_WSGIResponse):
 
     def __init__(self, *args, **kwargs):
         super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
-        
 
     def run(self, *args, **kwargs):
         self.thread = threading.current_thread()
@@ -31,13 +31,13 @@ class HendrixWSGIResponse(_WSGIResponse):
     
     def follow_response_tasks(self):
         tasks = crosstown_traffic.get_tasks_to_follow_current_response()
-        
+
         if tasks:
             logger.info("Resolving crosstown_traffic for %s" % self)
         
         for task in tasks:
-            logger.info("Calling in thread: '%s'" % task.__name__)
-            self.reactor.callInThread(task)
+            logger.info("Calling in thread: '%s'" % task)
+            task.run()
 
 
 class LoudWSGIResponse(HendrixWSGIResponse):

@@ -56,6 +56,12 @@ def application(environ, start_response):
         while not nameSpace.second_cycle_complete:
             logger.info('First cycle is paused, waiting for second cycle to complete before returning.')
             time.sleep(.1)
+
+        # Second cycle has completed, yet it didn't steal our crosstown_traffic.
+        nameSpace.test_case.assertEqual(len(tasks), 1)
+
+        # ...and again, the async task still hasn't been run yet.
+        nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
         
         logger.info("First cycle received clearance to unpause; returning first cycle.")
         return ['The first sync response']
@@ -82,7 +88,7 @@ def application(environ, start_response):
         nameSpace.test_case.assertEqual(len(first_response_tasks), 1)
         
         # ...and it's the one defined above.
-        nameSpace.test_case.assertEqual(first_response_tasks[0].__name__,
+        nameSpace.test_case.assertEqual(first_response_tasks[0].crosstown_task.__name__,
                                         'test_delayed_callable')
 
         logger.info("Ending second cycle, clearing first cycle to unpause.")

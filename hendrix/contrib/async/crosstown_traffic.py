@@ -26,18 +26,51 @@ def get_tasks_to_follow_current_response(thread=None):
     return get_tasks_to_follow_response(response)
     
 
+class ThroughToYou(object):
 
-def follow_response():
-    '''
-    Run the function immediately after the WSGIResponse is run.
-    '''
-    def decorator(callable):
-        response = get_response_for_thread() # Proves that we have acces to the response object
-        r = reactor
+    def __init__(self,
+                 same_thread=False,
+                 reactor=reactor,
+                 ):
+        self.same_thread = same_thread
+        self.reactor = reactor
+
+    def __call__(self, crosstown_task):
+        self.crosstown_task = crosstown_task
+        response = get_response_for_thread()  # Proves that we have access to the response object
+
         if not tasks_to_follow_response.has_key(response):
             logger.info('Initializing crosstown_traffic for %s' % response)
             tasks_to_follow_response[response] = []
-        
-        logger.info("Adding '%s' to crosstown_traffic for %s" % (callable.__name__, response))
-        tasks_to_follow_response[response].append(callable)
-    return decorator
+
+        logger.info("Adding '%s' to crosstown_traffic for %s" % (crosstown_task.__name__, response))
+        tasks_to_follow_response[response].append(self)
+
+    def run(self):
+        if self.same_thread:
+            self.crosstown_task()
+        else:
+            self.reactor.callInThread(self.crosstown_task)
+
+
+
+class FollowResponse(object):
+
+    def __call__(self, *args, **kwargs):
+        decorator = ThroughToYou(*args, **kwargs)
+        return decorator
+
+
+
+
+
+
+#
+# def follow_response(*args, **kwargs):
+#     '''
+#     Run the function immediately after the WSGIResponse is run.
+#     '''
+#
+#     print args, kwargs
+
+follow_response = FollowResponse()

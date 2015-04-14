@@ -45,6 +45,27 @@ class PostResponseTest(TestCase):
     
     def setUp(self):
         nameSpace = TestNameSpace()
+
+    def test_same_thread(self):
+
+        def wsgi_with_weird_status_code(environ, start_response):
+            start_response('200 OK', [('Content-type','text/plain')])
+
+            @crosstown_traffic.follow_response(same_thread=True)
+            def long_thing():
+                # TODO: assert that we're in the same thread as the request
+                logger.info("Finished async thing.")
+                reactor.stop()
+
+            return "Nothing."
+
+        hr = HendrixWSGIResource(reactor, tp, wsgi_with_weird_status_code)
+        request1 = DummyRequest('r1')
+        request1.isSecure = lambda: False
+        request1.content = "llamas"
+        reactor.callWhenRunning(hr.render, request1)
+        reactor.run()
+
     
     def test_contemporaneous_requests(self):
         
