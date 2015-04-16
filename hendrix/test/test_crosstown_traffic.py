@@ -1,22 +1,21 @@
-from unittest.case import TestCase
+import threading
+from twisted.internet.threads import deferToThread, deferToThreadPool
+from Queue import Queue
+from twisted.test.proto_helpers import MemoryReactor
+from twisted.trial.unittest import TestCase
+import logging
+import sys
 
 from twisted.internet import reactor
-from twisted.internet.threads import deferToThread
+from twisted.internet.defer import Deferred, inlineCallbacks, gatherResults
 from twisted.python.threadpool import ThreadPool
-from twisted.web.client import Agent
 from twisted.web.test.requesthelper import DummyRequest
 
 from hendrix.contrib.async import crosstown_traffic
 from hendrix.resources import HendrixWSGIResource
 from hendrix.test.resources import TestNameSpace, application as wsgi_application,\
     nameSpace
-from functools import partial
-from time import sleep
 
-
-
-import logging
-import sys
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -29,16 +28,117 @@ root.addHandler(ch)
 logger = logging.getLogger(__name__)
 
 
+class NoGoStatusCodes(TestCase):
 
-def fakeCallFromThread(func, *args, **kw):
-    return func(*args, **kw)
+    def __init__(self, *args, **kwargs):
+        self.tp = ThreadPool(maxthreads=20)
+        self.tp.start()
 
-def fakeCallInThreadWithCallback(onResult, func, *args, **kw):
-    return func(*args, **kw)
-    
+        self.resource = HendrixWSGIResource(reactor,
+                                            self.tp,
+                                            self.wsgi_thing)
 
-tp = ThreadPool(1)
-tp.callInThreadWithCallback = fakeCallInThreadWithCallback
+        self.nameSpace = TestNameSpace()
+        self.nameSpace.async_thing_complete = Queue()
+        return super(NoGoStatusCodes, self).__init__(*args, **kwargs)
+
+    def setUp(self, *args, **kwargs):
+        self.addCleanup(self.tp.stop)
+        super(NoGoStatusCodes, self).setUp(*args, **kwargs)
+
+    def wsgi_thing(self, environ, start_response):
+            start_response('404 NOT FOUND', [('Content-type','text/plain')])
+
+            @crosstown_traffic.follow_response(
+                no_go_status_codes=self.no_go_status_codes,
+                same_thread=True
+            )
+            def long_thing_on_same_thread():
+                self.nameSpace.async_task_was_run = True
+                logger.info("No bad status codes; went ahead with async thing.")
+
+            return "Nothing."
+
+    def test_bad_status_codes_cause_no_go_in_wsgi_response(self):
+        self.no_go_status_codes = [404, '6xx']
+
+        request = DummyRequest('r1')
+        request.isSecure = lambda: False
+        request.content = "llamas"
+
+        finished = request.notifyFinish()
+
+        self.resource.render(request)
+
+        # This must wait until the WSGI response is closed.
+        finished.addCallback(
+            lambda _: self.assertFalse(
+                self.nameSpace.async_task_was_run
+            )
+        )
+
+    def test_bad_status_codes_cause_no_go_flag(self):
+        through_to_you = crosstown_traffic.follow_response(no_go_status_codes=[418])
+        through_to_you.status_code = 418
+        through_to_you.check_status_code_against_no_go_list()
+        self.assertTrue(through_to_you.no_go)
+
+    def test_no_bad_status_codes_are_cool(self):
+        through_to_you = crosstown_traffic.follow_response(no_go_status_codes=[418])
+        through_to_you.status_code = 404
+        through_to_you.check_status_code_against_no_go_list()
+        self.assertFalse(through_to_you.no_go)
+
+
+class SameOrDifferentThread(TestCase):
+
+    def setUp(self, *args, **kwargs):
+        self.tp = ThreadPool(maxthreads=20)
+        self.tp.start()
+        self.addCleanup(self.tp.stop)
+        super(SameOrDifferentThread, self).setUp(*args, **kwargs)
+
+    def wsgi_thing(self, environ, start_response):
+            start_response('200 OK', [('Content-type','text/plain')])
+
+            nameSpace.this_thread = threading.current_thread()
+
+            @crosstown_traffic.follow_response(same_thread=self.use_same_thread)
+            def long_thing_on_same_thread():
+                nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
+                logger.info("Finished async thing on same thread.")
+
+            return "Nothing."
+
+    def assert_that_threads_are_the_same(self):
+        self.assertEqual(nameSpace.this_thread,
+                  nameSpace.thread_that_is_supposed_to_be_the_same
+                  )
+
+    def assert_that_threads_are_different(self):
+        self.assertNotEqual(nameSpace.this_thread,
+                            nameSpace.thread_that_is_supposed_to_be_different)
+
+    def request_same_or_different_thread_thread(self):
+
+        hr = HendrixWSGIResource(reactor, self.tp, self.wsgi_thing)
+        request1 = DummyRequest('r1')
+        request1.isSecure = lambda: False
+        request1.content = "llamas"
+        d = deferToThreadPool(reactor, self.tp, hr.render, request1)
+        return d
+
+    def test_that_threads_are_the_same(self):
+        self.use_same_thread = True
+        d = self.request_same_or_different_thread_thread()
+        d.addCallback(lambda _: self.assert_that_threads_are_the_same)
+        return d
+
+    def test_that_threads_are_different(self):
+        self.use_same_thread = False
+        d = self.request_same_or_different_thread_thread()
+        d.addCallback(lambda _: self.assert_that_threads_are_different)
+        return d
 
 
 class PostResponseTest(TestCase):
@@ -46,65 +146,97 @@ class PostResponseTest(TestCase):
     def setUp(self):
         nameSpace = TestNameSpace()
 
-    def test_same_thread(self):
+    def test_postiive_decorator_coherence(self):
+        self.pass_flag = False
 
-        def wsgi_with_weird_status_code(environ, start_response):
-            start_response('200 OK', [('Content-type','text/plain')])
+        def run_me_to_pass():
+            self.pass_flag = True
 
-            @crosstown_traffic.follow_response(same_thread=True)
-            def long_thing():
-                # TODO: assert that we're in the same thread as the request
-                logger.info("Finished async thing.")
-                reactor.stop()
+        through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        through_to_you.crosstown_task = run_me_to_pass
+        through_to_you.run(reactor.threadpool)  # threadpool doesn't matter because same_thread is True.
 
-            return "Nothing."
+        self.assertFalse(through_to_you.no_go)  # If the no_go is False...
+        self.assertTrue(self.pass_flag)  # Then run_me_to_pass will have run.
 
-        hr = HendrixWSGIResource(reactor, tp, wsgi_with_weird_status_code)
+    def test_negative_decorator_coherence(self):
+
+        def append_me_to_pass():
+            pass
+
+        class FakeResponse(object):
+            crosstown_tasks = []
+            status = "418 I'm a teapot.  Seriously."
+
+        through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        threading.current_thread().response_object = FakeResponse()
+
+        through_to_you.no_go = True  # If no_go is True...
+        through_to_you(append_me_to_pass)  # and we call it...
+        self.assertFalse(through_to_you.response.crosstown_tasks)  # We won't have added any tasks.
+
+        through_to_you.no_go = False  # However if no_go is False...
+        through_to_you(append_me_to_pass)  # and we call it...
+        self.assertEqual(through_to_you.response.crosstown_tasks[0].crosstown_task,
+                         append_me_to_pass
+                         )  # We will have added the function.
+
+
+    def test_contemporaneous_requests(self):
+
+        '''
+        We're going to create two request-response cycles here:
+
+        Cycle 1 will begin.
+        Cycle 2 will begin.
+        Cycle 2 will return.
+        Cycle 1 will return.
+
+        This way, we can prove that the crosstown_traffic created
+        by cycle 1 is not resolved by the return of cycle 2.
+        '''
+        tp = ThreadPool(maxthreads=20)
+        tp.start()
+        self.addCleanup(tp.stop)
+
+
+        logger.info("\n\nStarting the two stream stuff.")
+
         request1 = DummyRequest('r1')
         request1.isSecure = lambda: False
-        request1.content = "llamas"
-        reactor.callWhenRunning(hr.render, request1)
-        reactor.run()
+        request1.content = "Nothing really here."
+        request1.headers['llamas'] = 'dingo'
 
-    
-    def test_contemporaneous_requests(self):
-        
-        r = reactor
+        nameSpace.test_case = self
 
-        def cross_threads():
-            '''
-            We're going to create two request-response cycles here:
-            
-            Cycle 1 will begin.
-            Cycle 2 will begin.
-            Cycle 2 will return.
-            Cycle 1 will return.
-            
-            This way, we can prove that the crosstown_traffic created
-            by cycle 1 is not resolved by the return of cycle 2.
-            '''
-            logger.info("\n\nReactor started; calling cross_threads.")
-            
-            request1 = DummyRequest('r1')
-            request1.isSecure = lambda: False
-            request1.content = "Nothing really here."
-            request1.headers['llamas'] = 'dingo'
+        hr = HendrixWSGIResource(reactor, tp, wsgi_application)
+        d1 = deferToThreadPool(reactor, tp, hr.render, request1)
 
-            nameSpace.test_case = self
+        request2 = DummyRequest('r2')
+        request2.isSecure = lambda: False
+        request2.content = "Nothing really here."
+        request2.headers['llamas'] = 'dingo'
 
-            hr = HendrixWSGIResource(reactor, tp, wsgi_application)
-            r.callInThread(hr.render, request1)
-     
-            request2 = DummyRequest('r2')
-            request2.isSecure = lambda: False
-            request2.content = "Nothing really here."
-            request2.headers['llamas'] = 'dingo'
-                
-            r.callInThread(hr.render, request2)
-        
-        r.callWhenRunning(cross_threads)
+        d2 = deferToThreadPool(reactor, tp, hr.render, request2)
 
-        r.run()
-        
-        # Only now has the async task finally run.
-        self.assertTrue(nameSpace.async_task_was_run)
+        def woah_stop(failure):
+            nameSpace.async_task_was_done.put_nowait(False)
+            nameSpace.second_cycle_complete.put_nowait(False)
+            nameSpace.ready_to_proceed_with_second_cycle.put_nowait(False)
+
+        d1.addErrback(woah_stop)
+        d2.addErrback(woah_stop)
+
+        big_d = gatherResults([d1, d2])
+
+        def wait_for_queue_resolution():
+            nameSpace.async_task_was_done.get(True, 3)
+            logger.info("Async logic Queue released.")
+
+        big_d.addCallback(
+            lambda _: deferToThreadPool(reactor, tp, wait_for_queue_resolution)
+        )
+
+        big_d.addCallback(lambda _: self.assertTrue(nameSpace.async_task_was_run))
+
+        return big_d

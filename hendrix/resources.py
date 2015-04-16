@@ -16,29 +16,30 @@ import  uuid
 
 logger = logging.getLogger(__name__)
 
+# thread_list = []  # Debug
+
 
 class HendrixWSGIResponse(_WSGIResponse):
 
     def __init__(self, *args, **kwargs):
-        super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
+        self.crosstown_tasks = []
+        return super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
         self.thread = threading.current_thread()
+        # thread_list.append(self.thread)  # Debug
+        # logger.debug("Assigning %s as the current response for thread %s" % (self, self.thread))
         self.thread.response_object = self
         ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
         self.follow_response_tasks()
+
         return ran
     
     def follow_response_tasks(self):
-        tasks = crosstown_traffic.get_tasks_to_follow_current_response()
 
-        if tasks:
-            logger.info("Resolving crosstown_traffic for %s" % self)
-        
-        for task in tasks:
-            logger.info("Calling in thread: '%s'" % task)
-            task.run()
-
+        for task in self.crosstown_tasks:
+            logger.info("Processing crosstown task: '%s'" % task)
+            task.run(self.threadpool)
 
 class LoudWSGIResponse(HendrixWSGIResponse):
 
