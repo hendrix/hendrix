@@ -153,7 +153,7 @@ class PostResponseTest(TestCase):
             self.pass_flag = True
 
         through_to_you = crosstown_traffic.follow_response(same_thread=True)
-        through_to_you.crosstown_task = run_me_to_pass
+        through_to_you(run_me_to_pass)  
         through_to_you.run(reactor.threadpool)  # threadpool doesn't matter because same_thread is True.
 
         self.assertFalse(through_to_you.no_go)  # If the no_go is False...
@@ -227,16 +227,16 @@ class PostResponseTest(TestCase):
         d1.addErrback(woah_stop)
         d2.addErrback(woah_stop)
 
-        big_d = gatherResults([d1, d2])
+        combo_deferred = gatherResults([d1, d2])
 
         def wait_for_queue_resolution():
             nameSpace.async_task_was_done.get(True, 3)
             logger.info("Async logic Queue released.")
 
-        big_d.addCallback(
+        combo_deferred.addCallback(
             lambda _: deferToThreadPool(reactor, tp, wait_for_queue_resolution)
         )
 
-        big_d.addCallback(lambda _: self.assertTrue(nameSpace.async_task_was_run))
+        combo_deferred.addCallback(lambda _: self.assertTrue(nameSpace.async_task_was_run))
 
-        return big_d
+        return combo_deferred

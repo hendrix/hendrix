@@ -30,9 +30,9 @@ class HendrixWSGIResponse(_WSGIResponse):
         # thread_list.append(self.thread)  # Debug
         # logger.debug("Assigning %s as the current response for thread %s" % (self, self.thread))
         self.thread.response_object = self
+        self.request.setHeader('server', 'hendrix/Twisted')
         ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
         self.follow_response_tasks()
-
         return ran
     
     def follow_response_tasks(self):

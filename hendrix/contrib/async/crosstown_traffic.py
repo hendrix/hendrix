@@ -39,21 +39,22 @@ class ThroughToYou(object):
         self.crosstown_task = crosstown_task
         self.response = get_response_for_thread()
 
-        # See if status code is a go
-        self.check_status_code_against_no_go_list()
-
         if not self.no_go:
             logger.info("Adding '%s' to crosstown_traffic for %s" % (crosstown_task.__name__, self.response))
             self.response.crosstown_tasks.append(self)
 
     def run(self, threadpool):
+        # See if status code is a go
+        self.check_status_code_against_no_go_list()
+        if self.no_go:
+            return
+
         if self.same_thread:
             self.crosstown_task()
         else:
             deferToThreadPool(reactor, threadpool, self.crosstown_task)
 
     def populate_no_go_status_code_list(self):
-
         self.no_go_status_code_list = []
 
         for no_go_code in self.no_go_status_codes:
