@@ -37,7 +37,10 @@ class HendrixDeploy(object):
             if hasattr(self.options['wsgi'], '__call__'):
                 # If it has a __call__, we assume that it is the application object itself.
                 self.application = self.options['wsgi']
-                self.options['wsgi_app_name'] = "%s.%s" % (self.application.__module__, self.application.__name__)
+                try:
+                    self.options['wsgi_app_name'] = "%s.%s" % (self.application.__module__, self.application.__name__)
+                except AttributeError:
+                    self.options['wsgi_app_name'] = self.application.__class__.__name__
             else:
                 # Otherwise, we'll try to discern an application in the belief that this is a dot path.
                 wsgi_dot_path = self.options['wsgi']
