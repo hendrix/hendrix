@@ -153,7 +153,7 @@ class PostResponseTest(TestCase):
             self.pass_flag = True
 
         through_to_you = crosstown_traffic.follow_response(same_thread=True)
-        through_to_you(run_me_to_pass)  
+        through_to_you(run_me_to_pass)
         through_to_you.run(reactor.threadpool)  # threadpool doesn't matter because same_thread is True.
 
         self.assertFalse(through_to_you.no_go)  # If the no_go is False...

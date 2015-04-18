@@ -30,6 +30,31 @@ def my_django_view(request):
 
       # And only now that we've got the response out over the wire will place_100_phone_calls happen.
 ```
+#### Threading
+By default, crosstown_traffic will run the decorated callable on a new thread in the same threadpool as your app.
+
+However, if you want to run it on the same thread (and thus block that thread from handling other requests until the callable is finished), you can use the same_thread kwarg:
+
+```python
+@crosstown_traffic.follow_response(same_thread=True)
+def thing_that_will_happen_after_response_on_same_thread():
+    hopefully_short_thing()
+```
+
+#### Preventing execution by status code
+By default, if your app responds with a 5xx or 4xx status code (a Server Error or Client Error), the crosstown_traffic for that response will NOT execute.
+
+However, if you want to change these "no_go_status_codes" per callable, you can do so:
+
+```python
+@crosstown_traffic.follow_response(no_go_status_codes=['5xx', '400-405', 302])
+def long_thing():
+    time.sleep(10)
+    print '''
+    Ten seconds ago, the server responded with a status code
+    that was not in the 500's, was not 400-405, and was not 302.
+    '''
+```
 
 ### Why not just use deferToThread or callFromThread?
 
@@ -64,8 +89,8 @@ Obvioulsly the syntax is similar, and there are surely use cases for this exact 
 
 However, the syntax of "treat this function pursuant to this decorator logic" puts the logic intention at the top, rather than the bottom, of the block.  In this sense, it is also similar to the @route decorator from Flash or the @detail_route decorator from Django-Rest-Framework.
 
-##### It's far simpler to test in the Django test runner
+#### It's far simpler to test in the Django test runner
 
 
 
-# The time of execution is specifically determined - for example, as soon as the response is sent over the wire
+#### The time of execution is specifically determined - for example, as soon as the response is sent over the wire

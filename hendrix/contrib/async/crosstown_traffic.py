@@ -20,13 +20,13 @@ def get_response_for_thread(thread=None):
 def get_tasks_to_follow_current_response(thread=None):
     response = get_response_for_thread(thread)
     return response.crosstown_tasks
-    
+
 
 class ThroughToYou(object):
 
     def __init__(self,
                  same_thread=False,
-                 no_go_status_codes=['5xx'],
+                 no_go_status_codes=['5xx', '4xx'],
                  reactor=reactor,
                  ):
         self.same_thread = same_thread
