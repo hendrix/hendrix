@@ -1,6 +1,4 @@
-### Temporary Documentation for crosstown_traffic
-
-@crosstown_traffic is a decorator that will defer logic inside a view until a specific phase in the response process and run it on a different thread or threads.
+  @crosstown_traffic is a decorator that will defer logic inside a view until a specific phase in the response process and optionally run it on a different thread or threads.
 
 For example, let's say we are building a REST endpoint that causes 100 phone calls to be placed via the twilio API.
 
