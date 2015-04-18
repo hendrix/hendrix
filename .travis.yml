@@ -1,6 +1,10 @@
 language: python
 python:
   - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
 install:
-  - pip install -r requirements -r test-requirements
+  - pip install -r requirements
+  - pip install -r test-requirements
 script: python hendrix/runtests.py
