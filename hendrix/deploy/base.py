@@ -3,7 +3,7 @@ import importlib
 import os
 import time
 
-import cPickle as pickle
+import pickle
 
 from os import environ
 from socket import AF_INET

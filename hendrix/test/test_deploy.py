@@ -2,6 +2,7 @@ from hendrix.test import HendrixTestCase
 from mock import patch
 from twisted.application import service
 from twisted.internet import tcp
+from django import apps
 
 
 class DeployTests(HendrixTestCase):

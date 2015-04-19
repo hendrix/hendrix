@@ -1,13 +1,12 @@
 import threading
-from twisted.internet.threads import deferToThread, deferToThreadPool
 from Queue import Queue
-from twisted.test.proto_helpers import MemoryReactor
-from twisted.trial.unittest import TestCase
 import logging
 import sys
 
+from twisted.internet.threads import deferToThreadPool
+from twisted.trial.unittest import TestCase
 from twisted.internet import reactor
-from twisted.internet.defer import Deferred, inlineCallbacks, gatherResults
+from twisted.internet.defer import gatherResults
 from twisted.python.threadpool import ThreadPool
 from twisted.web.test.requesthelper import DummyRequest
 
@@ -152,7 +151,12 @@ class PostResponseTest(TestCase):
         def run_me_to_pass():
             self.pass_flag = True
 
+        class FakeResponse(object):
+            crosstown_tasks = []
+            status = "200 OK"
+
         through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        threading.current_thread().response_object = FakeResponse()
         through_to_you(run_me_to_pass)
         through_to_you.run(reactor.threadpool)  # threadpool doesn't matter because same_thread is True.
 
