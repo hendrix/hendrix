@@ -18,7 +18,7 @@ notifications:
     channels:
       - "chat.freenode.net#hendrix"
     template:
-      - "%{repository_slug} (%{branch} - %{commit} - %{commit_message} : %{author}): %{message})"
+      - "%{repository_slug} (%{branch} - %{commit} - %{commit_message} - %{author} - %{message})"
       - "Build details: %{build_url}"
       - "Result: %{result}"
     use_notice: true
