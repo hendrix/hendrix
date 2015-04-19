@@ -1,5 +1,6 @@
 language: python
 python:
+  - "2.6"
   - "2.7"
   - "3.2"
   - "3.3"
@@ -7,4 +8,18 @@ python:
 install:
   - pip install -r requirements
   - pip install -r test-requirements
+notifications:
+  email:
+    recipients:
+      - info@slashrootcafe.com
+    on_success: change
+    on_failure: always
+  irc:
+    channels:
+      - "chat.freenode.net#hendrix"
+    template:
+      - "%{repository_slug} (%{branch} - %{commit} - %{commit_message} : %{author}): %{message})"
+      - "Build details: %{build_url}"
+      - "Result: %{result}"
+    use_notice: true
 script: python hendrix/runtests.py
