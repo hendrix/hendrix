@@ -11,10 +11,11 @@ def generate_resources_for_location(disk_root, url):
             url.strip('/') + '%s' % root.split(disk_root)[-1]
         )
 
-class DjangoStaticsFinder:
-    """ 
+
+class DjangoStaticsFinder(object):
+    """
         finds all static resources for this django installation
-        and creates a static resource for each's base directory 
+        and creates a static resource for each's base directory
     """
 
     namespace = settings.STATIC_URL
@@ -22,39 +23,35 @@ class DjangoStaticsFinder:
     @staticmethod
     def get_resources():
 
-        ignore_patterns = [
-            '*.less',
-            '*.scss',
-            '*.styl',
-            '*.json',
-        ]
-
-        existing = []
-        for finder in finders.get_finders():
-            for staticfile, storage in finder.list([]):
-                dirname = os.path.dirname(staticfile)
-                path = os.path.join(storage.base_location, dirname)
-                if not path in existing and dirname:
-                    yield DjangoStaticResource(
-                        path,
-                        settings.STATIC_URL + '%s/' % dirname
-                    )
-
-                    existing.append(path)
-
         # add a handler for MEDIA files if configured
         if settings.MEDIA_ROOT and settings.MEDIA_URL:
-            for resource in generate_resources_for_location(settings.MEDIA_ROOT, settings.MEDIA_URL):
-                yield resource
+            yield DjangoStaticResource(
+                settings.MEDIA_ROOT, settings.MEDIA_URL
+            )
 
-        if not settings.DEBUG:
-            for resource in generate_resources_for_location(settings.STATIC_ROOT, settings.STATIC_URL):
-                yield resource
+        pipeline_finder = 'pipeline.finders.PipelineFinder'
+        has_pipeline_finder = pipeline_finder in settings.STATICFILES_FINDERS
+        if not settings.DEBUG or has_pipeline_finder:
+            yield DjangoStaticResource(
+                settings.STATIC_ROOT, settings.STATIC_URL
+            )
+        else:
+            existing = []
+            for finder in finders.get_finders():
+                for staticfile, storage in finder.list([]):
+                    dirname = os.path.dirname(staticfile)
+                    path = os.path.join(storage.base_location, dirname)
+                    if path not in existing and dirname:
+                        yield DjangoStaticResource(
+                            path,
+                            settings.STATIC_URL + '%s/' % dirname
+                        )
+
+                        existing.append(path)
 
 
-#The rest is for compatibility with existing code based on the deprecated
-#classes below.
-
+# The rest is for compatibility with existing code based on the deprecated
+# classes below.
 try:
     DefaultDjangoStaticResource = DjangoStaticResource(
         settings.STATIC_ROOT, settings.STATIC_URL
