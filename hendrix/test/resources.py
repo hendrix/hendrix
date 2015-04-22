@@ -6,6 +6,7 @@ from hendrix.contrib.async import crosstown_traffic
 
 logger = logging.getLogger(__name__)
 
+
 from hendrix.contrib.async.crosstown_traffic import get_response_for_thread,\
     get_tasks_to_follow_current_response
 
