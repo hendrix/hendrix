@@ -24,9 +24,19 @@ service_identity
 
 ###Extra Setup for SSL
 
+The following are system dependencies for compiling and installing the python cryptography module.
+
+####Debian/Ubuntu
+
 ```bash
 $ sudo apt-get install build-essential libssl-dev libffi-dev python-dev
-$ pip install cryptography
+```
+
+####Amazon Linux
+
+```bash
+$ sudo yum install make glibc-devel gcc
+$ sudo yum install openssl-devel libffi-devel python-devel
 ```
 
 ## The 'hx' command
