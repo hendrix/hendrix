@@ -12,7 +12,7 @@ from hendrix import defaults
 from hendrix.options import options as hx_options
 from hendrix.resources import get_additional_resources
 from hendrix.services import get_additional_services, HendrixService
-from hendrix.utils import get_pid
+from hendrix.utils import get_pid, import_string
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
 
@@ -49,8 +49,7 @@ class HendrixDeploy(object):
             self.use_settings = False
         else:
             os.environ['DJANGO_SETTINGS_MODULE'] = self.options['settings']
-            django_conf = importlib.import_module('django.conf')
-            settings = getattr(django_conf, 'settings')
+            settings = import_string('django.conf.settings')
             self.services = get_additional_services(settings)
             self.resources = get_additional_resources(settings)
             self.options = HendrixDeploy.getConf(settings, self.options)
@@ -59,7 +58,8 @@ class HendrixDeploy(object):
             django = importlib.import_module('django')
             if django.VERSION[:2] >= (1, 7):
                 installed_apps = getattr(settings, "INSTALLED_APPS")
-                django.apps.apps.populate(installed_apps)
+                apps = import_string('django.apps.apps')
+                apps.populate(installed_apps)
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
 
