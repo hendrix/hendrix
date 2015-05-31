@@ -1,5 +1,6 @@
 import os
-from hendrix.resources import DjangoStaticResource
+
+from hendrix.resources.resources import DjangoStaticResource
 from django.conf import settings
 from django.contrib.staticfiles import finders
 

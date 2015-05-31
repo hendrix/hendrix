@@ -10,7 +10,8 @@ from twisted.internet.defer import gatherResults
 from twisted.python.threadpool import ThreadPool
 from twisted.web.test.requesthelper import DummyRequest
 
-from hendrix.contrib.async import crosstown_traffic
+from hendrix.experience import crosstown_traffic
+from hendrix.experience.crosstown_traffic import ThreadHasNoResponse
 from hendrix.resources import HendrixWSGIResource
 from hendrix.test.resources import TestNameSpace, application as wsgi_application,\
     nameSpace
@@ -145,6 +146,12 @@ class PostResponseTest(TestCase):
     def setUp(self):
         nameSpace = TestNameSpace()
 
+    def tearDown(self):
+        try:
+            del threading.current_thread().response_object
+        except AttributeError:
+            pass
+
     def test_postiive_decorator_coherence(self):
         self.pass_flag = False
 
@@ -172,8 +179,8 @@ class PostResponseTest(TestCase):
             crosstown_tasks = []
             status = "418 I'm a teapot.  Seriously."
 
-        through_to_you = crosstown_traffic.follow_response(same_thread=True)
         threading.current_thread().response_object = FakeResponse()
+        through_to_you = crosstown_traffic.follow_response(same_thread=True)
 
         through_to_you.no_go = True  # If no_go is True...
         through_to_you(append_me_to_pass)  # and we call it...
@@ -185,6 +192,30 @@ class PostResponseTest(TestCase):
                          append_me_to_pass
                          )  # We will have added the function.
 
+    def test_with_no_request(self):
+
+        self.has_run = False
+
+        def append_me_to_pass():
+            self.has_run = True
+
+        through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        through_to_you(append_me_to_pass)
+
+        self.assertTrue(self.has_run)
+
+    def test_fail_without_response(self):
+        '''
+        Same test as above, but with fail_without_response, we get an error.
+        '''
+        self.has_run = False
+
+        def append_me_to_pass():
+            self.has_run = True
+
+        through_to_you = crosstown_traffic.follow_response(same_thread=True, fail_without_response=True)
+
+        self.assertRaises(ThreadHasNoResponse, through_to_you, append_me_to_pass)
 
     def test_contemporaneous_requests(self):
 

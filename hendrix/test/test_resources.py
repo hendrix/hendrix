@@ -1,9 +1,10 @@
-import mock
 import unittest
 
-from hendrix.resources import HendrixResource, NamedResource, WSGIResource
 from twisted.web.resource import getChildForRequest, NoResource
 from twisted.web.test.requesthelper import DummyRequest
+
+import mock
+from hendrix.resources import HendrixResource, NamedResource, WSGIResource
 
 
 class TestHendrixResource(unittest.TestCase):

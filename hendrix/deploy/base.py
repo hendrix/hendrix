@@ -1,20 +1,19 @@
-import chalk
 import importlib
 import os
 import time
-
 import pickle
-
 from os import environ
 from socket import AF_INET
 
+import chalk
+from twisted.internet import reactor
+
 from hendrix import defaults
+
 from hendrix.options import options as hx_options
 from hendrix.resources import get_additional_resources
-from hendrix.services import get_additional_services, HendrixService
+from hendrix.resources.services import get_additional_services, HendrixService, TCPServer
 from hendrix.utils import get_pid
-from twisted.application.internet import TCPServer, SSLServer
-from twisted.internet import reactor
 
 
 class HendrixDeploy(object):
@@ -59,7 +58,8 @@ class HendrixDeploy(object):
             django = importlib.import_module('django')
             if django.VERSION[:2] >= (1, 7):
                 installed_apps = getattr(settings, "INSTALLED_APPS")
-                django.apps.apps.populate(installed_apps)
+                from django.apps import apps
+                apps.populate(installed_apps)
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
 
@@ -123,6 +123,7 @@ class HendrixDeploy(object):
         )
 
     def catalogServers(self, hendrix):
+        from hendrix.contrib.ssl import SSLServer
         "collects a list of service names serving on TCP or SSL"
         for service in hendrix.services:
             if isinstance(service, (TCPServer, SSLServer)):

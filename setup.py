@@ -69,5 +69,5 @@ setup(
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
     install_requires=readlines('requirements'),
-    extras_require={'ssl': ['pyopenssl', ]}
+            extras_require={'ssl': ['pyopenssl', ]}
 )

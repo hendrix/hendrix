@@ -1,5 +1,6 @@
 from twisted.internet.threads import deferToThread, deferToThreadPool
 from twisted.internet import reactor
+from twisted.python.threadpool import ThreadPool
 
 import threading
 
@@ -8,12 +9,22 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
+class ThreadHasNoResponse(RuntimeError):
+    pass
+
+
 def get_response_for_thread(thread=None):
 
     if not thread:
         thread = threading.current_thread()
 
-    response = thread.response_object
+    try:
+        response = thread.response_object
+    except AttributeError:
+        raise ThreadHasNoResponse('thread %s has no associated response object.' % thread)
+
+
     return response
 
 
@@ -25,29 +36,41 @@ def get_tasks_to_follow_current_response(thread=None):
 class ThroughToYou(object):
 
     def __init__(self,
+                 reactor=reactor,
                  same_thread=False,
                  no_go_status_codes=['5xx', '4xx'],
-                 reactor=reactor,
+                 fail_without_response=False
                  ):
+        self.reactor = reactor
         self.same_thread = same_thread
         self.no_go_status_codes = no_go_status_codes
-        self.reactor = reactor
+        self.fail_without_response = fail_without_response
+
         self.no_go = False
         self.status_code = None
 
-    def __call__(self, crosstown_task):
+    def __call__(self, crosstown_task=None):
         self.crosstown_task = crosstown_task
-        self.response = get_response_for_thread()
 
-        if not self.no_go:
-            logger.info("Adding '%s' to crosstown_traffic for %s" % (crosstown_task.__name__, self.response))
-            self.response.crosstown_tasks.append(self)
+        try:
+            self.response = get_response_for_thread()
+            logger.info("Adding '%s' to crosstown_traffic for %s" % (str(crosstown_task), self.response))
+            if not self.no_go:
+                self.response.crosstown_tasks.append(self)
+        except ThreadHasNoResponse:
+            if self.fail_without_response:
+                raise
+            else:
+                logger.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
+                self.run()
+        return self.run
 
-    def run(self, threadpool):
-        # See if status code is a go
-        self.check_status_code_against_no_go_list()
+    def run(self, threadpool=None):
         if self.no_go:
             return
+
+        if not threadpool:
+            threadpool = reactor.threadpool or ThreadPool()
 
         if self.same_thread:
             self.crosstown_task()
@@ -92,5 +115,6 @@ class FollowResponse(object):
     def __call__(self, *args, **kwargs):
         decorator = ThroughToYou(*args, **kwargs)
         return decorator
+
 
 follow_response = FollowResponse()

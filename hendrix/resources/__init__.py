@@ -1,18 +1,15 @@
 import sys
 import importlib
-import inspect
-from hendrix.utils import responseInColor
-from hendrix.contrib.async import crosstown_traffic
+import logging
+import threading
 
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
-
-import logging
 import chalk
-from twisted.internet.threads import deferToThread
-import threading
-import  uuid
+
+from hendrix.utils import responseInColor
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +30,17 @@ class HendrixWSGIResponse(_WSGIResponse):
         self.request.setHeader('server', 'hendrix/Twisted')
         ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
         self.follow_response_tasks()
+        del self.thread.response_object
         return ran
     
     def follow_response_tasks(self):
 
         for task in self.crosstown_tasks:
-            logger.info("Processing crosstown task: '%s'" % task)
+            logger.info("Processing crosstown task: '%s'" % task.crosstown_task)
+
+            # Set no-go if status code is bad.
+            task.check_status_code_against_no_go_list()
+
             task.run(self.threadpool)
 
 class LoudWSGIResponse(HendrixWSGIResponse):

@@ -13,7 +13,16 @@ import time
 import traceback
 from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
-from hendrix.deploy import base, ssl, cache, hybrid
+from hendrix.deploy import base, cache
+
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    from hendrix.deploy import ssl, hybrid
+except ImportError:
+    logger.warning("hendrix SSL is not available.")
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 

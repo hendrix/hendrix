@@ -1,11 +1,13 @@
 import importlib
-from .resources import HendrixResource
+import logging
+
 from twisted.application import internet, service
 from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server
 
-import logging
+from hendrix.resources import HendrixResource
+
 
 logger = logging.getLogger(__name__)
 
