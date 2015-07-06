@@ -57,9 +57,7 @@ class HendrixDeploy(object):
         if self.use_settings:
             django = importlib.import_module('django')
             if django.VERSION[:2] >= (1, 7):
-                installed_apps = getattr(settings, "INSTALLED_APPS")
-                apps = import_string('django.apps.apps')
-                apps.populate(installed_apps)
+                django.setup()
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
 
