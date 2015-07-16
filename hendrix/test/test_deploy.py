@@ -4,6 +4,10 @@ from twisted.application import service
 from twisted.internet import tcp
 from django import apps
 
+from twisted.logger import Logger
+
+log = Logger()
+
 
 class DeployTests(HendrixTestCase):
     "Tests HendrixDeploy"
@@ -42,6 +46,6 @@ class DeployTests(HendrixTestCase):
         deploy.addServices()
         deploy.start()
         readers = deploy.reactor.getReaders()
-        tcp_readers = [ p for p in readers if isinstance(p, tcp.Port) ]
-        ports = [ p.port for p in tcp_readers ]
+        tcp_readers = [p for p in readers if isinstance(p, tcp.Port)]
+        ports = [p.port for p in tcp_readers]
         self.assertTrue(8000 in ports)

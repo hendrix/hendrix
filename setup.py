@@ -47,7 +47,7 @@ setup(
     url="https://github.com/hangarunderground/hendrix",
     download_url=(
         "https://github.com/hangarunderground/hendrix/tarball/"
-        "v"+__version__+"-beta"
+        "v" + __version__
     ),
     description="A deployment module for Django that uses Twisted.",
     long_description=read('docs/index.md'),
@@ -68,6 +68,9 @@ setup(
     data_files=[
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
-    install_requires=readlines('requirements'),
-    extras_require={'ssl': ['pyopenssl', ]}
+    install_requires=readlines('requirements.txt'),
+    extras_require={
+        'ssl': ['pyopenssl', ],
+        'dev': ['django', 'flask', 'mock', 'pyopenssl', 'ipdb']
+    }
 )

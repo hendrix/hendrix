@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 # begin chdir armor
 sys.path[:] = map(os.path.abspath, sys.path)

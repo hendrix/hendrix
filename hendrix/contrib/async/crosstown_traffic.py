@@ -1,12 +1,9 @@
 from twisted.internet.threads import deferToThread, deferToThreadPool
 from twisted.internet import reactor
+from twisted.logger import Logger
 
 import threading
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 def get_response_for_thread(thread=None):
 
@@ -24,6 +21,8 @@ def get_tasks_to_follow_current_response(thread=None):
 
 class ThroughToYou(object):
 
+    log = Logger()
+
     def __init__(self,
                  same_thread=False,
                  no_go_status_codes=['5xx', '4xx'],
@@ -40,7 +39,11 @@ class ThroughToYou(object):
         self.response = get_response_for_thread()
 
         if not self.no_go:
-            logger.info("Adding '%s' to crosstown_traffic for %s" % (crosstown_task.__name__, self.response))
+            self.log.info(
+                "Adding '{task!r}' to crosstown_traffic for "
+                "{log_source.response}",
+                task=crosstown_task
+            )
             self.response.crosstown_tasks.append(self)
 
     def run(self, threadpool):
@@ -71,9 +74,11 @@ class ThroughToYou(object):
                 self.no_go_status_code_list.extend(range(begin, end))
 
             else:
-                 self.no_go_status_code_list.append(no_go_code)
+                self.no_go_status_code_list.append(no_go_code)
 
-        logger.debug("no_go_status_codes are %s" % self.no_go_status_code_list)
+        self.log.debug(
+            "no_go_status_codes are {data!r}", data=self.no_go_status_code_list
+        )
 
     def check_status_code_against_no_go_list(self):
         if self.no_go_status_codes:
@@ -83,7 +88,10 @@ class ThroughToYou(object):
             self.populate_no_go_status_code_list()
 
             if self.status_code in self.no_go_status_code_list:
-                logger.info("Flagging no-go becasue status code is %s" % self.status_code)
+                self.log.info(
+                    "Flagging no-go becasue status code is "
+                    "{log_source.status_code}"
+                )
                 self.no_go = True
 
 

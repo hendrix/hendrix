@@ -7,19 +7,16 @@ from hendrix.contrib.async import crosstown_traffic
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
+from twisted.logger import Logger
 
-import logging
 import chalk
-from twisted.internet.threads import deferToThread
 import threading
-import  uuid
-
-logger = logging.getLogger(__name__)
-
-# thread_list = []  # Debug
+import uuid
 
 
 class HendrixWSGIResponse(_WSGIResponse):
+
+    log = Logger()
 
     def __init__(self, *args, **kwargs):
         self.crosstown_tasks = []
@@ -27,19 +24,16 @@ class HendrixWSGIResponse(_WSGIResponse):
 
     def run(self, *args, **kwargs):
         self.thread = threading.current_thread()
-        # thread_list.append(self.thread)  # Debug
-        # logger.debug("Assigning %s as the current response for thread %s" % (self, self.thread))
         self.thread.response_object = self
         self.request.setHeader('server', 'hendrix/Twisted')
         ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
         self.follow_response_tasks()
         return ran
-    
-    def follow_response_tasks(self):
 
+    def follow_response_tasks(self):
         for task in self.crosstown_tasks:
-            logger.info("Processing crosstown task: '%s'" % task)
             task.run(self.threadpool)
+
 
 class LoudWSGIResponse(HendrixWSGIResponse):
 
@@ -55,19 +49,20 @@ class LoudWSGIResponse(HendrixWSGIResponse):
             responseInColor, self.request, status, headers
         )
         return self.write
-    
+
 
 class HendrixWSGIResource(WSGIResource):
-    
+
     ResponseClass = HendrixWSGIResponse
-    
-    def render(self, request):        
+
+    def render(self, request):
         response = self.ResponseClass(
-            self._reactor, self._threadpool, self._application, request)
+            self._reactor, self._threadpool, self._application, request
+        )
         response.start()
         return NOT_DONE_YET
 
-        
+
 class DevWSGIResource(HendrixWSGIResource):
 
     ResponseClass = LoudWSGIResponse
@@ -86,12 +81,16 @@ class HendrixResource(resource.Resource):
     to ensure that django always gets the full path.
     """
 
+    log = Logger()
+
     def __init__(self, reactor, threads, application, loud=False):
         resource.Resource.__init__(self)
         if loud:
             self.wsgi_resource = DevWSGIResource(reactor, threads, application)
         else:
-            self.wsgi_resource = HendrixWSGIResource(reactor, threads, application)
+            self.wsgi_resource = HendrixWSGIResource(
+                reactor, threads, application
+            )
 
     def getChild(self, name, request):
         """
@@ -137,11 +136,12 @@ class HendrixResource(resource.Resource):
 
             name = parts[-1]  # get the path part that we care about
             if children.get(name):
-                logger.warning(
-                    'A resource already exists at this path. Check '
-                    'your resources list to ensure each path is '
-                    'unique. The previous resource will be overridden.'
-                )
+                # self.log.warn(
+                #     'A resource already exists at this path. Check '
+                #     'your resources list to ensure each path is '
+                #     'unique. The previous resource will be overridden.'
+                # )
+                pass
             parent.putChild(name, res)
         except AttributeError:
             # raise an attribute error if the resource `res` doesn't contain
@@ -215,9 +215,6 @@ def DjangoStaticResource(path, rel_url='static'):
     rel_url = rel_url.strip('/')
     StaticFilesResource = MediaResource(path)
     StaticFilesResource.namespace = rel_url
-    chalk.green(
-        "Adding media resource for URL '%s' at path '%s'" % (rel_url, path)
-    )
     return StaticFilesResource
 
 

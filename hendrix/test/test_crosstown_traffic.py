@@ -1,7 +1,4 @@
-import threading
 from Queue import Queue
-import logging
-import sys
 
 from twisted.internet.threads import deferToThreadPool
 from twisted.trial.unittest import TestCase
@@ -9,22 +6,19 @@ from twisted.internet import reactor
 from twisted.internet.defer import gatherResults
 from twisted.python.threadpool import ThreadPool
 from twisted.web.test.requesthelper import DummyRequest
+from twisted.logger import Logger
 
 from hendrix.contrib.async import crosstown_traffic
 from hendrix.resources import HendrixWSGIResource
-from hendrix.test.resources import TestNameSpace, application as wsgi_application,\
-    nameSpace
+from hendrix.test.resources import (
+    TestNameSpace, application as wsgi_application, nameSpace
+)
+
+import sys
+import threading
 
 
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(message)s')
-ch.setFormatter(formatter)
-root.addHandler(ch)
-logger = logging.getLogger(__name__)
+log = Logger()
 
 
 class NoGoStatusCodes(TestCase):
@@ -46,7 +40,7 @@ class NoGoStatusCodes(TestCase):
         super(NoGoStatusCodes, self).setUp(*args, **kwargs)
 
     def wsgi_thing(self, environ, start_response):
-            start_response('404 NOT FOUND', [('Content-type','text/plain')])
+            start_response('404 NOT FOUND', [('Content-type', 'text/plain')])
 
             @crosstown_traffic.follow_response(
                 no_go_status_codes=self.no_go_status_codes,
@@ -54,7 +48,6 @@ class NoGoStatusCodes(TestCase):
             )
             def long_thing_on_same_thread():
                 self.nameSpace.async_task_was_run = True
-                logger.info("No bad status codes; went ahead with async thing.")
 
             return "Nothing."
 
@@ -77,13 +70,17 @@ class NoGoStatusCodes(TestCase):
         )
 
     def test_bad_status_codes_cause_no_go_flag(self):
-        through_to_you = crosstown_traffic.follow_response(no_go_status_codes=[418])
+        through_to_you = crosstown_traffic.follow_response(
+            no_go_status_codes=[418]
+        )
         through_to_you.status_code = 418
         through_to_you.check_status_code_against_no_go_list()
         self.assertTrue(through_to_you.no_go)
 
     def test_no_bad_status_codes_are_cool(self):
-        through_to_you = crosstown_traffic.follow_response(no_go_status_codes=[418])
+        through_to_you = crosstown_traffic.follow_response(
+            no_go_status_codes=[418]
+        )
         through_to_you.status_code = 404
         through_to_you.check_status_code_against_no_go_list()
         self.assertFalse(through_to_you.no_go)
@@ -98,21 +95,24 @@ class SameOrDifferentThread(TestCase):
         super(SameOrDifferentThread, self).setUp(*args, **kwargs)
 
     def wsgi_thing(self, environ, start_response):
-            start_response('200 OK', [('Content-type','text/plain')])
+            start_response('200 OK', [('Content-type', 'text/plain')])
 
             nameSpace.this_thread = threading.current_thread()
 
-            @crosstown_traffic.follow_response(same_thread=self.use_same_thread)
+            @crosstown_traffic.follow_response(
+                same_thread=self.use_same_thread
+            )
             def long_thing_on_same_thread():
                 nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
-                logger.info("Finished async thing on same thread.")
+                log.info("Finished async thing on same thread.")
 
             return "Nothing."
 
     def assert_that_threads_are_the_same(self):
-        self.assertEqual(nameSpace.this_thread,
-                  nameSpace.thread_that_is_supposed_to_be_the_same
-                  )
+        self.assertEqual(
+            nameSpace.this_thread,
+            nameSpace.thread_that_is_supposed_to_be_the_same
+        )
 
     def assert_that_threads_are_different(self):
         self.assertNotEqual(nameSpace.this_thread,
@@ -141,7 +141,7 @@ class SameOrDifferentThread(TestCase):
 
 
 class PostResponseTest(TestCase):
-    
+
     def setUp(self):
         nameSpace = TestNameSpace()
 
@@ -158,7 +158,8 @@ class PostResponseTest(TestCase):
         through_to_you = crosstown_traffic.follow_response(same_thread=True)
         threading.current_thread().response_object = FakeResponse()
         through_to_you(run_me_to_pass)
-        through_to_you.run(reactor.threadpool)  # threadpool doesn't matter because same_thread is True.
+        # threadpool doesn't matter because same_thread is True.
+        through_to_you.run(reactor.threadpool)
 
         self.assertFalse(through_to_you.no_go)  # If the no_go is False...
         self.assertTrue(self.pass_flag)  # Then run_me_to_pass will have run.
@@ -177,14 +178,15 @@ class PostResponseTest(TestCase):
 
         through_to_you.no_go = True  # If no_go is True...
         through_to_you(append_me_to_pass)  # and we call it...
-        self.assertFalse(through_to_you.response.crosstown_tasks)  # We won't have added any tasks.
+        # We won't have added any tasks.
+        self.assertFalse(through_to_you.response.crosstown_tasks)
 
         through_to_you.no_go = False  # However if no_go is False...
         through_to_you(append_me_to_pass)  # and we call it...
-        self.assertEqual(through_to_you.response.crosstown_tasks[0].crosstown_task,
-                         append_me_to_pass
-                         )  # We will have added the function.
-
+        self.assertEqual(
+            through_to_you.response.crosstown_tasks[0].crosstown_task,
+            append_me_to_pass
+        )  # We will have added the function.
 
     def test_contemporaneous_requests(self):
 
@@ -203,8 +205,7 @@ class PostResponseTest(TestCase):
         tp.start()
         self.addCleanup(tp.stop)
 
-
-        logger.info("\n\nStarting the two stream stuff.")
+        # logger.info("\n\nStarting the two stream stuff.")
 
         request1 = DummyRequest('r1')
         request1.isSecure = lambda: False
@@ -235,12 +236,13 @@ class PostResponseTest(TestCase):
 
         def wait_for_queue_resolution():
             nameSpace.async_task_was_done.get(True, 3)
-            logger.info("Async logic Queue released.")
 
         combo_deferred.addCallback(
             lambda _: deferToThreadPool(reactor, tp, wait_for_queue_resolution)
         )
 
-        combo_deferred.addCallback(lambda _: self.assertTrue(nameSpace.async_task_was_run))
+        combo_deferred.addCallback(
+            lambda _: self.assertTrue(nameSpace.async_task_was_run)
+        )
 
         return combo_deferred

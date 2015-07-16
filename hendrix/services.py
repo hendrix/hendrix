@@ -2,12 +2,9 @@ import importlib
 from .resources import HendrixResource
 from twisted.application import internet, service
 from twisted.internet import reactor
+from twisted.logger import Logger
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class HendrixService(service.MultiService):
@@ -19,6 +16,8 @@ class HendrixService(service.MultiService):
     'services' refers to a list of twisted Services to add to the collection.
     """
 
+    log = Logger()
+
     def __init__(
             self, application, port=80, resources=None, services=None,
             loud=False):
@@ -27,10 +26,10 @@ class HendrixService(service.MultiService):
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
         threads = ThreadPool(name="Hendrix Service")
-        
+
         # Testing threads 1-2-3
         threads.adjustPoolsize(3, 5)
-        
+
         reactor.addSystemEventTrigger('after', 'shutdown', threads.stop)
         ThreadPoolService(threads).setServiceParent(self)
 
