@@ -1,5 +1,5 @@
 from hendrix.contrib.cache.resource import CacheProxyResource
-from hendrix.services import TCPServer
+from hendrix.resources.services import TCPServer
 from twisted.web import server
 
 
