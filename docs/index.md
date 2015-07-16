@@ -22,6 +22,7 @@ More about the hendrix philosophy [here](philosophy.md).
 ## Getting started
 
 See the [Quickstart](quickstart.md) or [FAQ](faq.md).
+Use the [Development Server](quickstart.md). 
 
 ## History
 It started as a fork of the
