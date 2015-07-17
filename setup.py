@@ -71,6 +71,6 @@ setup(
     install_requires=readlines('requirements.txt'),
     extras_require={
         'ssl': ['pyopenssl', ],
-        'dev': ['django', 'flask', 'mock', 'pyopenssl', 'ipdb']
+        'dev': ['django', 'flask', 'mock', 'pyopenssl', 'ipdb', 'funcsigs']
     }
 )
