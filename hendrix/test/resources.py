@@ -26,6 +26,8 @@ def application(environ, start_response):
 
     if 'test_crosstown_traffic' in environ['QUERY_STRING'] or environ['PATH_INFO'] == '/r/1':
 
+        log.debug('Starting first cycle...')
+
         @crosstown_traffic.follow_response()
         def delayed_callable():
             TestNameSpace.async_task_was_run = True
