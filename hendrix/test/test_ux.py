@@ -136,7 +136,6 @@ class TestMain(HendrixTestCase):
                 self.assertTrue('--settings' in popen.call_args[0][0])
         sys.argv = []
 
-    @skip('expected_keys is not, well, expected.')
     def test_options_structure(self):
         """
         A test to ensure that HendrixDeploy.options also has the complete set

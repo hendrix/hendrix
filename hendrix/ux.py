@@ -13,21 +13,12 @@ import time
 import traceback
 from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
-from hendrix.deploy import base, cache
-
-import logging
-logger = logging.getLogger(__name__)
-
-try:
-    from hendrix.deploy import ssl, hybrid
-except ImportError:
-    logger.warning("hendrix SSL is not available.")
-
+from hendrix.deploy import base, ssl, cache, hybrid
+from hendrix.logger import hendrixObserver
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from twisted.python import log
-from twisted.python.logfile import DailyLogFile
+from twisted.logger import globalLogPublisher
 
 
 class Reload(FileSystemEventHandler):
@@ -118,8 +109,10 @@ def findSettingsModule():
                 settings_mod = search.group("module")
 
             else:
-# in 1.7, manage.py settings declaration looks like:
-# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "example_app.settings")
+                # in 1.7, manage.py settings declaration looks like:
+                # os.environ.setdefault(
+                #     "DJANGO_SETTINGS_MODULE", "example_app.settings"
+                # )
                 search = re.search(
                     "\".*?\"(,\\s)??\"(?P<module>.*?)\"\\)$",
                     manage_contents, re.I | re.S | re.M
@@ -193,7 +186,7 @@ def noiseControl(options):
     # allows the specification of the log file location
     if not options['loud']:
         log_path = options['log']
-        log.startLogging(DailyLogFile.fromFullPath(log_path))
+        globalLogPublisher.addObserver(hendrixObserver(log_path))
     return None
 
 

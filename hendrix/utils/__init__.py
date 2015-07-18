@@ -1,5 +1,8 @@
+from importlib import import_module
+
 import chalk
 import os
+import six
 import sys
 
 
@@ -13,7 +16,7 @@ SHARE_PATH = os.path.join(
 
 def get_pid(options):
     """returns The default location of the pid file for process management"""
-    namespace = options['settings'] if options['settings'] else options['wsgi_app_name']
+    namespace = options['settings'] if options['settings'] else options['wsgi']
     return '%s/%s_%s.pid' % (
         HENDRIX_DIR, options['http_port'], namespace.replace('.', '_')
     )
@@ -37,3 +40,25 @@ def responseInColor(request, status, headers, prefix='Response', opts=None):
         chalk.blue(message, opts=opts)
     else:
         chalk.red(message, opts=opts)
+
+
+def import_string(dotted_path):
+    """
+    Import a dotted module path and return the attribute/class designated by
+    the last name in the path. Raise ImportError if the import failed.
+    """
+    try:
+        module_path, class_name = dotted_path.rsplit('.', 1)
+    except ValueError:
+        msg = "%s doesn't look like a module path" % dotted_path
+        six.reraise(ImportError, ImportError(msg), sys.exc_info()[2])
+
+    module = import_module(module_path)
+
+    try:
+        return getattr(module, class_name)
+    except AttributeError:
+        msg = 'Module "%s" does not define a "%s" attribute/class' % (
+            dotted_path, class_name
+        )
+        six.reraise(ImportError, ImportError(msg), sys.exc_info()[2])

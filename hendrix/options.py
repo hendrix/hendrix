@@ -1,7 +1,6 @@
-import os
-
 from hendrix import defaults
 from optparse import make_option, OptionParser
+import os
 
 
 def cleanOptions(options):
@@ -55,7 +54,7 @@ HX_OPTION_LIST = (
         '--log',
         dest='log',
         type=str,
-        default=os.path.join(os.path.dirname(__file__), 'hendrix.log'),
+        default=os.path.join(defaults.DEFAULT_LOG_PATH, 'hendrix.log'),
         help=(
             'file path to where the log files should live '
             '[default: $PYTHON_PATH/lib/.../hendrix/hendrix.log]'
