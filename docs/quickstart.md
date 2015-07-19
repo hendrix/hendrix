@@ -1,33 +1,19 @@
-# Quickstart
+# Using Hendrix
 
-##Installation
+## Starting Hendrix with Python
+Launching your application from within your Python codebase, whether in your local development debugger or in the orchestration logic for your production fleet, can be an empowering and eye-opening experience.
 
-You'll need to use **virtualenv**. If you don't have that set up, follow [the virtualenv instructions here.](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+Pythonic launch logic is an area where hendrix shines:
 
-Inside your python virtuaenv:
+```python
+from hendrix.deploy.base import HendrixDeploy
 
-```bash
-$ pip install hendrix
+options = {'settings': 'settings.location'}
+deployer = HendrixDeploy(options=options)
+deployer.run()
 ```
 
-The following python packages are dependencies that should be automaticly installed.
-
-```bash
-twisted
-txsockjs
-zope.interface
-watchdog
-jinja2
-pychalk==0.0.5
-service_identity
-```
-
-###Extra Setup for SSL
-
-```bash
-$ sudo apt-get install build-essential libssl-dev libffi-dev python-dev
-$ pip install cryptography
-```
+Now you have a logical place to put a breakpoint, emit a log entry, or [attach other services](deploying-other-services.md) that you might want to deploy.
 
 ## The 'hx' command
 
@@ -46,7 +32,7 @@ The '--dev' option simply causes hendrix to emit output and elicit behavior simi
 * '--loud' is implied: stdout and stderr will emit directly
 * '--daemonize' is  disabled: the process will run in foreground of the currenty TTY.
 
-## Normal Usage
+### Normal Usage
 The following outlines how to use Hendrix in your day to day life/development.
 
 #####For help and a complete list of the options:
@@ -55,6 +41,7 @@ The following outlines how to use Hendrix in your day to day life/development.
 $ hx -h
 ```
 or
+
 ```bash
 $ hx --help
 ```
@@ -62,6 +49,11 @@ $ hx --help
 #####Starting a server with 4 processes (1 parent and 3 child processes):
 ```bash
 $ hx start -w 3
+```
+
+#####Restarting a server:
+```bash
+$ hx restart
 ```
 #####Stopping that server:
 ```bash
@@ -75,18 +67,10 @@ E.g. Running a server on port 8000 with local_settings.py would yield
 8000_local_settings.pid which would be used to kill the server. I.e. if you
 start with `hx start --settings local_settings` then stop by `hx stop --settings local_settings`
 
-#####Restarting a server:
-```bash
-$ hx restart
-```
-
 ### Install hendrix As a "service" (Ubuntu/Debian)
 
-To install hendrix as a system service, you'll need to create hendrix.conf (See example below) and run the following.
+To install hendrix as a system service, you'll need to create hendrix.conf.
 
-```bash
-$ sudo install-hendrix-service /path/to/hendrix.conf
-```
 hendrix.conf is is YAML format.  Here's an example.
 
 ```bash
@@ -119,7 +103,13 @@ https_port: 4430
 key: /path/to/my/priv.key
 ```
 
-Then, to start the service.
+Then, run the included installation script.
+
+```bash
+$ sudo install-hendrix-service /path/to/hendrix.conf
+```
+
+To start the service:
 
 ```bash
 $ sudo service hendrix start|stop
@@ -127,18 +117,3 @@ $ sudo service hendrix start|stop
 You may want to use something like supervisor, systemd, or upstart to launch hendrix on your remote metal.
 
 Hendrix [ships with an upstart template](https://github.com/hangarunderground/hendrix/blob/master/hendrix/utils/templates/upstart.conf.j2) for this purpose; it can easily be modified to work with other similar services.
-
-## Starting Hendrix with Python
-Launching your application from within your Python codebase, whether in your local development debugger or in the orchestration logic for your production fleet, can be an empowering and eye-opening experience.
-
-Pythonic launch logic is an area where hendrix shines:
-
-```python
-from hendrix.deploy.base import HendrixDeploy
-
-options = {'settings': 'settings.location'}
-deployer = HendrixDeploy(options=options)
-deployer.run()
-```
-
-Now you have a logical place to put a breakpoint, emit a log entry, or [attach other services](deploying-other-services.md) that you might want to deploy.
