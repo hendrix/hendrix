@@ -1,24 +1,20 @@
 import sys
 import importlib
-import logging
-import threading
+from twisted.logger import Logger
 
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
 
-import logging
 import chalk
-from twisted.internet.threads import deferToThread
 import threading
-import  uuid
-
-logger = logging.getLogger(__name__)
 
 # thread_list = []  # Debug
 
 
 class HendrixWSGIResponse(_WSGIResponse):
+
+    log = Logger()
 
     def __init__(self, *args, **kwargs):
         self.crosstown_tasks = []
@@ -38,7 +34,7 @@ class HendrixWSGIResponse(_WSGIResponse):
     def follow_response_tasks(self):
 
         for task in self.crosstown_tasks:
-            logger.info("Processing crosstown task: '%s'" % task.crosstown_task)
+            self.log.info("Processing crosstown task: '%s'" % task.crosstown_task)
 
             # Set no-go if status code is bad.
             task.check_status_code_against_no_go_list()

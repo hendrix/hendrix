@@ -1,13 +1,9 @@
-from twisted.internet.threads import deferToThread, deferToThreadPool
+from twisted.logger import Logger
+from twisted.internet.threads import deferToThreadPool
 from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
 
 import threading
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class ThreadHasNoResponse(RuntimeError):
@@ -35,6 +31,8 @@ def get_tasks_to_follow_current_response(thread=None):
 
 class ThroughToYou(object):
 
+    log = Logger()
+
     def __init__(self,
                  reactor=reactor,
                  same_thread=False,
@@ -54,14 +52,14 @@ class ThroughToYou(object):
 
         try:
             self.response = get_response_for_thread()
-            logger.info("Adding '%s' to crosstown_traffic for %s" % (str(crosstown_task), self.response))
+            self.log.info("Adding '%s' to crosstown_traffic for %s" % (str(crosstown_task), self.response))
             if not self.no_go:
                 self.response.crosstown_tasks.append(self)
         except ThreadHasNoResponse:
             if self.fail_without_response:
                 raise
             else:
-                logger.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
+                self.log.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
                 self.run()
         return self.run
 
@@ -96,7 +94,7 @@ class ThroughToYou(object):
             else:
                  self.no_go_status_code_list.append(no_go_code)
 
-        logger.debug("no_go_status_codes are %s" % self.no_go_status_code_list)
+        self.log.debug("no_go_status_codes are %s" % self.no_go_status_code_list)
 
     def check_status_code_against_no_go_list(self):
         if self.no_go_status_codes:
@@ -106,7 +104,7 @@ class ThroughToYou(object):
             self.populate_no_go_status_code_list()
 
             if self.status_code in self.no_go_status_code_list:
-                logger.info("Flagging no-go becasue status code is %s" % self.status_code)
+                self.log.info("Flagging no-go becasue status code is %s" % self.status_code)
                 self.no_go = True
 
 

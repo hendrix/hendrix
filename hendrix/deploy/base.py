@@ -11,8 +11,8 @@ from socket import AF_INET
 from hendrix import defaults
 from hendrix.options import options as hx_options
 from hendrix.resources import get_additional_resources
-from hendrix.services import get_additional_services, HendrixService
-from hendrix.utils import get_pid
+from hendrix.resources.services import HendrixService, get_additional_services
+from hendrix.utils import get_pid, import_string
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
 
@@ -35,22 +35,25 @@ class HendrixDeploy(object):
         # because running the management command overrides self.options['wsgi']
         if self.options['wsgi']:
             if hasattr(self.options['wsgi'], '__call__'):
-                # If it has a __call__, we assume that it is the application object itself.
+                # If it has a __call__, we assume that it is the application
+                # object itself.
                 self.application = self.options['wsgi']
                 try:
-                    self.options['wsgi_app_name'] = "%s.%s" % (self.application.__module__, self.application.__name__)
+                    self.options['wsgi'] = "%s.%s" % (
+                        self.application.__module__, self.application.__name__
+                    )
                 except AttributeError:
-                    self.options['wsgi_app_name'] = self.application.__class__.__name__
+                    self.options['wsgi'] = self.application.__class__.__name__
             else:
-                # Otherwise, we'll try to discern an application in the belief that this is a dot path.
+                # Otherwise, we'll try to discern an application in the belief
+                # that this is a dot path.
                 wsgi_dot_path = self.options['wsgi']
-                self.application = HendrixDeploy.importWSGI(wsgi_dot_path)  # will raise AttributeError if we can't import it.
-                self.options['wsgi_app_name'] = wsgi_dot_path
+                # will raise AttributeError if we can't import it.
+                self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
             self.use_settings = False
         else:
             os.environ['DJANGO_SETTINGS_MODULE'] = self.options['settings']
-            django_conf = importlib.import_module('django.conf')
-            settings = getattr(django_conf, 'settings')
+            settings = import_string('django.conf.settings')
             self.services = get_additional_services(settings)
             self.resources = get_additional_resources(settings)
             self.options = HendrixDeploy.getConf(settings, self.options)
