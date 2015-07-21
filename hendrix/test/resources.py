@@ -2,9 +2,9 @@ from multiprocessing import Queue
 import threading
 
 from twisted.logger import Logger
-
 from hendrix.experience import crosstown_traffic
-from hendrix.experience.crosstown_traffic import get_response_for_thread, get_tasks_to_follow_current_response
+from hendrix.mechanics.async import get_response_for_thread, get_tasks_to_follow_current_response
+
 
 log = Logger()
 
@@ -26,7 +26,7 @@ def application(environ, start_response):
 
         log.debug('Starting first cycle...')
 
-        @crosstown_traffic.follow_response()
+        @crosstown_traffic()
         def delayed_callable():
             TestNameSpace.async_task_was_run = True
 

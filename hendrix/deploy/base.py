@@ -10,8 +10,8 @@ from socket import AF_INET
 
 from hendrix import defaults
 from hendrix.options import options as hx_options
-from hendrix.resources import get_additional_resources
-from hendrix.resources.services import HendrixService, get_additional_services
+from hendrix.facilities.gather import get_additional_resources, get_additional_services
+from hendrix.facilities.services import HendrixService
 from hendrix.utils import get_pid, import_string
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor

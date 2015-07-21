@@ -5,7 +5,7 @@ from twisted.internet import threads
 from twisted.internet.protocol import Factory, Protocol
 from txsockjs.factory import SockJSResource
 
-from hendrix.resources import NamedResource
+from hendrix.facilities import NamedResource
 
 from .messaging import hxdispatcher
 from .signals import message_signal

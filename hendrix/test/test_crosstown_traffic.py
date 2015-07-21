@@ -1,6 +1,5 @@
 import threading
 from Queue import Queue
-import sys
 
 from twisted.internet.threads import deferToThreadPool
 from twisted.trial.unittest import TestCase
@@ -8,13 +7,14 @@ from twisted.internet import reactor
 from twisted.internet.defer import gatherResults
 from twisted.python.threadpool import ThreadPool
 from twisted.web.test.requesthelper import DummyRequest
-from twisted.logger import Logger
 
+from twisted.logger import Logger
 from hendrix.experience import crosstown_traffic
-from hendrix.experience.crosstown_traffic import ThreadHasNoResponse
-from hendrix.resources import HendrixWSGIResource
+from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
+from hendrix.facilities.resources import HendrixWSGIResource
 from hendrix.test.resources import TestNameSpace, application as wsgi_application,\
     nameSpace
+
 
 log = Logger()
 
@@ -40,7 +40,7 @@ class NoGoStatusCodes(TestCase):
     def wsgi_thing(self, environ, start_response):
             start_response('404 NOT FOUND', [('Content-type','text/plain')])
 
-            @crosstown_traffic.follow_response(
+            @crosstown_traffic(
                 no_go_status_codes=self.no_go_status_codes,
                 same_thread=True
             )
@@ -69,7 +69,7 @@ class NoGoStatusCodes(TestCase):
         )
 
     def test_bad_status_codes_cause_no_go_flag(self):
-        through_to_you = crosstown_traffic.follow_response(
+        through_to_you = crosstown_traffic(
             no_go_status_codes=[418]
         )
         through_to_you.status_code = 418
@@ -77,7 +77,7 @@ class NoGoStatusCodes(TestCase):
         self.assertTrue(through_to_you.no_go)
 
     def test_no_bad_status_codes_are_cool(self):
-        through_to_you = crosstown_traffic.follow_response(
+        through_to_you = crosstown_traffic(
             no_go_status_codes=[418]
         )
         through_to_you.status_code = 404
@@ -98,7 +98,7 @@ class SameOrDifferentThread(TestCase):
 
             nameSpace.this_thread = threading.current_thread()
 
-            @crosstown_traffic.follow_response(
+            @crosstown_traffic(
                 same_thread=self.use_same_thread
             )
             def long_thing_on_same_thread():
@@ -160,7 +160,7 @@ class PostResponseTest(TestCase):
             crosstown_tasks = []
             status = "200 OK"
 
-        through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        through_to_you = crosstown_traffic(same_thread=True)
         threading.current_thread().response_object = FakeResponse()
         through_to_you(run_me_to_pass)
         # threadpool doesn't matter because same_thread is True.
@@ -179,7 +179,7 @@ class PostResponseTest(TestCase):
             status = "418 I'm a teapot.  Seriously."
 
         threading.current_thread().response_object = FakeResponse()
-        through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        through_to_you = crosstown_traffic(same_thread=True)
 
         through_to_you.no_go = True  # If no_go is True...
         through_to_you(append_me_to_pass)  # and we call it...
@@ -198,7 +198,7 @@ class PostResponseTest(TestCase):
         def append_me_to_pass():
             self.has_run = True
 
-        through_to_you = crosstown_traffic.follow_response(same_thread=True)
+        through_to_you = crosstown_traffic(same_thread=True)
         through_to_you(append_me_to_pass)
 
         self.assertTrue(self.has_run)
@@ -212,7 +212,7 @@ class PostResponseTest(TestCase):
         def append_me_to_pass():
             self.has_run = True
 
-        through_to_you = crosstown_traffic.follow_response(same_thread=True, fail_without_response=True)
+        through_to_you = crosstown_traffic(same_thread=True, fail_without_response=True)
 
         self.assertRaises(ThreadHasNoResponse, through_to_you, append_me_to_pass)
 

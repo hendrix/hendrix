@@ -1,10 +1,10 @@
-import importlib
 from twisted.application import internet, service
 from twisted.internet import reactor
-from twisted.logger import Logger
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server
-from hendrix.resources import HendrixResource
+
+from twisted.logger import Logger
+from hendrix.facilities.resources import HendrixResource
 
 
 class HendrixService(service.MultiService):
@@ -88,30 +88,6 @@ class ThreadPoolService(service.Service):
     def stopService(self):
         service.Service.stopService(self)
         self.pool.stop()
-
-
-def get_additional_services(settings_module):
-    """
-        if HENDRIX_SERVICES is specified in settings_module,
-        it should be a list twisted internet services
-
-        example:
-
-            HENDRIX_SERVICES = (
-              ('myServiceName', 'apps.offload.services.TimeService'),
-            )
-    """
-
-    additional_services = []
-
-    if hasattr(settings_module, 'HENDRIX_SERVICES'):
-        for name, module_path in settings_module.HENDRIX_SERVICES:
-            path_to_module, service_name = module_path.rsplit('.', 1)
-            resource_module = importlib.import_module(path_to_module)
-            additional_services.append(
-                (name, getattr(resource_module, service_name))
-            )
-    return additional_services
 
 
 class TCPServer(internet.TCPServer):

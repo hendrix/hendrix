@@ -14,7 +14,7 @@ class TestMixinAssertions(TestCase):
         def some_task():
             pass
 
-        through_to_you = crosstown_traffic.follow_response()
+        through_to_you = crosstown_traffic()
         through_to_you(some_task)
 
         a_mixin.assertNumCrosstownTasks(1)
@@ -28,7 +28,7 @@ class TestMixinAssertions(TestCase):
         def some_task():
             pass
 
-        through_to_you = crosstown_traffic.follow_response()
+        through_to_you = crosstown_traffic()
         through_to_you(some_task)
 
         self.assertIs(some_task, a_mixin.next_task())
@@ -42,7 +42,7 @@ class TestMixinAssertions(TestCase):
         def some_task():
             pass
 
-        through_to_you = crosstown_traffic.follow_response()
+        through_to_you = crosstown_traffic()
         through_to_you(some_task)
 
         same_task = a_mixin.next_task()

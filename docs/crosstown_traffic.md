@@ -20,7 +20,7 @@ def my_django_view(request):
 
             # 100 phone calls, each on their own thread, but not starting until the response has gone out over the wire
 
-            @crosstown_traffic.follow_response()
+            @crosstown_traffic()
             def place_100_phone_calls():
                 phone_call_logic()
 
@@ -36,7 +36,7 @@ By default, crosstown_traffic will run the decorated callable on a new thread in
 However, if you want to run it on the same thread (and thus block that thread from handling other requests until the callable is finished), you can use the same_thread kwarg:
 
 ```python
-@crosstown_traffic.follow_response(same_thread=True)
+@crosstown_traffic(same_thread=True)
 def thing_that_will_happen_after_response_on_same_thread():
     hopefully_short_thing()
 ```
@@ -47,7 +47,7 @@ By default, if your app responds with a 5xx or 4xx status code (a Server Error o
 However, if you want to change these "no_go_status_codes" per callable, you can do so:
 
 ```python
-@crosstown_traffic.follow_response(no_go_status_codes=['5xx', '400-405', 302])
+@crosstown_traffic(no_go_status_codes=['5xx', '400-405', 302])
 def long_thing():
     time.sleep(10)
     print '''

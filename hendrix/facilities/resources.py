@@ -1,73 +1,24 @@
 import sys
-import importlib
-from twisted.logger import Logger
+
 
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
-
 import chalk
-import threading
+from hendrix.facilities.response import HendrixWSGIResponse, LoudWSGIResponse
 
-# thread_list = []  # Debug
-
-
-class HendrixWSGIResponse(_WSGIResponse):
-
-    log = Logger()
-
-    def __init__(self, *args, **kwargs):
-        self.crosstown_tasks = []
-        return super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
-
-    def run(self, *args, **kwargs):
-        self.thread = threading.current_thread()
-        # thread_list.append(self.thread)  # Debug
-        # logger.debug("Assigning %s as the current response for thread %s" % (self, self.thread))
-        self.thread.response_object = self
-        self.request.setHeader('server', 'hendrix/Twisted')
-        ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
-        self.follow_response_tasks()
-        del self.thread.response_object
-        return ran
-    
-    def follow_response_tasks(self):
-
-        for task in self.crosstown_tasks:
-            self.log.info("Processing crosstown task: '%s'" % task.crosstown_task)
-
-            # Set no-go if status code is bad.
-            task.check_status_code_against_no_go_list()
-
-            task.run(self.threadpool)
-
-class LoudWSGIResponse(HendrixWSGIResponse):
-
-    def startResponse(self, status, headers, excInfo=None):
-        """
-        extends startResponse to call speakerBox in a thread
-        """
-        if self.started and excInfo is not None:
-            raise excInfo[0], excInfo[1], excInfo[2]
-        self.status = status
-        self.headers = headers
-        self.reactor.callInThread(
-            responseInColor, self.request, status, headers
-        )
-        return self.write
-    
 
 class HendrixWSGIResource(WSGIResource):
-    
+
     ResponseClass = HendrixWSGIResponse
-    
-    def render(self, request):        
+
+    def render(self, request):
         response = self.ResponseClass(
             self._reactor, self._threadpool, self._application, request)
         response.start()
         return NOT_DONE_YET
 
-        
+
 class DevWSGIResource(HendrixWSGIResource):
 
     ResponseClass = LoudWSGIResponse
@@ -220,29 +171,3 @@ def DjangoStaticResource(path, rel_url='static'):
     )
     return StaticFilesResource
 
-
-def get_additional_resources(settings_module):
-    """
-    if HENDRIX_CHILD_RESOURCES is specified in settings_module,
-    it should be a list resources subclassed from hendrix.contrib.NamedResource
-
-    example:
-
-        HENDRIX_CHILD_RESOURCES = (
-          'apps.offload.resources.LongRunningProcessResource',
-          'apps.chat.resources.ChatResource',
-        )
-    """
-
-    additional_resources = []
-
-    if hasattr(settings_module, 'HENDRIX_CHILD_RESOURCES'):
-        for module_path in settings_module.HENDRIX_CHILD_RESOURCES:
-            path_to_module, resource_name = module_path.rsplit('.', 1)
-            resource_module = importlib.import_module(path_to_module)
-
-            additional_resources.append(
-                getattr(resource_module, resource_name)
-            )
-
-    return additional_resources

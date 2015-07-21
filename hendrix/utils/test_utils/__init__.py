@@ -1,5 +1,6 @@
 from twisted.logger import Logger
-from hendrix.experience.crosstown_traffic import follow_response, ThroughToYou, FollowResponse
+from hendrix.experience import crosstown_traffic
+from hendrix.mechanics.async.decorators import ThroughToYou
 
 
 class MockThroughToYou(ThroughToYou):
@@ -9,20 +10,15 @@ class MockThroughToYou(ThroughToYou):
 
     def __call__(self, crosstown_task):
         try:
-            follow_response.recorded_tasks.append(crosstown_task)
+            crosstown_traffic.recorded_tasks.append(crosstown_task)
         except AttributeError:
             raise TypeError('This is a MockThroughToYou object; it must be used with AsyncTestMixin or another compatible ThroughToYou object.  If this is happening in production, this is a big deal.')
 
-        if len(follow_response.recorded_tasks) > 10 and not self.warned_strange_overuse:
+        if len(crosstown_traffic.recorded_tasks) > 10 and not self.warned_strange_overuse:
             self.log.warning("More than 10 tasks have been recorded in a pattern meant for tests.  If this app is in production, something is wrong.")
             self.warned_strange_overuse = True
 
         super(MockThroughToYou, self).__call__(crosstown_task)
-
-def new_call(*args, **kwargs):
-    decorator = MockThroughToYou(*args, **kwargs)
-    decorator.no_go = True
-    return decorator
 
 
 class AsyncTestMixin(object):
@@ -32,14 +28,13 @@ class AsyncTestMixin(object):
         return super(AsyncTestMixin, self).setUp()
 
     def sub_setUp(self):
-        self.old_call = FollowResponse.__call__
-        FollowResponse.__call__ = new_call
+        crosstown_traffic.decorator = MockThroughToYou
+        crosstown_traffic()
         self.archived_tasks = []
-        self.recorded_tasks = follow_response.recorded_tasks = []
-
+        self.recorded_tasks = crosstown_traffic.recorded_tasks = []
 
     def tearDown(self):
-        FollowResponse.__call__ = self.old_call
+        crosstown_traffic.__call__ = self.old_call
         return super(AsyncTestMixin, self).tearDown()
 
     def next_task(self):
