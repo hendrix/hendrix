@@ -2,7 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
-from hendrix.facilities import DjangoStaticResource
+from hendrix.facilities.resources import DjangoStaticResource
 
 
 def generate_resources_for_location(disk_root, url):

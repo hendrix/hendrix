@@ -45,6 +45,6 @@ class LoudWSGIResponse(HendrixWSGIResponse):
         self.status = status
         self.headers = headers
         self.reactor.callInThread(
-            responseInColor(), self.request, status, headers
+            responseInColor, self.request, status, headers
         )
         return self.write
