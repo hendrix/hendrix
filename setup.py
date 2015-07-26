@@ -54,7 +54,7 @@ setup(
         "v" + __version__
     ),
 
-    long_description=read('docs/index.md'),
+    long_description=read('README.md'),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Django',
