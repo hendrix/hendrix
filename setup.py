@@ -39,17 +39,21 @@ share_path = os.path.join(
 mkdir_p(share_path)
 
 setup(
-    author="hangarunderground",
-    author_email="hendrix@reelio.com",
     name="hendrix",
-    packages=find_packages(),
     version=__version__,
+    description="Pure python web server, based on Twisted, providing the One Obvious Way to do async and offbeat network traffic with django and other WSGI apps.",
+
+    author="hangarunderground",
+    author_email="justin@justinholmes.com",
+
+    packages=find_packages(),
+
     url="https://github.com/hangarunderground/hendrix",
     download_url=(
         "https://github.com/hangarunderground/hendrix/tarball/"
         "v" + __version__
     ),
-    description="A deployment module for Django that uses Twisted.",
+
     long_description=read('docs/index.md'),
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -58,9 +62,14 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX',
         'Programming Language :: Python',
+        'Topic :: Internet',
+        'Topic :: Utilities',
+        'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: WSGI',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Server',
     ],
-    keywords=["django", "twisted", "async", "logging"],
+    keywords=["django", "twisted", "async", "logging", "wsgi"],
     scripts=[
         'hendrix/utils/scripts/hx',
         'hendrix/utils/scripts/install-hendrix-service'
@@ -71,6 +80,6 @@ setup(
     install_requires=readlines('requirements.txt'),
     extras_require={
         'ssl': ['pyopenssl', ],
-        'dev': ['django', 'flask', 'mock', 'pyopenssl', 'ipdb', 'funcsigs']
+        'dev': readlines('requirements_dev.txt'),
     }
 )

@@ -2,6 +2,8 @@
 
 ![hendrix](docs/_static/hendrix-logo.png)
 
+[![Build Status](https://travis-ci.org/SlashRoot/hendrix.png?branch=master)](https://travis-ci.org/SlashRoot/hendrix)
+
 Providing web culture APIs to do the awesome of Twisted.
 
 ## Overview
