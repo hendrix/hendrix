@@ -1,9 +1,7 @@
 language: python
-python:
-  - "2.7"
-install:
-  - pip install -r requirements
-  - pip install -r test-requirements
+env:
+  - TOXENV=py27
+  - TOXENV=pypy
 notifications:
   email:
     recipients:
@@ -18,4 +16,4 @@ notifications:
       - "Build details: %{build_url}"
       - "Result: %{result}"
     use_notice: true
-script: python hendrix/runtests.py
+script: script: tox
