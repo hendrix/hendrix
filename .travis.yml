@@ -16,4 +16,4 @@ notifications:
       - "Build details: %{build_url}"
       - "Result: %{result}"
     use_notice: true
-script: script: tox
+script: tox
