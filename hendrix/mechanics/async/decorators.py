@@ -36,12 +36,17 @@ class ThroughToYou(object):
             if not self.no_go:
                 self.response.crosstown_tasks.append(self)
         except ThreadHasNoResponse:
-            if self.fail_without_response:
-                raise
-            else:
-                self.log.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
-                self.run()
+            self.responseless_fallback(crosstown_task)
         return self.run
+
+    def responseless_fallback(self, crosstown_task=None):
+        self.crosstown_task = crosstown_task or self.crosstown_task
+
+        if self.fail_without_response:
+            raise ThreadHasNoResponse("This crosstown decorator cannot proceed without a response.  To run the crosstown_task at this time, set fail_without_response = False.")
+        else:
+            self.log.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
+            self.run()
 
     def run(self, threadpool=None):
         if self.no_go:

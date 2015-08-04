@@ -3,12 +3,11 @@ import sys
 
 class ModuleCaller(object):
 
+    decorator = None
+
     def __init__(self, decorator=None):
-        if not decorator:
-            from hendrix.mechanics.async.decorators import ThroughToYou
-            self.decorator = ThroughToYou
-        else:
-            self.decorator = decorator
+        from hendrix.mechanics.async.decorators import ThroughToYou
+        self.decorator = decorator or self.decorator or ThroughToYou
 
         super(ModuleCaller, self).__init__()
 

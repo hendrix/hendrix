@@ -14,3 +14,4 @@ _trial_temp*
 ignore*
 *.log
 *.log.*
+.idea

@@ -3,22 +3,18 @@ from hendrix.experience import crosstown_traffic
 from hendrix.mechanics.async.decorators import ThroughToYou
 
 
-class MockThroughToYou(ThroughToYou):
+def crosstownTaskListDecoratorFactory(list_to_populate):
 
-    log = Logger()
-    warned_strange_overuse = False
+    class TaskListThroughToYou(ThroughToYou):
 
-    def __call__(self, crosstown_task):
-        try:
-            crosstown_traffic.recorded_tasks.append(crosstown_task)
-        except AttributeError:
-            raise TypeError('This is a MockThroughToYou object; it must be used with AsyncTestMixin or another compatible ThroughToYou object.  If this is happening in production, this is a big deal.')
+        def __init__(self, *args, **kwargs):
+            self.crosstown_task_list = list_to_populate
+            super(TaskListThroughToYou, self).__init__(*args, **kwargs)
 
-        if len(crosstown_traffic.recorded_tasks) > 10 and not self.warned_strange_overuse:
-            self.log.warning("More than 10 tasks have been recorded in a pattern meant for tests.  If this app is in production, something is wrong.")
-            self.warned_strange_overuse = True
+        def responseless_fallback(self, crosstown_task):
+            self.crosstown_task_list.append(crosstown_task)
 
-        super(MockThroughToYou, self).__call__(crosstown_task)
+    return TaskListThroughToYou
 
 
 class AsyncTestMixin(object):
@@ -28,14 +24,10 @@ class AsyncTestMixin(object):
         return super(AsyncTestMixin, self).setUp()
 
     def sub_setUp(self):
-        crosstown_traffic.decorator = MockThroughToYou
+        self.recorded_tasks = []
+        crosstown_traffic.decorator = crosstownTaskListDecoratorFactory(self.recorded_tasks)
         crosstown_traffic()
         self.archived_tasks = []
-        self.recorded_tasks = crosstown_traffic.recorded_tasks = []
-
-    def tearDown(self):
-        crosstown_traffic.__call__ = self.old_call
-        return super(AsyncTestMixin, self).tearDown()
 
     def next_task(self):
         for task in self.recorded_tasks:
