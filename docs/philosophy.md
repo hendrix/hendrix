@@ -10,6 +10,10 @@ Your web app doesn't have to be a WSGI app as we know it, Jim - it can also be a
 
 ### Sharing launch logic between all of your environments, from development to production, is pretty good.
 
-
-
 ### Don't do with a message queue what rightly belongs in a thread or process - and vice-versa.
+
+### Drawbacks to hendrix
+
+* Because hendrix relies on parts of Twisted that are not compatible with Python 3, hendrix is not yet Python 3-ready for many use cases.
+* For many comparable situations - especially the simple synchornous/ blocking scenario, Hendrix likely uses more RAM and CPU than lighter-weight Python web servers such as uWSGI.
+
