@@ -1,4 +1,4 @@
-## Testing
+## Running the test suite
 
 In your virtualenv first run the following:
 

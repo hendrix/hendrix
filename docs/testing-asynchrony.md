@@ -1,4 +1,6 @@
-Consider the following web view:
+## Testing crosstown_traffic in a web view
+
+Consider the following Django / Pyramid / Flask view:
 
 ```python
 def view_that_sends_email(request):
@@ -12,11 +14,13 @@ def view_that_sends_email(request):
     return HttpResponse('template.html', {'validated': validated})
 ```
 
-You can totally test this view in your normal way - pass it a valid request object and inspect the repsonse.
+You can totally test this view in your normal way - pass it a valid request object and inspect the response.
 
 Note that the crosstown_traffic in this case will have been run immediately - before the view even yields.  (This is the default behavior for crosstown_traffic that is run outside a stream (ie, with no response bound to the current thread)).
 
 However, if want to simulate the situation of having a queue of crosstown_tasks to run following a view, hendrix provides two facilities for doing so.
+
+### Using the AsyncTestMixin
 
 The first is a test mixin that lives at `hendrix.utils.test_utils.AsyncTestMixin`.
 
