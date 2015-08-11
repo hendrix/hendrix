@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hendrix Performance test</title>
+
+    <script type="text/javascript" src="sockjs.js"></script>
+    <script type="text/javascript" src="jquery-2.1.4.js"></script>
+
+<script type="text/javascript">
+
+     var setup_chat = function(sock){
+    //this is
+    $('#chat_entry').on('keypress',function(e){
+      //send on enter key pressed...
+      if (e.keyCode === 13){
+        $el = $(this);
+        sock.send(
+          JSON.stringify({
+            // make sure what you put in the socket is what your
+            // backend code is expecting
+            message:$el.val(),
+            sender :$('#nickname').val() || 'anonymous',
+            channel:SOCKET_ADDRESS
+          }))
+        $(this).val('');
+      }
+    })
+    sock.onmessage = function(e) {
+    //
+     var data = JSON.parse(e.data);
+     if(data.html){
+       $('#empty').remove();
+       $('#history').append($(data.html));
+       $("#history").animate({ scrollTop: $('#history')[0].scrollHeight}, 1000);
+     }
+    }
+  }
+  $(function(){
+    var sock = new SockJS('/messages/main/');
+
+    sock.onopen = function() {
+     // "hx_subscribe" is a keyword that tells hendrix to subscribe the
+     // socket transport associated with this web browser session
+     // with a given channel
+     this.send(JSON.stringify({'hx_subscribe':SOCKET_ADDRESS}));
+     // we need to wait until we have a socket connection established before
+     // hooking up the events.
+     setup_chat(this);
+     $("#history").animate({ scrollTop: $('#history')[0].scrollHeight}, 1000);
+    };
+  })
+
+</script>
+
+</head>
+<body>
+
+</body>
+</html>
