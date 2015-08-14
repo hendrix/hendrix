@@ -1,5 +1,6 @@
 django
 flask
+pyramid
 mock
 pyopenssl
 ipdb
