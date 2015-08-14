@@ -14,14 +14,10 @@ Hendrix seeks to add to this discussion by focusing on:
 
 More about the hendrix philosophy [here](philosophy.md).
 
-## Drawbacks
-
-* Because hendrix relies on parts of Twisted that are not compatible with Python 3, hendrix is not yet Python 3-ready for many use cases.
-* For many comparable situations - especially the simple synchornous/ blocking scenario, Hendrix likely uses more RAM and CPU than lighter-weight Python web servers.
-
 ## Getting started
 
 See the [Quickstart](quickstart.md) or [FAQ](faq.md).
+Use the [Development Server](quickstart.md). 
 
 ## History
 It started as a fork of the

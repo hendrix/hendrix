@@ -1,0 +1,2 @@
+class ThreadHasNoResponse(RuntimeError):
+    pass

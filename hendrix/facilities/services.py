@@ -1,13 +1,10 @@
-import importlib
-from .resources import HendrixResource
 from twisted.application import internet, service
 from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server
 
-import logging
-
-logger = logging.getLogger(__name__)
+from twisted.logger import Logger
+from hendrix.facilities.resources import HendrixResource
 
 
 class HendrixService(service.MultiService):
@@ -19,6 +16,8 @@ class HendrixService(service.MultiService):
     'services' refers to a list of twisted Services to add to the collection.
     """
 
+    log = Logger()
+
     def __init__(
             self, application, port=80, resources=None, services=None,
             loud=False):
@@ -27,10 +26,10 @@ class HendrixService(service.MultiService):
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
         threads = ThreadPool(name="Hendrix Service")
-        
+
         # Testing threads 1-2-3
         threads.adjustPoolsize(3, 5)
-        
+
         reactor.addSystemEventTrigger('after', 'shutdown', threads.stop)
         ThreadPoolService(threads).setServiceParent(self)
 
@@ -89,30 +88,6 @@ class ThreadPoolService(service.Service):
     def stopService(self):
         service.Service.stopService(self)
         self.pool.stop()
-
-
-def get_additional_services(settings_module):
-    """
-        if HENDRIX_SERVICES is specified in settings_module,
-        it should be a list twisted internet services
-
-        example:
-
-            HENDRIX_SERVICES = (
-              ('myServiceName', 'apps.offload.services.TimeService'),
-            )
-    """
-
-    additional_services = []
-
-    if hasattr(settings_module, 'HENDRIX_SERVICES'):
-        for name, module_path in settings_module.HENDRIX_SERVICES:
-            path_to_module, service_name = module_path.rsplit('.', 1)
-            resource_module = importlib.import_module(path_to_module)
-            additional_services.append(
-                (name, getattr(resource_module, service_name))
-            )
-    return additional_services
 
 
 class TCPServer(internet.TCPServer):
