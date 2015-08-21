@@ -1,7 +1,6 @@
 import os
 import sys
 from . import HendrixTestCase, TEST_SETTINGS
-from unittest import skip
 from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
 from hendrix import ux

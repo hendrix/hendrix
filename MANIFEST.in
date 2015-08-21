@@ -1,3 +1,3 @@
-include README.md LICENSE AUTHORS requirements
+include README.md LICENSE AUTHORS requirements.txt requirements_dev.txt
 include hendrix/utils/templates/*.j2
-include docs/*html docs/*rst docs/*md
+include docs/*md
