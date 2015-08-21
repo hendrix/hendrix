@@ -1,23 +1,26 @@
 language: python
 env:
-  - TOXENV=py27
-  - TOXENV=pypy
+- TOXENV=py27
+- TOXENV=pypy
 install:
-  - pip install tox
+- pip install tox
 notifications:
   email:
     recipients:
-      - justin@justinholmes.com
+    - justin@justinholmes.com
     on_success: change
     on_failure: always
     slack:
       secure: aKXvBENfgjk1dZctyQa0b3eBaLZuGgqKuO/S+WfjYguqESlOoLhOlHo/vMB90K6S9HiIocMQVGEKnyLWZVy4tQg/bH4iNvs1ag/JWGGsaFX1gGjqq+2TbPzSL90Uvw49jprgH10x37Qt4z21W3rm1/zi5Iw9JgpJtJ1YpXkIvvg=
   irc:
     channels:
-      - "chat.freenode.net#hendrix"
+    - chat.freenode.net#hendrix
     template:
-      - "%{repository_slug} (%{branch} - %{commit} - %{commit_message} - %{author} - %{message})"
-      - "Build details: %{build_url}"
-      - "Result: %{result}"
+    - "%{repository_slug} (%{branch} - %{commit} - %{commit_message} - %{author} -
+      %{message})"
+    - 'Build details: %{build_url}'
+    - 'Result: %{result}'
     use_notice: true
+  slack:
+    secure: GFEH6jWPBgEY01gX6KmWSpKgsyLAtofD0C2kKaj1a5j2uit9NDwys2JM5ULUSPw7acy09XecySXABTymUDuhTGcXhivP0LLkzL0xA0eILz9Z1HbkJy7lxVufb7Q3qwM58MXzscRayvpAmODK8zJDFE5739NH6oYSJOlGMDn+l+c=
 script: tox
