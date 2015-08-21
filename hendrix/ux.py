@@ -13,7 +13,7 @@ import time
 import traceback
 from .options import HendrixOptionParser, cleanOptions
 from hendrix.contrib import SettingsError
-from hendrix.deploy import base, cache, hybrid
+from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -77,6 +77,7 @@ def launch(*args, **options):
     else:
         try:
             if options['key'] and options['cert'] and options['cache']:
+                from hendrix.deploy import hybrid
                 HendrixDeploy = hybrid.HendrixDeployHybrid
             elif options['key'] and options['cert']:
                 from hendrix.deploy import ssl
