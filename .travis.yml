@@ -10,7 +10,8 @@ notifications:
       - justin@justinholmes.com
     on_success: change
     on_failure: always
-    secure: aKXvBENfgjk1dZctyQa0b3eBaLZuGgqKuO/S+WfjYguqESlOoLhOlHo/vMB90K6S9HiIocMQVGEKnyLWZVy4tQg/bH4iNvs1ag/JWGGsaFX1gGjqq+2TbPzSL90Uvw49jprgH10x37Qt4z21W3rm1/zi5Iw9JgpJtJ1YpXkIvvg=
+    slack:
+      secure: aKXvBENfgjk1dZctyQa0b3eBaLZuGgqKuO/S+WfjYguqESlOoLhOlHo/vMB90K6S9HiIocMQVGEKnyLWZVy4tQg/bH4iNvs1ag/JWGGsaFX1gGjqq+2TbPzSL90Uvw49jprgH10x37Qt4z21W3rm1/zi5Iw9JgpJtJ1YpXkIvvg=
   irc:
     channels:
       - "chat.freenode.net#hendrix"
