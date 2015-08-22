@@ -2,9 +2,11 @@
 
 ![hendrix](docs/_static/hendrix-logo.png)
 
-[![Build Status](https://travis-ci.org/SlashRoot/hendrix.png?branch=master)](https://travis-ci.org/SlashRoot/hendrix)
+[![Build Status](https://travis-ci.org/hendrix/hendrix.png?branch=master)](https://travis-ci.org/hendrix/hendrix)
 
-Providing web culture APIs to do the awesome of Twisted.
+[![Latest Docs](https://readthedocs.org/projects/hendrix/badge/?version=latest)](http://hendrix.readthedocs.org/en/latest/)
+
+A Python web server that makes async and offbeat network traffic easy, fun, and fast.  
 
 ## Overview
 
@@ -13,6 +15,8 @@ Providing web culture APIs to do the awesome of Twisted.
 However, hendrix differs from these other technologies in that it is natively asynchronous and designed with background tasks in mind.  In this sense, it may serve some projects as a replacement for [gevent](https://readthedocs.org/projects/gevent/) or [celery](http://celery.readthedocs.org).
 
 **hendrix** implements the WSGI protocol, so it can serve applications made with django, pyramid, flask and other WSGI frameworks.  However, hendrix views your web as just another network resource - in fact, this is central to the [hendrix philosophy](http://hendrix.readthedocs.org/en/latest/philosophy/).
+
+Twisted is one of the most battle-tested and actively developed Python projects.  Until hendrix, however, Twisted has not been part of a mainstream python web server.  And that's a shame.
 
 ### Features
 * **Multi-processing** - The WSGI app can be served from multiple

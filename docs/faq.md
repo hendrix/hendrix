@@ -16,6 +16,6 @@ As such, Hendrix is natively able to do threading, asynchrony, websocket traffic
 
 This is one of the first questions people ask when they start to get interested.
 
-Hendrix doesn't just haphazardly call async logic from your Django app.  Instead, it contains the Django app in Twisted.  This way, the Django app can't block the reactor.
+No, hendrix doesn't just haphazardly call async logic from your Django app.  Instead, it contains the Django app in Twisted.  This way, the Django app can't block the reactor.
 
-In other words, each request-response cycle remains synchronous; Django is none the wiser!
+In other words, each request-response cycle remains synchronous; Django believes it is running in a blocking environment at all times.

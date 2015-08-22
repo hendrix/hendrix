@@ -1,29 +1,25 @@
 ![hendrix](_static/hendrix-logo.png)
 
-**A complete wire harness for your python web app.**
+```
+$ sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+# (Maybe virtualenv stuff)
+$ pip install hendrix
+$ pip install django
+$ django-admin startproject hey_joe
+$ hx start
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ie, handles bytes-on-the-wire to and from your Django thing or whatever)
+Starting Hendrix...
+Ready and Listening on port 8000...
+```
 
-Python has wonderful web technologies and solutions for exposing web applications and network resources, such as mod_wsgi, uWSGI and Gunicorn.
+**hendrix** is a tool for handling bytes-on-the-wire to and from your python web application.  In this sense, it is similar to [mod_wsgi](https://modwsgi.readthedocs.org), [uWSGI](https://uwsgi-docs.readthedocs.org), and [gunicorn](http://gunicorn-docs.readthedocs.org).  
 
-Hendrix seeks to add to this discussion by focusing on:
+However, hendrix differs from these other technologies in that it is natively asynchronous and designed with background tasks in mind.  In this sense, it may serve some projects as a replacement for [gevent](https://readthedocs.org/projects/gevent/) or [celery](http://celery.readthedocs.org).
 
-* Being async-native and providing "web culture" APIs for doing "async stuff."
-* Being more feature-rich instead of more lightweight
-* Adopting an agnosticism about the status of WSGI and web applications as network services
+**hendrix** implements the WSGI protocol, so it can serve applications made with django, pyramid, flask and other WSGI frameworks.  However, hendrix views your web as just another network resource - in fact, this is central to the [hendrix philosophy](http://hendrix.readthedocs.org/en/latest/philosophy/).
 
 More about the hendrix philosophy [here](philosophy.md).
 
 ## Getting started
 
-See the [Quickstart](quickstart.md) or [FAQ](faq.md).
-Use the [Development Server](quickstart.md). 
-
-## History
-It started as a fork of the
-[slashRoot deployment module](https://github.com/SlashRoot/WHAT/tree/44f50ee08c5d7acb74ed8a4ce928e85eb2dc714f/deployment).
-
-The name is the result of some inane psychological formula wherein the
-'twisted' version of Django Reinhardt is Jimi Hendrix.
-
-Hendrix is currently maintained by [Reelio](reelio.com).
+See the [Quickstart](running-hendrix.md) or [FAQ](faq.md).

@@ -1,4 +1,4 @@
-#Philosphy
+# Philosophy
 
 ### Your WSGI app is just another network resource, and ports 80 and 443 are just ports.
 
@@ -19,7 +19,7 @@ If you're using hendrix, it's almost certain that you'll use the exact same logi
 
 ### Don't do with a message queue what rightly belongs in a thread or process - and vice-versa.
 
-When a python web project is ready to add even fairly mundane asynchrony, an all-too-common solution is to immediately warp way ahead and install the various components of a message queue solution, slapping Celery and a broker such as RabbiMQ (and sometimes also redis) over the web logic.  
+When a python web project is ready to add even fairly mundane asynchrony, an all-too-common solution is to immediately warp way ahead and install the various components of a message queue solution, slapping Celery and a broker such as RabbitMQ (and sometimes also redis) over the web logic.  
 
 For all but the most mature projects, this usually represents the biggest infrastructural change the project will have undertaken to date.  You've got your team learning gevent.  You're re-thinking the layout of most of your web views.  You're using the @task decorator in ways that you aren't sure make sense ("isn't everything a task?" is a question you're hearing in casual conversation).
 
