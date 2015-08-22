@@ -2,11 +2,9 @@
 
 ![hendrix](docs/_static/hendrix-logo.png)
 
-[![Build Status](https://travis-ci.org/hendrix/hendrix.png?branch=master)](https://travis-ci.org/hendrix/hendrix)
+*A Python web server that makes async and offbeat network traffic easy, fun, and fast.*
 
-[![Latest Docs](https://readthedocs.org/projects/hendrix/badge/?version=latest)](http://hendrix.readthedocs.org/en/latest/)
-
-A Python web server that makes async and offbeat network traffic easy, fun, and fast.  
+[![Build Status](https://travis-ci.org/hendrix/hendrix.png?branch=master)](https://travis-ci.org/hendrix/hendrix)[![Latest Docs](https://readthedocs.org/projects/hendrix/badge/?version=latest)](http://hendrix.readthedocs.org/en/latest/)
 
 ## Overview
 
