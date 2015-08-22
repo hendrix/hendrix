@@ -1,3 +1,3 @@
-# This milesone lists the tasks remaining before we release 1.0:
-# https://github.com/hangarunderground/hendrix/milestones/1.0%20ness
-__version__ = '0.9.0'
+# This milesone lists the tasks remaining before the next major release:
+# https://github.com/hendrix/hendrix/milestones/Beyond%202.0
+__version__ = '2.0.0'
