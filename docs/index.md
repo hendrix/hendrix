@@ -1,5 +1,10 @@
+Twisted + Django = hendrix, a Python web server focused on making async and offbeat network traffic easy, fun, and fast.
+
+*Mr. D. Reinhardt, with a pair of guitars and tatters of sheet music in the back seat, speeds his convertible westward over the mountains. The campfire carries on without the blessing of his gypsy jazz, but his morning return is as a fearsome, left-handed character – familiar but Twisted*`(.py)`
+
 ![hendrix](_static/hendrix-logo.png)
 
+Dive in:
 ```
 $ sudo apt-get install build-essential libssl-dev libffi-dev python-dev
 # (Maybe virtualenv stuff)
