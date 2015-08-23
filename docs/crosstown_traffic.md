@@ -78,7 +78,7 @@ def my_django_view(request):
             def place_100_phone_calls():
                 phone_call_logic()
 
-      deferToThread(phone_call_logic)
+        deferToThread(phone_call_logic)
 
     # And database stuff may still be occuring.
 
@@ -87,7 +87,9 @@ def my_django_view(request):
 
 Obviously the syntax is similar, and there are surely use cases for this exact deferToThread pattern.
 
-However, the syntax of "treat this function pursuant to this decorator logic" puts the logic intention at the top, rather than the bottom, of the block.  In this sense, it is also similar to the @route decorator from Flash or the @detail_route decorator from Django-Rest-Framework.
+However, if place_100_phone_calls is more than a few lines long, the reader will be left in suspense about the matter of when to expect execution.  For an ordinary blocking web view, this might not be a big deal.  But when the logic will be executed asynchronously on a different thread, at a different time, with a different application state, it's totally reasonable to clarify that up front.
+
+So, by contrast, the crosstown_traffic syntax of "treat this function pursuant to this decorator logic" puts the logic intention at the top, rather than the bottom, of the block.  In this sense, it is also similar to the @route decorator from Flask or the @detail_route decorator from Django-Rest-Framework.
 
 #### It's far simpler to test in the Django test runner
 
@@ -97,7 +99,7 @@ Consider that such a configuration fundamentally changes the logic of the applic
 
 Even with Twisted, which has arguably the best testing practices in all of network asychrony, the threaded async APIs break the Django test runner.
  
- However, hendrix provides diplomacy between the two, resulting in [an elegant, simple test methodology](testing-asychrony.md).
+ However, hendrix provides diplomacy between the two, resulting in [an elegant, simple test methodology](/testing-asychrony.md).
 
 #### The time of execution is specifically determined: as soon as the response is sent over the wire
 
