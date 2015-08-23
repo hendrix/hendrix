@@ -85,12 +85,24 @@ def my_django_view(request):
     return HttpResponse('this is synchronous')
 ```
 
-Obvioulsly the syntax is similar, and there are surely use cases for this exact deferToThread pattern.
+Obviously the syntax is similar, and there are surely use cases for this exact deferToThread pattern.
 
 However, the syntax of "treat this function pursuant to this decorator logic" puts the logic intention at the top, rather than the bottom, of the block.  In this sense, it is also similar to the @route decorator from Flash or the @detail_route decorator from Django-Rest-Framework.
 
 #### It's far simpler to test in the Django test runner
 
+Generally, testing asynchronous logic in the Django test runner is a pain point.  This, for example, is the reason that Celery-based projects nearly always have the CELERY_ALWAYS_EAGER setting set to True in their test suite.
 
+Consider that such a configuration fundamentally changes the logic of the application in question.  What is the unit test *really* testing in this scenario?
 
-#### The time of execution is specifically determined - for example, as soon as the response is sent over the wire
+Even with Twisted, which has arguably the best testing practices in all of network asychrony, the threaded async APIs break the Django test runner.
+ 
+ However, hendrix provides diplomacy between the two, resulting in [an elegant, simple test methodology](testing-asychrony.md).
+
+#### The time of execution is specifically determined: as soon as the response is sent over the wire
+
+Using deferToThread will delay logic until the thread worker is available - a moment which is variable depending on the application configuration and which may even be difficult to discern by the application author.
+
+Conversely, callFromThread will run the callable immediately in the event loop - introducing potential state clashes and race conditions.
+
+Tasks in the crosstown_traffic queue will always run, in the order decorated, after the response has gone out over the wire to the client, minimizing stream time and removing the mystery about the application state at the time of execution.

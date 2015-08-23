@@ -64,4 +64,37 @@ class TestEmailSending(AsyncTestMixin, TestCase):
         self.assertTrue(some_email_batch.has_been_sent)
 ```
 
+### Using crosstownTaskListDecoratorFactory
+
+An even simpler, albeit less feature-rich, approach to testing crosstown_traffic is to supply your own list to which you want crosstown_traffic callables to be appended.
+
+This test examines the same view as above:
+
+```python
+class TestEmailSending(TestCase):
+
+    def test_that_email_sender_is_added_to_crosstown_traffic(self):
+        '''
+        Shows that the callable that runs after the Response
+        actually sends email.
+        '''
+        
+        from hendrix.experience import crosstown_traffic
+        from hendrix.utils.test_utils import crosstownTaskListDecoratorFactory
+        
+        my_task_list = []
+        crosstown_traffic.decorator = crosstownTaskListDecoratorFactory(my_task_list)
+    
+        r = Request()
+        view_that_sends_email(r)
+        
+        # The view is done, but the emails haven't been sent.
+        self.assertFalse(some_email_batch.has_been_sent)
+        
+        # Now we have the callable that we sent to crosstown.
+        long_email_api_call = my_task_list[0]
+        long_email_api_call()
+        
+        self.assertTrue(some_email_batch.has_been_sent)
+```
 
