@@ -7,6 +7,7 @@ import pickle
 
 from os import environ
 from socket import AF_INET
+from twisted.python.threadpool import ThreadPool
 
 from hendrix import defaults
 from hendrix.options import options as hx_options
@@ -23,13 +24,16 @@ class HendrixDeploy(object):
     the HendrixService on a single or multiple processes.
     """
 
-    def __init__(self, action='start', options={}, reactor=reactor):
+    def __init__(self, action='start', options={},
+                 reactor=reactor, threadpool=None):
         self.action = action
         self.options = hx_options()
         self.options.update(options)
         self.services = []
         self.resources = []
         self.reactor = reactor
+
+        self.threadpool = threadpool or ThreadPool(name="Hendrix Web Service")
 
         self.use_settings = True
         # because running the management command overrides self.options['wsgi']
@@ -116,11 +120,23 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
+    def getThreadPool(self):
+        '''
+        Case to match twisted.internet.reactor
+        '''
+        return self.threadpool
+
     def addHendrix(self):
-        "instantiates the HendrixService"
+        '''
+        Instantiates a HendrixService with this object's threadpool.
+        It will be added as a service later.
+        '''
         self.hendrix = HendrixService(
-            self.application, self.options['http_port'],
-            resources=self.resources, services=self.services,
+            self.application,
+            self.options['http_port'],
+            threadpool=self.getThreadPool(),
+            resources=self.resources,
+            services=self.services,
             loud=self.options['loud']
         )
 
@@ -144,7 +160,12 @@ class HendrixDeploy(object):
                 )
             )
             getattr(self, action)(fd)
+
+            ###########################
+            # annnnd run the reactor! #
+            ###########################
             self.reactor.run()
+
         elif action == 'restart':
             getattr(self, action)(fd=fd)
         else:

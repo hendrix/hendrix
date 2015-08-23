@@ -37,7 +37,7 @@
     }
   }
   $(function(){
-    var sock = new SockJS('/messages/main/');
+    var sock = new SockJS('http://localhost:8000/messages/main/');
 
     sock.onopen = function() {
      // "hx_subscribe" is a keyword that tells hendrix to subscribe the
