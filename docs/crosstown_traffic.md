@@ -99,7 +99,7 @@ Consider that such a configuration fundamentally changes the logic of the applic
 
 Even with Twisted, which has arguably the best testing practices in all of network asychrony, the threaded async APIs break the Django test runner.
  
- However, hendrix provides diplomacy between the two, resulting in [an elegant, simple test methodology](/testing-asychrony.md).
+ However, hendrix provides diplomacy between the two, resulting in [an elegant, simple test methodology](testing-asynchrony.md).
 
 #### The time of execution is specifically determined: as soon as the response is sent over the wire
 
