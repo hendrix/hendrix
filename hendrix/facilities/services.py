@@ -19,22 +19,27 @@ class HendrixService(service.MultiService):
     log = Logger()
 
     def __init__(
-            self, application, port=80, resources=None, services=None,
+            self,
+            application,
+            port=80,  # TODO: When will this ever be optional?  And why 80 by default?
+            threadpool=None,
+            resources=None,
+            services=None,
             loud=False):
         service.MultiService.__init__(self)
 
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
-        threads = ThreadPool(name="Hendrix Service")
+        if not threadpool:
+            self.threadpool = ThreadPool(name="HendrixService")
+        else:
+            self.threadpool = threadpool
 
-        # Testing threads 1-2-3
-        threads.adjustPoolsize(3, 5)
-
-        reactor.addSystemEventTrigger('after', 'shutdown', threads.stop)
-        ThreadPoolService(threads).setServiceParent(self)
+        reactor.addSystemEventTrigger('after', 'shutdown', self.threadpool.stop)
+        ThreadPoolService(self.threadpool).setServiceParent(self)
 
         # create the base resource and add any additional static resources
-        resource = HendrixResource(reactor, threads, application, loud=loud)
+        resource = HendrixResource(reactor, self.threadpool, application, loud=loud)
         if resources:
             resources = sorted(resources, key=lambda r: r.namespace)
             for res in resources:
