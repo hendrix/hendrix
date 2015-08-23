@@ -18,9 +18,9 @@ class ThroughToYou(object):
                  threadpool=None,
                  reactor=reactor,
                  same_thread=False,
-                 no_go_status_codes=None,
+                 no_go_status_codes=['5xx', '4xx'],
                  fail_without_response=False,
-                 always_spawn_worker=False,
+                 always_spawn_worker=True,
                  ):
         self.threadpool = threadpool
         self.reactor = reactor
@@ -31,6 +31,8 @@ class ThroughToYou(object):
 
         self.no_go = False
         self.status_code = None
+
+        self.process_pool = Pool(2)
 
     def __call__(self, crosstown_task=None):
         self.crosstown_task = crosstown_task
@@ -57,8 +59,9 @@ class ThroughToYou(object):
         if self.no_go:
             return
 
-        # self.process_pool.apply_async(self.crosstown_task)
-        # return
+        self.process_pool.apply_async(self.crosstown_task)
+        return
+
 
         if not threadpool:
             threadpool = self.threadpool or reactor.getThreadPool()

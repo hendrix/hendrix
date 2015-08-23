@@ -13,8 +13,7 @@ import time
 import traceback
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
-from hendrix.deploy import base, cache, workers
-from hendrix.deploy.workers import deployworkers
+from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -51,21 +50,6 @@ class Reload(FileSystemEventHandler):
             ['hx', 'start_reload'] + self.options
         )
         return process
-
-
-def workersLaunch(*args, **options):
-    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
-    options = vars(options)
-    action =args[0]
-    exposeProject(options)
-    try:
-        deploy = workers.WorkersDeploy(action, options)
-        deploy.run()
-    except Exception, e:
-        tb = sys.exc_info()[2]
-        msg = traceback.format_exc(tb)
-        chalk.red(msg, pipe=chalk.stderr)
-        os._exit(1)
 
 
 def launch(*args, **options):
@@ -228,10 +212,7 @@ def main():
     redirect = noiseControl(options)
 
     try:
-        if options['workers']:
-            deployworkers(action, options)
-        else:
-            launch(*args, **options)
+        launch(*args, **options)
     except Exception, Argument:
         print Argument
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)
