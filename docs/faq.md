@@ -10,9 +10,9 @@ Gunicorn and uWSGI are great at what they do: listen on a port for requests and 
 Instead of being first-and-foremost a WSGI container, Hendrix is first-and-foremost a network engine - a Twisted application.
 
 As such, Hendrix is natively able to do threading, asynchrony, websocket traffic, and [speak directly to other services](deploying-other-services.md) in your architecture.
+ 
 
-
-## Wait, async with Django?  How have you solved the problem of the <ORM, Template Loader, etc> blocking?
+## Wait, async with Django?  How have you solved the problem of the (ORM, Template Loader, etc) blocking?
 
 This is one of the first questions people ask when they start to get interested.
 
