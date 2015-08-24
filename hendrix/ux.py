@@ -197,7 +197,11 @@ def main():
     options, args = HendrixOptionParser.parse_args(sys.argv[1:])
     options = vars(options)
 
-    action = args[0]
+    try:
+        action = args[0]
+    except IndexError:
+        HendrixOptionParser.print_help()
+        pass
 
     exposeProject(options)
 
