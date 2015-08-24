@@ -5,3 +5,5 @@ watchdog
 jinja2
 pychalk==0.0.5
 service_identity
+pyOpenSSL
+cryptography
