@@ -29,6 +29,7 @@ processes on a single machine.
 
 Using pip
 
+    sudo apt-get install build-essential libssl-dev libffi-dev python-dev
     pip install hendrix
 
 
