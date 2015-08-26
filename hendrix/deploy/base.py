@@ -80,7 +80,10 @@ class HendrixDeploy(object):
                 wsgi_dot_path
             )
             os.kill(pid, 15)
-        wsgi = importlib.import_module(wsgi_module)
+        try:
+            wsgi = importlib.import_module(wsgi_module)
+        except ImportError:
+            raise ImportError("The path '%s' does not exist" % wsgi_dot_path)
         return getattr(wsgi, application_name, None)
 
     @classmethod
