@@ -153,11 +153,6 @@ def djangoVsWsgi(options):
             options['settings'] = user_settings
         elif settings_mod:
             options['settings'] = settings_mod
-    else:
-        try:
-            base.HendrixDeploy.importWSGI(options['wsgi'])
-        except ImportError:
-            raise ImportError("The path '%s' does not exist" % options['wsgi'])
 
     return options
 
