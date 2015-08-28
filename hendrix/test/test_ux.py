@@ -3,6 +3,7 @@ import sys
 from . import HendrixTestCase, TEST_SETTINGS
 from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
+from hendrix.deploy.base import HendrixDeploy
 from hendrix import ux
 from mock import patch
 
@@ -57,10 +58,8 @@ class TestMain(HendrixTestCase):
 
     def test_wsgi_wrong_path_raises(self):
         wsgi_dot_path = '_this.leads.nowhere.man'
-        options = self.DEFAULTS
-        options.update({'wsgi': wsgi_dot_path})
 
-        self.assertRaises(ImportError, ux.djangoVsWsgi, options)
+        self.assertRaises(ImportError, HendrixDeploy.importWSGI, wsgi_dot_path)
 
     def test_cwd_exposure(self):
         cwd = os.getcwd()

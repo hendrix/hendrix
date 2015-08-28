@@ -80,7 +80,11 @@ class HendrixDeploy(object):
                 wsgi_dot_path
             )
             os.kill(pid, 15)
-        wsgi = importlib.import_module(wsgi_module)
+        try:
+            wsgi = importlib.import_module(wsgi_module)
+        except ImportError, Argument:
+            chalk.red("Unable to Import module '%s'\n" % wsgi_dot_path)
+            raise ImportError, Argument
         return getattr(wsgi, application_name, None)
 
     @classmethod
@@ -171,8 +175,7 @@ class HendrixDeploy(object):
         # args/signals
         if self.options['dev']:
             _args.append('--dev')
-        if self.options['traceback']:
-            _args.append('--traceback')
+
 
         if not self.use_settings:
             _args += ['--wsgi', self.options['wsgi']]
