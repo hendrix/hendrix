@@ -68,11 +68,6 @@ HX_OPTION_LIST = (
         )
     ),
     make_option(
-        '--traceback',
-        action='store_true',
-        help='Raise on exception'
-    ),
-    make_option(
         '--reload',
         action='store_true',
         dest='reload',

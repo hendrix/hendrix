@@ -89,11 +89,8 @@ def launch(*args, **options):
             deploy = HendrixDeploy(action, options)
             deploy.run()
         except Exception, e:
-            if options.get('traceback'):
-                tb = sys.exc_info()[2]
-                msg = traceback.format_exc(tb)
-            else:
-                msg = str(e)
+            tb = sys.exc_info()[2]
+            msg = traceback.format_exc(tb)
             chalk.red(msg, pipe=chalk.stderr)
             os._exit(1)
 
@@ -225,13 +222,6 @@ def main():
             if action not in ['start_reload', 'restart']:
                 chalk.eraser()
                 chalk.green('\nHendrix successfully closed.')
-    except Exception, e:
-        msg = (
-            'ERROR: %s\nCould not %s hendrix. Try again using the --traceback '
-            'flag for more information.'
-        )
-        chalk.red(msg % (str(e), action), pipe=chalk.stderr)
-        if options['traceback']:
-            raise
-        else:
-            os._exit(1)
+    except Exception, Argument:
+        print Argument
+        chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)
