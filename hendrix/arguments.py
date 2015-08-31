@@ -3,9 +3,13 @@ import os
 
 from hendrix import defaults
 
-usage = '''hx start|stop [options]
+usage = '''
 hx -h
-
+hx start|stop [--settings SETTINGS] [--log LOG]
+              [--pythonpath PYTHONPATH] [--http_port HTTP_PORT]
+              [--cache_port CACHE_PORT] [--dev]
+hx start|stop [--http_port HTTP_PORT] [-d] [--dev] [--wsgi WSGI]
+        
 hx is the interface to hendrix, use to start and stop your server.
 
 hx requires either --settings, --wsgi, or the DJANGO_SETTINGS_MODULE
