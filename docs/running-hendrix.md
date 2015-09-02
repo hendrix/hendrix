@@ -8,8 +8,7 @@ Pythonic launch logic is an area where hendrix shines:
 ```python
 from hendrix.deploy.base import HendrixDeploy
 
-options = {'settings': 'settings.location'}
-deployer = HendrixDeploy(options=options)
+deployer = HendrixDeploy(options={'wsgi': wsgi_application_object})
 deployer.run()
 ```
 
@@ -30,7 +29,7 @@ The '--dev' option simply causes hendrix to emit output and elicit behavior simi
 
 * '--reload' is implied: changes to the code will trigger reload
 * '--loud' is implied: stdout and stderr will emit directly
-* '--daemonize' is  disabled: the process will run in foreground of the currenty TTY.
+* '--daemonize' is  disabled: the process will run in foreground of the current TTY.
 
 ### Normal Usage
 The following outlines how to use Hendrix in your day to day life/development.

@@ -11,7 +11,7 @@ def view_that_sends_email(request):
     def send_email_later():
         long_email_api_call()
     
-    return HttpResponse('template.html', {'validated': validated})
+    return Response('template.html', {'validated': validated})
 ```
 
 You can totally test this view in your normal way - pass it a valid request object and inspect the response.
