@@ -99,7 +99,7 @@ def launch(*args, **options):
 
 
 def findSettingsModule():
-    "Find the settings module dot path within django's mnanage.py file"
+    "Find the settings module dot path within django's manage.py file"
     try:
         with open('manage.py', 'r') as manage:
             manage_contents = manage.read()
@@ -197,7 +197,11 @@ def main():
     options, args = HendrixOptionParser.parse_args(sys.argv[1:])
     options = vars(options)
 
-    action = args[0]
+    try:
+        action = args[0]
+    except IndexError:
+        HendrixOptionParser.print_help()
+        return
 
     exposeProject(options)
 
