@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 import traceback
-from .options import HendrixOptionParser, cleanOptions
+from .arguments import HendrixParser, cleanOptions
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
@@ -57,7 +57,6 @@ def launch(*args, **options):
     launch acts on the user specified action and options by executing
     Hedrix.run
     """
-    action = args[0]
     if options['reload']:
         event_handler = Reload(options)
         observer = Observer()
@@ -186,14 +185,10 @@ def noiseControl(options):
 
 def main():
     "The function to execute when running hx"
-    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
-    options = vars(options)
+    args = HendrixParser.parse_args(sys.argv[1:])
+    options = vars(args)
 
-    try:
-        action = args[0]
-    except IndexError:
-        HendrixOptionParser.print_help()
-        return
+    action = options.pop('action')
 
     exposeProject(options)
 
