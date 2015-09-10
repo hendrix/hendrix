@@ -193,7 +193,10 @@ class HendrixDeploy(object):
             # anything in this block is only run once
             self.addGlobalServices()
             self.hendrix.startService()
-            self.launchWorkers()
+            pids = [str(os.getpid())]  # script pid
+            if self.options['workers']:
+                self.launchWorkers(pids)
+            self.pid_file = self.openPidList(pids)
         else:
             fds = pickle.loads(fd)
             factories = {}
@@ -204,28 +207,29 @@ class HendrixDeploy(object):
             for name, factory in factories.iteritems():
                 self.addSubprocesses(fds, name, factory)
 
-    def launchWorkers(self):
-        pids = [str(os.getpid())]  # script pid
-        if self.options['workers']:
-            # Create a new listening port and several other processes to
-            # help out.
-            childFDs = {0: 0, 1: 1, 2: 2}
-            self.fds = {}
-            for name in self.servers:
-                port = self.hendrix.get_port(name)
-                fd = port.fileno()
-                childFDs[fd] = fd
-                self.fds[name] = fd
-            args = self.getSpawnArgs()
-            transports = []
-            for i in range(self.options['workers']):
-                transport = self.reactor.spawnProcess(
-                    None, 'hx', args, childFDs=childFDs, env=environ
-                )
-                transports.append(transport)
-                pids.append(str(transport.pid))
+    def launchWorkers(self, pids):
+        # Create a new listening port and several other processes to
+        # help out.
+        childFDs = {0: 0, 1: 1, 2: 2}
+        self.fds = {}
+        for name in self.servers:
+            port = self.hendrix.get_port(name)
+            fd = port.fileno()
+            childFDs[fd] = fd
+            self.fds[name] = fd
+        args = self.getSpawnArgs()
+        transports = []
+        for i in range(self.options['workers']):
+            transport = self.reactor.spawnProcess(
+                None, 'hx', args, childFDs=childFDs, env=environ
+            )
+            transports.append(transport)
+            pids.append(str(transport.pid))
+
+    def openPidList(self, pids):
         with open(self.pid, 'w') as pid_file:
             pid_file.write('\n'.join(pids))
+        return pid_file
 
     def addSubprocesses(self, fds, name, factory):
         self.reactor.adoptStreamPort(  # outputs port
