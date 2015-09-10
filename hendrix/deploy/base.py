@@ -193,7 +193,10 @@ class HendrixDeploy(object):
             # anything in this block is only run once
             self.addGlobalServices()
             self.hendrix.startService()
-            self.launchWorkers()
+            pids = [str(os.getpid())]  # script pid
+            if self.options['workers']:
+                self.launchWorkers(pids)
+            self.pid_file = self.openPidList(pids)
         else:
             fds = pickle.loads(fd)
             factories = {}
@@ -204,8 +207,12 @@ class HendrixDeploy(object):
             for name, factory in factories.iteritems():
                 self.addSubprocesses(fds, name, factory)
 
+<<<<<<< HEAD
     def launchWorkers(self):
         pids = [str(os.getpid())]  # script pid
+=======
+    def launchWorkers(self, pids):
+>>>>>>> f706cd4... refactor of launchWorkers.
         # Create a new listening port and several other processes to
         # help out.
         childFDs = {0: 0, 1: 1, 2: 2}
@@ -223,8 +230,14 @@ class HendrixDeploy(object):
             )
             transports.append(transport)
             pids.append(str(transport.pid))
+<<<<<<< HEAD
+=======
+
+    def openPidList(self, pids):
+>>>>>>> f706cd4... refactor of launchWorkers.
         with open(self.pid, 'w') as pid_file:
             pid_file.write('\n'.join(pids))
+        return pid_file
 
     def addSubprocesses(self, fds, name, factory):
         self.reactor.adoptStreamPort( 
