@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 import traceback
-from .options import HendrixOptionParser, cleanOptions
+from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
@@ -204,19 +204,10 @@ def main():
     redirect = noiseControl(options)
 
     try:
-        if options['daemonize']:
-            daemonize, _reload, opts = cleanOptions(options)
-            process = subprocess.Popen(
-                ['hx', action] + opts, stdout=redirect, stderr=redirect
-            )
-            time.sleep(2)
-            if process.poll():
-                raise RuntimeError
-        else:
-            launch(*args, **options)
-            if action not in ['start_reload', 'restart']:
-                chalk.eraser()
-                chalk.green('\nHendrix successfully closed.')
+        launch(*args, **options)
+        if action not in ['start_reload', 'restart']:
+            chalk.eraser()
+            chalk.green('\nHendrix successfully closed.')
     except Exception, Argument:
         print Argument
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)

@@ -120,20 +120,6 @@ class TestMain(HendrixTestCase):
 
         self.assertEqual(redirect, None)
 
-    def test_main_with_daemonize(self):
-        sys.argv = self.args_list + ['-d', '--settings', TEST_SETTINGS]
-
-        class Process(object):
-            def poll(self):
-                return 0
-        with patch('time.sleep'):
-            with patch('subprocess.Popen') as popen:
-                popen.return_value = Process()
-                ux.main()
-                self.assertTrue(popen.called)
-                self.assertTrue('--settings' in popen.call_args[0][0])
-        sys.argv = []
-
     def test_options_structure(self):
         """
         A test to ensure that HendrixDeploy.options also has the complete set
