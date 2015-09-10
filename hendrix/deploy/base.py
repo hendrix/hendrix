@@ -206,6 +206,8 @@ class HendrixDeploy(object):
             self.hendrix.startService()
             for name, factory in factories.iteritems():
                 self.addSubprocesses(fds, name, factory)
+            chalk.eraser()
+            chalk.blue('Starting Hendrix...')
 
 <<<<<<< HEAD
     def launchWorkers(self):
@@ -254,6 +256,7 @@ class HendrixDeploy(object):
                     # OSError raised when it trys to kill the child processes
                     pass
         os.remove(self.pid)
+        chalk.green('Stopping Hendrix...')
 
     def start_reload(self, fd=None):
         self.start(fd=fd)
