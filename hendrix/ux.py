@@ -204,11 +204,6 @@ def main():
     redirect = noiseControl(options)
 
     try:
-        if action == 'start' and not options['daemonize']:
-            chalk.eraser()
-            chalk.blue('Starting Hendrix...')
-        elif action == 'stop':
-            chalk.green('Stopping Hendrix...')
         if options['daemonize']:
             daemonize, _reload, opts = cleanOptions(options)
             process = subprocess.Popen(
