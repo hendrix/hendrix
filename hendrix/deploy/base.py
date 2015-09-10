@@ -255,6 +255,25 @@ class HendrixDeploy(object):
             pids.append(str(transport.pid))
 
 
+    def launchWorkers(self, pids):
+        # Create a new listening port and several other processes to
+        # help out.
+        childFDs = {0: 0, 1: 1, 2: 2}
+        self.fds = {}
+        for name in self.servers:
+            port = self.hendrix.get_port(name)
+            fd = port.fileno()
+            childFDs[fd] = fd
+            self.fds[name] = fd
+        args = self.getSpawnArgs()
+        transports = []
+        for i in range(self.options['workers']):
+            transport = self.reactor.spawnProcess(
+                None, 'hx', args, childFDs=childFDs, env=environ
+            )
+            transports.append(transport)
+            pids.append(str(transport.pid))
+
     def openPidList(self, pids):
         with open(self.pid, 'w') as pid_file:
             pid_file.write('\n'.join(pids))
