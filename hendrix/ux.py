@@ -204,10 +204,10 @@ def main():
     redirect = noiseControl(options)
 
     try:
-        launch(*args, **options)
-        if action not in ['start_reload', 'restart']:
-            chalk.eraser()
-            chalk.green('\nHendrix successfully closed.')
+        if options['workers']:
+            deployworkers(action, options, launch)
+        else:
+            launch(action, options)
     except Exception, Argument:
         print Argument
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)
