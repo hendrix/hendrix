@@ -1,18 +1,26 @@
+import os
+import chalk
+
 from .base import HendrixDeploy
 from hendrix.options import options as hx_options
 from twisted.internet import reactor
+from twisted.internet import protocol
 
 
-def deployworkers(action, options, func):
+def deployworkers(action, options):
     # Create a new listening port and several other processes to
     # help out.
-    fds = {}
+    pids = [str(os.getpid())]
+    protocol = WorkerProtocol()
     deployer = WorkersDeploy(action, options)
     deployer.fdssetter()
-#    args = deployer.getSpawnArgs()
+    args = deployer.getSpawnArgs()
+    childFDs = deployer.workerLogic()
     transports = []
     for i in range(options['workers']):
-        transport = func(action, options)
+        transport = deployer.reactor.spawnProcess(
+            protocol, 'hxw',
+    args, childFDs=childFDs, env=os.environ)
         transports.append(transport)
         pids.append(str(transport.pid))
 
@@ -84,9 +92,7 @@ class WorkersDeploy(HendrixDeploy):
             self.addSubprocesses(fds, name, factory)
 
 
-    def launchWorkers(self, pids):
-        # Create a new listening port and several other processes to
-        # help out.
+    def workerLogic(self):
         childFDs = {0: 0, 1: 1, 2: 2}
         self.fds = {}
         for name in self.servers:
@@ -94,5 +100,4 @@ class WorkersDeploy(HendrixDeploy):
             fd = port.fileno()
             childFDs[fd] = fd
             self.fds[name] = fd
-        args = self.getSpawnArgs()
-        transports = []
+        return childFDs
