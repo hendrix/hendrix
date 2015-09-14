@@ -52,6 +52,12 @@ class Reload(FileSystemEventHandler):
         return process
 
 
+def workersLaunch(action, options):
+    args = HendrixParser.parse_args(sys.argv[1:])
+    options = vars(args)
+    launch(action, options)
+
+
 def launch(*args, **options):
     """
     launch acts on the user specified action and options by executing
