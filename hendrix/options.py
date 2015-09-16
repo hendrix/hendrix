@@ -3,6 +3,27 @@ from optparse import make_option, OptionParser
 import os
 
 
+def cleanOptions(options):
+    """
+    Takes an options dict and returns a tuple containing the daemonize boolean,
+    the reload boolean, and the parsed list of cleaned options as would be
+    expected to be passed to hx
+    """
+    _reload = options.pop('reload')
+    dev = options.pop('dev')
+    opts = []
+    store_true = [
+        '--nocache', '--global_cache', '--quiet', '--loud'
+    ]
+    store_false = []
+    for key, value in options.iteritems():
+        key = '--' + key
+        if (key in store_true and value) or (key in store_false and not value):
+            opts += [key, ]
+        elif value:
+            opts += [key, str(value)]
+        return _reload, opts
+
 HX_OPTION_LIST = (
     make_option(
         '-v', '--verbosity',

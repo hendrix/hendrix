@@ -25,7 +25,7 @@ class Reload(FileSystemEventHandler):
 
     def __init__(self, options, *args, **kwargs):
         super(Reload, self).__init__(*args, **kwargs)
-        daemonize, self.reload, self.options = cleanOptions(options)
+        self.reload, self.options = cleanOptions(options)
         if not self.reload:
             raise RuntimeError(
                 'Reload should not be run if --reload has not been passed to '
