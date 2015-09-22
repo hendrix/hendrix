@@ -20,7 +20,6 @@ def deployworkers(action, options):
     pids = [str(os.getpid())]
     protocol = WorkerProtocol()
     deployer = WorkersDeploy(action, options)
-    deployer.fdssetter()
     args = deployer.getSpawnArgs()
     childFDs = deployer.workerLogic()
     transports = []
@@ -80,13 +79,6 @@ class WorkersDeploy(HendrixDeploy):
 
         self.servers = []
 
-
-    def fdssetter(self):
-        for name in self.servers:
-            port = self.hendrix.get_port(name)
-            fd = port.fileno()
-            childFDs[fd] = fd
-            self.fds[name] = fd
 
     def start(self, fd=None):
         fds = pickle.loads(fd)
