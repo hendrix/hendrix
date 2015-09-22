@@ -7,6 +7,12 @@ from twisted.internet import reactor
 from twisted.internet import protocol
 
 
+class WorkerProtocol(protocol.ProcessProtocol):
+    
+    def __init__(self):
+        pass
+
+
 def deployworkers(action, options):
     # Create a new listening port and several other processes to
     # help out.

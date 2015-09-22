@@ -14,6 +14,7 @@ import traceback
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache, workers
+from hendrix.deploy.workers import deployworkers
 from hendrix.logger import hendrixObserver
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -52,11 +53,12 @@ class Reload(FileSystemEventHandler):
         return process
 
 
-def workersLaunch(action, options):
-    args = HendrixParser.parse_args(sys.argv[1:])
-    options = vars(args)
+def workersLaunch(*args, **options):
+    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
+    options = vars(options)
+    action =args[0]
     try:
-        deploy = workers.WorkerDeploy(action, options)
+        deploy = workers.WorkersDeploy(action, options)
         deploy.run()
     except Exception, e:
         tb = sys.exc_info()[2]
