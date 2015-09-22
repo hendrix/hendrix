@@ -57,6 +57,7 @@ def workersLaunch(*args, **options):
     options, args = HendrixOptionParser.parse_args(sys.argv[1:])
     options = vars(options)
     action =args[0]
+    exposeProject(options)
     try:
         deploy = workers.WorkersDeploy(action, options)
         deploy.run()

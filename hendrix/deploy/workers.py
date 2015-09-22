@@ -1,4 +1,5 @@
 import os
+import pickle
 import chalk
 
 from .base import HendrixDeploy
@@ -87,7 +88,7 @@ class WorkersDeploy(HendrixDeploy):
             childFDs[fd] = fd
             self.fds[name] = fd
 
-    def start(self):
+    def start(self, fd=None):
         fds = pickle.loads(fd)
         factories = {}
         for name in self.servers:
