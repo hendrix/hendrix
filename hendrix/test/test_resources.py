@@ -3,7 +3,11 @@ import unittest
 from twisted.web.resource import getChildForRequest, NoResource
 from twisted.web.test.requesthelper import DummyRequest
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 from hendrix.facilities.resources import HendrixResource, NamedResource, WSGIResource
 
 

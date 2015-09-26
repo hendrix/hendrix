@@ -5,7 +5,11 @@ from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
 from hendrix.deploy.base import HendrixDeploy
 from hendrix import ux
-from mock import patch
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 
 class TestMain(HendrixTestCase):
@@ -128,4 +132,4 @@ class TestMain(HendrixTestCase):
         deploy = self.wsgiDeploy()
         expected_keys = self.DEFAULTS.keys()
         actual_keys = deploy.options.keys()
-        self.assertListEqual(expected_keys, actual_keys)
+        self.assertEqual(expected_keys, actual_keys)

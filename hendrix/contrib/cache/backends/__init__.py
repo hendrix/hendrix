@@ -1,7 +1,10 @@
 """
 Fuck YEAH. enthusiasm.
 """
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 from hendrix.contrib.cache import compressBuffer, decompressBuffer
 
