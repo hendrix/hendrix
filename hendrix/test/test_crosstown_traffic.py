@@ -1,5 +1,5 @@
 import threading
-from Queue import Queue
+from six.moves.queue import Queue
 
 from twisted.internet.threads import deferToThreadPool
 from twisted.trial.unittest import TestCase
@@ -48,7 +48,7 @@ class NoGoStatusCodes(TestCase):
                 self.nameSpace.async_task_was_run = True
                 log.debug("No bad status codes; went ahead with async thing.")
 
-            return "Nothing."
+            return b"Nothing."
 
     def test_bad_status_codes_cause_no_go_in_wsgi_response(self):
         self.no_go_status_codes = [404, '6xx']
@@ -105,7 +105,7 @@ class SameOrDifferentThread(TestCase):
                 nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
                 log.debug("Finished async thing on same thread.")
 
-            return "Nothing."
+            return b"Nothing."
 
     def assert_that_threads_are_the_same(self):
         self.assertEqual(

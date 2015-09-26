@@ -56,7 +56,7 @@ def application(environ, start_response):
         # ...and again, the async task still hasn't been run yet.
         nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
 
-        return ['The first sync response']
+        return b'The first sync response'
 
     if environ['PATH_INFO'] == '/r/2':
         nameSpace.ready_to_proceed_with_second_cycle.get(True, 3)
@@ -83,7 +83,7 @@ def application(environ, start_response):
         )
 
         nameSpace.second_cycle_complete.put(True)
-        return['The second sync request.']
+        return b'The second sync request.'
 
     other_inane_thing = False
 
