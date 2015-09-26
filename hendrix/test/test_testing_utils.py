@@ -61,6 +61,6 @@ class TestRecordTasksAsList(TestCase):
 
         @crosstown_traffic()
         def add_to_task_list():
-            print "this will be in the task list"
+            pass
 
         self.assertEqual(len(task_list), 1)

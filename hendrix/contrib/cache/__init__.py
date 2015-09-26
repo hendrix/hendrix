@@ -1,7 +1,14 @@
-import cStringIO
+try:
+    import cStringIO
+except ImportError:
+    from io import BytesIO as cStringIO
 from datetime import datetime
 import gzip
-import urlparse
+
+try:
+    import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 from time import strptime
 from twisted.web.resource import Resource

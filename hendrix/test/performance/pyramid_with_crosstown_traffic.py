@@ -1,8 +1,10 @@
+from multiprocessing import Pool
 import sys, os
 import threading
 from pyramid.config import Configurator
 from pyramid.response import Response
 import time
+import requests
 
 # begin chdir armor
 up = os.path.dirname(os.path.abspath(__file__))
@@ -15,7 +17,6 @@ sys.path.insert(0, hendrix_package_dir)
 
 from hendrix.deploy.base import HendrixDeploy
 from hendrix.experience import crosstown_traffic
-from hendrix.contrib.async.resources import MessageResource
 from zope.interface import provider
 from twisted.logger import ILogObserver, formatEvent
 
@@ -23,6 +24,7 @@ from twisted.logger import ILogObserver, formatEvent
 def simpleObserver(event):
     print(formatEvent(event))
 
+# from twisted.logger import globalLogBeginner
 # globalLogBeginner.beginLoggingTo([simpleObserver], redirectStandardIO=False)
 
 def cpu_heavy(heft, label=None):
@@ -43,40 +45,63 @@ def cpu_heavy(heft, label=None):
         count += 1
 
         if count == end / 2 and end % 2 == 0:
-            print "%s halfway: %s" % (label, time.time() - timer_start)
+            print("%s halfway: %s" % (label, time.time() - timer_start))
             time.sleep(0)
 
         if count == end:
-            print "%s done: %s" % (label, time.time() - timer_start)
+            print("%s done: %s" % (label, time.time() - timer_start))
             return
 
+global total_requests
+global avg_duration
+total_requests = 0
+avg_duration = 0
 
-def fib_view(request):
+def long():
+    global total_requests
+    global avg_duration
 
-    label = request.matchdict['label']
-    stream_thread = threading.current_thread()
-    print "Received request %s on thread %s" % (label, stream_thread.name)
+    previous_duration = (total_requests * avg_duration)
+    total_requests += 1
 
-    @crosstown_traffic(same_thread=False,
-                       always_spawn_worker=True)
-    def wait():
-        timer_start = time.time()
-        thread = threading.current_thread()
-        print "Starting label %s on %s" % (label, thread.name)
-        cpu_heavy(590000, label)
-        # r = requests.get('http://localhost:8010/2')
-        print "Finished label %s after %s" % (label, time.time() - timer_start)
+    timer_start = time.time()
+    thread = threading.current_thread()
+    print("Starting stream %s on %s" % (total_requests, thread.name))
+    # cpu_heavy(100000, label)
+    r = requests.get('http://localhost:8010/.25')
 
-    print "Returning response for %s" % label
+    duration = time.time() - timer_start
+    print("Finished stream %s after %s" % (total_requests, duration))
 
-    return Response('Starting Fibonacci %(label)s!' % request.matchdict)
+    avg_duration = float(previous_duration + duration) / float(total_requests)
+
+    print("Average duration after %s: %s" % (total_requests, avg_duration))
+
+
+class PerformanceTest(object):
+
+    pool = Pool(20)
+
+    def view(self, request):
+
+        # option 1
+        # @crosstown_traffic()
+        # def wait():
+        #     long()
+
+        # option 2
+
+        self.pool.apply_async(long)
+
+        return Response()
+
+
+config = Configurator()
+config.add_route('test_view', '/')
+config.add_view(PerformanceTest().view, route_name='test_view')
+
+app = config.make_wsgi_app()
 
 if __name__ == '__main__':
-    config = Configurator()
-    config.add_route('fib', '/fib/{label}')
-    config.add_view(fib_view, route_name='fib')
-
-    app = config.make_wsgi_app()
     deployer = HendrixDeploy(options={'wsgi': app})
-    deployer.resources.append(MessageResource)
     deployer.run()

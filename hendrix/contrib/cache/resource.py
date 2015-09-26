@@ -1,5 +1,12 @@
-import cStringIO
-import urlparse
+try:
+    import cStringIO
+except ImportError:
+    from io import BytesIO as cStringIO
+
+try:
+    import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 from . import decompressBuffer, compressBuffer
 from .backends.memory_cache import MemoryCacheBackend
@@ -9,7 +16,11 @@ from hendrix.utils import responseInColor
 from twisted.internet import reactor
 from twisted.web import proxy, client
 from twisted.web.server import NOT_DONE_YET
-from urllib import quote as urlquote
+
+try:
+    from urllib import quote as urlquote
+except ImportError:
+    from urllib.parse import quote as urlquote
 
 
 class CacheClient(proxy.ProxyClient):
