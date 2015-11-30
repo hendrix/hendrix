@@ -1,0 +1,9 @@
+#!/usr/bin/env -t
+
+import chalk
+import sys
+from hendrix.ux import workersLaunch
+
+
+if __name__ == "__main__":
+    workersLaunch('start', sys.argv)

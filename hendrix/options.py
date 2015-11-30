@@ -9,12 +9,11 @@ def cleanOptions(options):
     the reload boolean, and the parsed list of cleaned options as would be
     expected to be passed to hx
     """
-    daemonize = options.pop('daemonize')
     _reload = options.pop('reload')
     dev = options.pop('dev')
     opts = []
     store_true = [
-        '--nocache', '--global_cache', '--traceback', '--quiet', '--loud'
+        '--nocache', '--global_cache', '--quiet', '--loud'
     ]
     store_false = []
     for key, value in options.iteritems():
@@ -23,8 +22,7 @@ def cleanOptions(options):
             opts += [key, ]
         elif value:
             opts += [key, str(value)]
-    return daemonize, _reload, opts
-
+        return _reload, opts
 
 HX_OPTION_LIST = (
     make_option(
@@ -154,13 +152,6 @@ HX_OPTION_LIST = (
         dest='fd',
         default=None,
         help='DO NOT SET THIS'
-    ),
-    make_option(
-        '-d', '--daemonize',
-        dest='daemonize',
-        action='store_true',
-        default=False,
-        help='Run in the background'
     ),
     make_option(
         '--dev',

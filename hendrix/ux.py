@@ -11,9 +11,10 @@ import subprocess
 import sys
 import time
 import traceback
-from .options import HendrixOptionParser, cleanOptions
+from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
-from hendrix.deploy import base, cache
+from hendrix.deploy import base, cache, workers
+from hendrix.deploy.workers import deployworkers
 from hendrix.logger import hendrixObserver
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -25,7 +26,7 @@ class Reload(FileSystemEventHandler):
 
     def __init__(self, options, *args, **kwargs):
         super(Reload, self).__init__(*args, **kwargs)
-        daemonize, self.reload, self.options = cleanOptions(options)
+        self.reload, self.options = cleanOptions(options)
         if not self.reload:
             raise RuntimeError(
                 'Reload should not be run if --reload has not been passed to '
@@ -50,6 +51,21 @@ class Reload(FileSystemEventHandler):
             ['hx', 'start_reload'] + self.options
         )
         return process
+
+
+def workersLaunch(*args, **options):
+    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
+    options = vars(options)
+    action =args[0]
+    exposeProject(options)
+    try:
+        deploy = workers.WorkersDeploy(action, options)
+        deploy.run()
+    except Exception, e:
+        tb = sys.exc_info()[2]
+        msg = traceback.format_exc(tb)
+        chalk.red(msg, pipe=chalk.stderr)
+        os._exit(1)
 
 
 def launch(*args, **options):
@@ -88,9 +104,12 @@ def launch(*args, **options):
                 HendrixDeploy = base.HendrixDeploy
             deploy = HendrixDeploy(action, options)
             deploy.run()
-        except Exception, e:
-            tb = sys.exc_info()[2]
-            msg = traceback.format_exc(tb)
+        except Exception as e:
+            if options.get('traceback'):
+                tb = sys.exc_info()[2]
+                msg = traceback.format_exc(tb)
+            else:
+                msg = str(e)
             chalk.red(msg, pipe=chalk.stderr)
             os._exit(1)
 
@@ -119,12 +138,12 @@ def findSettingsModule():
                 settings_mod = search.group("module")
 
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_mod)
-    except IOError, e:
+    except IOError as e:
         msg = (
             str(e) + '\nPlease ensure that you are in the same directory '
             'as django\'s "manage.py" file.'
         )
-        raise IOError(chalk.format_red(msg)), None, sys.exc_info()[2]
+        raise IOError(chalk.format_red(msg), None, sys.exc_info()[2])
     except AttributeError:
         settings_mod = ''
     return settings_mod
@@ -143,13 +162,18 @@ def djangoVsWsgi(options):
                 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", '
                 '"mysettings.dot.path")'
             )
-            raise SettingsError(chalk.format_red(msg)), None, sys.exc_info()[2]
+            raise SettingsError(chalk.format_red(msg), None, sys.exc_info()[2])
         elif user_settings:
             # if the user specified the settings to use then these take
             # precedence
             options['settings'] = user_settings
         elif settings_mod:
             options['settings'] = settings_mod
+    else:
+        try:
+            base.HendrixDeploy.importWSGI(options['wsgi'])
+        except ImportError:
+            raise ImportError("The path '%s' does not exist" % options['wsgi'])
 
     return options
 
@@ -204,24 +228,10 @@ def main():
     redirect = noiseControl(options)
 
     try:
-        if action == 'start' and not options['daemonize']:
-            chalk.eraser()
-            chalk.blue('Starting Hendrix...')
-        elif action == 'stop':
-            chalk.green('Stopping Hendrix...')
-        if options['daemonize']:
-            daemonize, _reload, opts = cleanOptions(options)
-            process = subprocess.Popen(
-                ['hx', action] + opts, stdout=redirect, stderr=redirect
-            )
-            time.sleep(2)
-            if process.poll():
-                raise RuntimeError
+        if options['workers']:
+            deployworkers(action, options)
         else:
             launch(*args, **options)
-            if action not in ['start_reload', 'restart']:
-                chalk.eraser()
-                chalk.green('\nHendrix successfully closed.')
     except Exception, Argument:
         print Argument
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)

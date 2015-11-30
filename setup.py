@@ -72,6 +72,7 @@ setup(
     keywords=["django", "twisted", "async", "logging", "wsgi"],
     scripts=[
         'hendrix/utils/scripts/hx',
+        'hendrix/utils/scripts/hxw',
         'hendrix/utils/scripts/install-hendrix-service'
     ],
     data_files=[
