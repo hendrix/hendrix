@@ -23,3 +23,7 @@ notifications:
   slack:
     secure: GFEH6jWPBgEY01gX6KmWSpKgsyLAtofD0C2kKaj1a5j2uit9NDwys2JM5ULUSPw7acy09XecySXABTymUDuhTGcXhivP0LLkzL0xA0eILz9Z1HbkJy7lxVufb7Q3qwM58MXzscRayvpAmODK8zJDFE5739NH6oYSJOlGMDn+l+c=
 script: tox
+before_install:
+  - pip install codecov
+after_success:
+  - codecov
