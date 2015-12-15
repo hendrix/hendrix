@@ -7,6 +7,7 @@ import pickle
 
 from os import environ
 from socket import AF_INET
+from twisted.python.threadpool import ThreadPool
 
 from hendrix import defaults
 from hendrix.options import options as hx_options
@@ -23,13 +24,16 @@ class HendrixDeploy(object):
     the HendrixService on a single or multiple processes.
     """
 
-    def __init__(self, action='start', options={}, reactor=reactor):
+    def __init__(self, action='start', options={},
+                 reactor=reactor, threadpool=None):
         self.action = action
         self.options = hx_options()
         self.options.update(options)
         self.services = []
         self.resources = []
         self.reactor = reactor
+
+        self.threadpool = threadpool or ThreadPool(name="Hendrix Web Service")
 
         self.use_settings = True
         # because running the management command overrides self.options['wsgi']
@@ -120,11 +124,23 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
+    def getThreadPool(self):
+        '''
+        Case to match twisted.internet.reactor
+        '''
+        return self.threadpool
+
     def addHendrix(self):
-        "instantiates the HendrixService"
+        '''
+        Instantiates a HendrixService with this object's threadpool.
+        It will be added as a service later.
+        '''
         self.hendrix = HendrixService(
-            self.application, self.options['http_port'],
-            resources=self.resources, services=self.services,
+            self.application,
+            self.options['http_port'],
+            threadpool=self.getThreadPool(),
+            resources=self.resources,
+            services=self.services,
             loud=self.options['loud']
         )
 
@@ -148,7 +164,12 @@ class HendrixDeploy(object):
                 )
             )
             getattr(self, action)(fd)
+
+            ###########################
+            # annnnd run the reactor! #
+            ###########################
             self.reactor.run()
+
         elif action == 'restart':
             getattr(self, action)(fd=fd)
         else:
@@ -193,7 +214,10 @@ class HendrixDeploy(object):
             # anything in this block is only run once
             self.addGlobalServices()
             self.hendrix.startService()
-            self.launchWorkers()
+            pids = [str(os.getpid())]  # script pid
+            if self.options['workers']:
+                self.launchWorkers(pids)
+            self.pid_file = self.openPidList(pids)
         else:
             fds = pickle.loads(fd)
             factories = {}
@@ -203,29 +227,32 @@ class HendrixDeploy(object):
             self.hendrix.startService()
             for name, factory in factories.iteritems():
                 self.addSubprocesses(fds, name, factory)
+            chalk.eraser()
+            chalk.blue('Starting Hendrix...')
 
-    def launchWorkers(self):
-        pids = [str(os.getpid())]  # script pid
-        if self.options['workers']:
-            # Create a new listening port and several other processes to
-            # help out.
-            childFDs = {0: 0, 1: 1, 2: 2}
-            self.fds = {}
-            for name in self.servers:
-                port = self.hendrix.get_port(name)
-                fd = port.fileno()
-                childFDs[fd] = fd
-                self.fds[name] = fd
-            args = self.getSpawnArgs()
-            transports = []
-            for i in range(self.options['workers']):
-                transport = self.reactor.spawnProcess(
-                    None, 'hx', args, childFDs=childFDs, env=environ
-                )
-                transports.append(transport)
-                pids.append(str(transport.pid))
+    def launchWorkers(self, pids):
+        # Create a new listening port and several other processes to
+        # help out.
+        childFDs = {0: 0, 1: 1, 2: 2}
+        self.fds = {}
+        for name in self.servers:
+            port = self.hendrix.get_port(name)
+            fd = port.fileno()
+            childFDs[fd] = fd
+            self.fds[name] = fd
+        args = self.getSpawnArgs()
+        transports = []
+        for i in range(self.options['workers']):
+            transport = self.reactor.spawnProcess(
+                None, 'hx', args, childFDs=childFDs, env=environ
+            )
+            transports.append(transport)
+            pids.append(str(transport.pid))
+
+    def openPidList(self, pids):
         with open(self.pid, 'w') as pid_file:
             pid_file.write('\n'.join(pids))
+        return pid_file
 
     def addSubprocesses(self, fds, name, factory):
         self.reactor.adoptStreamPort(  # outputs port
@@ -242,6 +269,7 @@ class HendrixDeploy(object):
                     # OSError raised when it trys to kill the child processes
                     pass
         os.remove(self.pid)
+        chalk.green('Stopping Hendrix...')
 
     def start_reload(self, fd=None):
         self.start(fd=fd)

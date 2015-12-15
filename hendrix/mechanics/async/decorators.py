@@ -1,10 +1,11 @@
 import threading
+from multiprocessing import Process, Pool
 
-from twisted.internet.threads import deferToThreadPool
 from twisted.internet import reactor
-from twisted.python.threadpool import ThreadPool
 
 from twisted.logger import Logger
+from twisted.internet.threads import deferToThreadPool
+
 from hendrix.mechanics.async import get_response_for_thread
 from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
 
@@ -14,15 +15,19 @@ class ThroughToYou(object):
     log = Logger()
 
     def __init__(self,
+                 threadpool=None,
                  reactor=reactor,
                  same_thread=False,
-                 no_go_status_codes=['5xx', '4xx'],
-                 fail_without_response=False
+                 no_go_status_codes=None,
+                 fail_without_response=False,
+                 always_spawn_worker=False,
                  ):
+        self.threadpool = threadpool
         self.reactor = reactor
         self.same_thread = same_thread
-        self.no_go_status_codes = no_go_status_codes
+        self.no_go_status_codes = no_go_status_codes or ['5xx', '4xx']
         self.fail_without_response = fail_without_response
+        self.always_spawn_worker = always_spawn_worker
 
         self.no_go = False
         self.status_code = None
@@ -52,13 +57,22 @@ class ThroughToYou(object):
         if self.no_go:
             return
 
+        # self.process_pool.apply_async(self.crosstown_task)
+        # return
+
         if not threadpool:
-            threadpool = reactor.threadpool or ThreadPool()
+            threadpool = self.threadpool or reactor.getThreadPool()
 
         if self.same_thread:
             self.crosstown_task()
         else:
+            if self.always_spawn_worker:
+                threadpool.startAWorker()
+
             deferToThreadPool(reactor, threadpool, self.crosstown_task)
+
+            # if self.always_spawn_worker:
+            #     threadpool.stopAWorker()
 
     def populate_no_go_status_code_list(self):
         self.no_go_status_code_list = []

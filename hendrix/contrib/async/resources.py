@@ -4,6 +4,7 @@ import uuid
 from twisted.internet import threads
 from twisted.internet.protocol import Factory, Protocol
 from txsockjs.factory import SockJSResource
+
 from hendrix.facilities.resources import NamedResource
 
 from .messaging import hxdispatcher

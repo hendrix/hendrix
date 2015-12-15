@@ -2,6 +2,7 @@ from twisted.web.wsgi import _WSGIResponse
 from twisted.logger import Logger
 import threading
 from hendrix.utils import responseInColor
+from twisted.internet import reactor
 
 
 class HendrixWSGIResponse(_WSGIResponse):
@@ -13,6 +14,7 @@ class HendrixWSGIResponse(_WSGIResponse):
         return super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
+        r = reactor
         self.thread = threading.current_thread()
         # thread_list.append(self.thread)  # Debug
         # logger.debug("Assigning %s as the current response for thread %s" % (self, self.thread))
@@ -31,7 +33,7 @@ class HendrixWSGIResponse(_WSGIResponse):
             # Set no-go if status code is bad.
             task.check_status_code_against_no_go_list()
 
-            task.run(self.threadpool)
+            task.run()
 
 
 class LoudWSGIResponse(HendrixWSGIResponse):

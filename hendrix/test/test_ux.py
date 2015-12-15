@@ -5,7 +5,11 @@ from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
 from hendrix.deploy.base import HendrixDeploy
 from hendrix import ux
-from mock import patch
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 
 class TestMain(HendrixTestCase):
@@ -120,20 +124,6 @@ class TestMain(HendrixTestCase):
 
         self.assertEqual(redirect, None)
 
-    def test_main_with_daemonize(self):
-        sys.argv = self.args_list + ['-d', '--settings', TEST_SETTINGS]
-
-        class Process(object):
-            def poll(self):
-                return 0
-        with patch('time.sleep'):
-            with patch('subprocess.Popen') as popen:
-                popen.return_value = Process()
-                ux.main()
-                self.assertTrue(popen.called)
-                self.assertTrue('--settings' in popen.call_args[0][0])
-        sys.argv = []
-
     def test_options_structure(self):
         """
         A test to ensure that HendrixDeploy.options also has the complete set
@@ -142,4 +132,4 @@ class TestMain(HendrixTestCase):
         deploy = self.wsgiDeploy()
         expected_keys = self.DEFAULTS.keys()
         actual_keys = deploy.options.keys()
-        self.assertListEqual(expected_keys, actual_keys)
+        self.assertEqual(expected_keys, actual_keys)
