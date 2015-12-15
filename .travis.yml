@@ -4,6 +4,7 @@ env:
 - TOXENV=pypy
 install:
 - pip install tox
+- pip install coverage
 notifications:
   email:
     recipients:
