@@ -120,6 +120,13 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
+    def addGlobalServices(self):
+        """
+        This is where we put service that we don't want to be duplicated on
+        worker subprocesses
+        """
+        pass
+
     def addHendrix(self):
         "instantiates the HendrixService"
         self.hendrix = HendrixService(
@@ -181,13 +188,6 @@ class HendrixDeploy(object):
             _args += ['--wsgi', self.options['wsgi']]
         return _args
 
-    def addGlobalServices(self):
-        """
-        This is where we put service that we don't want to be duplicated on
-        worker subprocesses
-        """
-        pass
-
     def start(self, fd=None):
         if fd is None:
             # anything in this block is only run once
@@ -206,29 +206,28 @@ class HendrixDeploy(object):
 
     def launchWorkers(self):
         pids = [str(os.getpid())]  # script pid
-        if self.options['workers']:
-            # Create a new listening port and several other processes to
-            # help out.
-            childFDs = {0: 0, 1: 1, 2: 2}
-            self.fds = {}
-            for name in self.servers:
-                port = self.hendrix.get_port(name)
-                fd = port.fileno()
-                childFDs[fd] = fd
-                self.fds[name] = fd
-            args = self.getSpawnArgs()
-            transports = []
-            for i in range(self.options['workers']):
-                transport = self.reactor.spawnProcess(
-                    None, 'hx', args, childFDs=childFDs, env=environ
-                )
-                transports.append(transport)
-                pids.append(str(transport.pid))
+        # Create a new listening port and several other processes to
+        # help out.
+        childFDs = {0: 0, 1: 1, 2: 2}
+        self.fds = {}
+        for name in self.servers:
+            port = self.hendrix.get_port(name)
+            fd = port.fileno()
+            childFDs[fd] = fd
+            self.fds[name] = fd
+        args = self.getSpawnArgs()
+        transports = []
+        for i in range(self.options['workers']):
+            transport = self.reactor.spawnProcess(
+                None, 'hx', args, childFDs=childFDs, env=environ
+            )
+            transports.append(transport)
+            pids.append(str(transport.pid))
         with open(self.pid, 'w') as pid_file:
             pid_file.write('\n'.join(pids))
 
     def addSubprocesses(self, fds, name, factory):
-        self.reactor.adoptStreamPort(  # outputs port
+        self.reactor.adoptStreamPort( 
             fds[name], AF_INET, factory
         )
 

@@ -131,7 +131,7 @@ HX_OPTION_LIST = (
         '-w', '--workers',
         type=int,
         dest='workers',
-        default=0,
+        default=1,
         help='Number of processes to run'
     ),
     make_option(
