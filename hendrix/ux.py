@@ -11,7 +11,6 @@ import subprocess
 import sys
 import time
 import traceback
-from hendrix.options import cleanOptions
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
