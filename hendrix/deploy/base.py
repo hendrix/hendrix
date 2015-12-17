@@ -209,12 +209,10 @@ class HendrixDeploy(object):
             chalk.eraser()
             chalk.blue('Starting Hendrix...')
 
-<<<<<<< HEAD
-    def launchWorkers(self):
-        pids = [str(os.getpid())]  # script pid
-=======
+
+
+
     def launchWorkers(self, pids):
->>>>>>> f706cd4... refactor of launchWorkers.
         # Create a new listening port and several other processes to
         # help out.
         childFDs = {0: 0, 1: 1, 2: 2}
@@ -232,11 +230,9 @@ class HendrixDeploy(object):
             )
             transports.append(transport)
             pids.append(str(transport.pid))
-<<<<<<< HEAD
-=======
+
 
     def openPidList(self, pids):
->>>>>>> f706cd4... refactor of launchWorkers.
         with open(self.pid, 'w') as pid_file:
             pid_file.write('\n'.join(pids))
         return pid_file
