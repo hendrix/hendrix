@@ -61,6 +61,10 @@ class Reload(FileSystemEventHandler):
         return process
 
 def hendrixLauncher(action, options, with_tiempo=False):
+    """
+    Decides which version of HendrixDeploy to use and then
+    launches it.
+    """
     if options['key'] and options['cert'] and options['cache']:
         from hendrix.deploy import hybrid
         HendrixDeploy = hybrid.HendrixDeployHybrid
@@ -88,6 +92,9 @@ def assignDeploymentInstance(action, options):
         os._exit(1)
 
 def logReload(options):
+    """
+    encompasses all the logic for reloading observer.
+    """
     event_handler = Reload(options)
     observer = Observer()
     observer.schedule(event_handler, path='.', recursive=True)
@@ -210,6 +217,10 @@ def noiseControl(options):
     return None
 
 def subprocessLaunch():
+    """
+    This function is called by the hxw script.
+    It takes no arguments, and returns an instance of HendrixDeploy
+    """
     try:
         action='start'
         options = REDIS.get('worker_args')
