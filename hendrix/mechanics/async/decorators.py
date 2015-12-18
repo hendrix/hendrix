@@ -59,11 +59,12 @@ class ThroughToYou(object):
         if self.no_go:
             return
 
+
         self.process_pool.apply_async(self.crosstown_task)
         return
 
 
-        if not threadpool:
+if not threadpool:
             threadpool = self.threadpool or reactor.getThreadPool()
 
         if self.same_thread:

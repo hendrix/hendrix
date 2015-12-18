@@ -1,6 +1,5 @@
 import sys
 from twisted.python.threadpool import ThreadPool
-
 from twisted.internet import reactor
 
 
@@ -20,6 +19,7 @@ class ModuleCaller(object):
 
         self.threadpool.start()
 
+
         super(ModuleCaller, self).__init__()
 
     def __call__(self, *args, **kwargs):
@@ -30,6 +30,7 @@ class ModuleCaller(object):
                 raise TypeError("Did you forget the '()' when using the crosstown_traffic decorator?  (ie, '@crosstown_traffic()').  Caught '%s'" % e.args[0])
             else:
                 raise
+
 
         return self.decorator(threadpool=self.threadpool, *args, **kwargs)
 

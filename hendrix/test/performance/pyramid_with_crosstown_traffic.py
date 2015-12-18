@@ -25,7 +25,6 @@ from twisted.logger import ILogObserver, formatEvent
 def simpleObserver(event):
     print(formatEvent(event))
 
-
 # globalLogBeginner.beginLoggingTo([simpleObserver], redirectStandardIO=False)
 
 def cpu_heavy(heft, label=None):
@@ -71,7 +70,6 @@ def fib_view(request):
         print "Finished label %s after %s" % (label, time.time() - timer_start)
 
     print "Returning response for %s" % label
-
 
 global total_requests
 global avg_duration

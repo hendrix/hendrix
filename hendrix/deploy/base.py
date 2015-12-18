@@ -234,7 +234,6 @@ class HendrixDeploy(object):
             chalk.blue('Starting Hendrix...')
 
 
-
     def launchWorkers(self, pids):
         # Create a new listening port and several other processes to
         # help out.
