@@ -17,8 +17,6 @@ class ModuleCaller(object):
 	# ...and stop when the reactor stops.
         reactor.addSystemEventTrigger('before', 'shutdown', self.threadpool.stop)
 
-        self.threadpool.start()
-
 
         super(ModuleCaller, self).__init__()
 
@@ -30,9 +28,6 @@ class ModuleCaller(object):
                 raise TypeError("Did you forget the '()' when using the crosstown_traffic decorator?  (ie, '@crosstown_traffic()').  Caught '%s'" % e.args[0])
             else:
                 raise
-
-
-        return self.decorator(threadpool=self.threadpool, *args, **kwargs)
 
 
 sys.modules[__name__] = ModuleCaller()

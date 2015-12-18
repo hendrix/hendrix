@@ -17,7 +17,6 @@ sys.path.insert(0, hendrix_package_dir)
 
 from hendrix.deploy.base import HendrixDeploy
 from hendrix.experience import crosstown_traffic
-from hendrix.contrib.async.resources import MessageResource
 from zope.interface import provider
 from twisted.logger import ILogObserver, formatEvent
 
@@ -25,6 +24,7 @@ from twisted.logger import ILogObserver, formatEvent
 def simpleObserver(event):
     print(formatEvent(event))
 
+# from twisted.logger import globalLogBeginner
 # globalLogBeginner.beginLoggingTo([simpleObserver], redirectStandardIO=False)
 
 def cpu_heavy(heft, label=None):
@@ -45,31 +45,13 @@ def cpu_heavy(heft, label=None):
         count += 1
 
         if count == end / 2 and end % 2 == 0:
-            print("%s halfway: %s" % (label, time.time() - timer_start)
+            print("%s halfway: %s" % (label, time.time() - timer_start))
             time.sleep(0)
 
         if count == end:
-            print "%s done: %s" % (label, time.time() - timer_start)
+            print "%s done: %s" % (label, time.time() - timer_start))
             return
 
-
-def fib_view(request):
-
-    label = request.matchdict['label']
-    stream_thread = threading.current_thread()
-    print "Received request %s on thread %s" % (label, stream_thread.name)
-
-    @crosstown_traffic(same_thread=False,
-                       always_spawn_worker=True)
-    def wait():
-        timer_start = time.time()
-        thread = threading.current_thread()
-        print "Starting label %s on %s" % (label, thread.name)
-        cpu_heavy(590000, label)
-        # r = requests.get('http://localhost:8010/2')
-        print "Finished label %s after %s" % (label, time.time() - timer_start)
-
-    print "Returning response for %s" % label
 
 global total_requests
 global avg_duration
