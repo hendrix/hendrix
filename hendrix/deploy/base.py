@@ -16,6 +16,13 @@ from hendrix.facilities.services import HendrixService
 from hendrix.utils import get_pid, import_string
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
+try:
+    from tiempo.conn import REDIS
+    from tiempo.locks import lock_factory
+    redis_available = True
+except:
+    ImportError
+    redis_available = False
 
 
 class HendrixDeploy(object):
@@ -72,6 +79,7 @@ class HendrixDeploy(object):
         self.is_secure = self.options['key'] and self.options['cert']
 
         self.servers = []
+
 
     @classmethod
     def importWSGI(cls, wsgi_dot_path):
@@ -233,25 +241,36 @@ class HendrixDeploy(object):
             chalk.eraser()
             chalk.blue('Starting Hendrix...')
 
+    def setFDs(self):
+        self.childFDs = {0: 0, 1: 1, 2: 2}
+        self.fds = {}
+        for name in self.servers:
+            self.port = self.hendrix.get_port(name)
+            fd = self.port.fileno()
+            self.childFDs[fd] = fd
+            self.fds[name] = fd
 
     def launchWorkers(self, pids):
         # Create a new listening port and several other processes to
         # help out.
-        childFDs = {0: 0, 1: 1, 2: 2}
-        self.fds = {}
-        for name in self.servers:
-            port = self.hendrix.get_port(name)
-            fd = port.fileno()
-            childFDs[fd] = fd
-            self.fds[name] = fd
+        self.setFDs()
         args = self.getSpawnArgs()
         transports = []
-        for i in range(self.options['workers']):
-            transport = self.reactor.spawnProcess(
-                None, 'hx', args, childFDs=childFDs, env=environ
-            )
-            transports.append(transport)
-            pids.append(str(transport.pid))
+        if redis_available:
+            REDIS.lpush('worker_args', *args)
+            for i in range(self.options['workers']):
+                transport = self.reactor.spawnProcess(
+                    None, 'hxw', childFDs=self.childFDs, env=environ
+                )
+                transports.append(transport)
+                pids.append(str(transport.pid))
+        else:
+            for i in range(self.options['workers']):
+                transport = self.reactor.spawnProcess(
+                    None, 'hx', args, childFDs=self.childFDs, env=environ
+                )
+                transports.append(transport)
+                pids.append(str(transport.pid))
 
 
     def openPidList(self, pids):

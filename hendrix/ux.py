@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import traceback
+import pickle
 from hendrix.options import cleanOptions
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
@@ -20,6 +21,13 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from twisted.logger import globalLogPublisher
+try:
+    from tiempo.conn import REDIS
+    from tiempo.locks import lock_factory
+    redis_available = True
+except:
+    ImportError
+    redis_available = False
 
 
 class Reload(FileSystemEventHandler):
@@ -52,6 +60,49 @@ class Reload(FileSystemEventHandler):
         )
         return process
 
+def hendrixLauncher(action, options, with_tiempo=False):
+    if options['key'] and options['cert'] and options['cache']:
+        from hendrix.deploy import hybrid
+        HendrixDeploy = hybrid.HendrixDeployHybrid
+    elif options['key'] and options['cert']:
+        from hendrix.deploy import ssl
+        HendrixDeploy = ssl.HendrixDeploySSL
+    elif options['cache']:
+        HendrixDeploy = cache.HendrixDeployCache
+    else:
+        HendrixDeploy = base.HendrixDeploy
+    if with_tiempo:
+        deploy = HendrixDeploy(action='start', options=options)
+        deploy.run()
+    else:
+        deploy = HendrixDeploy(action, options)
+        deploy.run()
+
+def assignDeploymentInstance(action, options):
+    try:
+        hendrixLauncher(action, options)
+    except Exception as e:
+        tb = sys.exc_info()[2]
+        msg = traceback.format_exc(tb)
+        chalk.red(msg, pipe=chalk.stderr)
+        os._exit(1)
+
+def logReload(options):
+    event_handler = Reload(options)
+    observer = Observer()
+    observer.schedule(event_handler, path='.', recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        pid = os.getpid()
+        chalk.eraser()
+        chalk.green('\nHendrix successfully closed.')
+        os.kill(pid, 15)
+    observer.join()
+    exit('\n')
 
 def launch(*args, **options):
     """
@@ -60,43 +111,9 @@ def launch(*args, **options):
     """
     action = args[0]
     if options['reload']:
-        event_handler = Reload(options)
-        observer = Observer()
-        observer.schedule(event_handler, path='.', recursive=True)
-        observer.start()
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            observer.stop()
-            pid = os.getpid()
-            chalk.eraser()
-            chalk.green('\nHendrix successfully closed.')
-            os.kill(pid, 15)
-        observer.join()
-        exit('\n')
+        logReload(options)
     else:
-        try:
-            if options['key'] and options['cert'] and options['cache']:
-                from hendrix.deploy import hybrid
-                HendrixDeploy = hybrid.HendrixDeployHybrid
-            elif options['key'] and options['cert']:
-                from hendrix.deploy import ssl
-                HendrixDeploy = ssl.HendrixDeploySSL
-            elif options['cache']:
-                HendrixDeploy = cache.HendrixDeployCache
-            else:
-                HendrixDeploy = base.HendrixDeploy
-            deploy = HendrixDeploy(action, options)
-            deploy.run()
-        except Exception as e:
-            if options.get('traceback'):
-                tb = sys.exc_info()[2]
-                msg = traceback.format_exc(tb)
-            else:
-                msg = str(e)
-            chalk.red(msg, pipe=chalk.stderr)
-            os._exit(1)
+        assignDeploymentInstance(action, options)
 
 
 def findSettingsModule():
@@ -192,6 +209,14 @@ def noiseControl(options):
         globalLogPublisher.addObserver(hendrixObserver(log_path))
     return None
 
+def subprocessLaunch():
+    try:
+        action='start'
+        options = REDIS.get('worker_args')
+        assignDeploymentInstance(action='start', options=options)
+    except Exception, Argument:
+        print Argument
+        chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
 
 def main():
     "The function to execute when running hx"
