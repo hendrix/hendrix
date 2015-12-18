@@ -16,6 +16,8 @@ from hendrix.facilities.services import HendrixService
 from hendrix.utils import get_pid, import_string
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
+from twisted.internet.defer import DeferredLock
+
 try:
     from tiempo.conn import REDIS
     from tiempo.locks import lock_factory
@@ -79,6 +81,7 @@ class HendrixDeploy(object):
         self.is_secure = self.options['key'] and self.options['cert']
 
         self.servers = []
+        self._lock = DeferredLock()
 
 
     @classmethod
@@ -261,7 +264,7 @@ class HendrixDeploy(object):
             workers_lock.acquire()
             REDIS.lpush('worker_args', *args)
             workers_lock.release()
-            time.sleep(0.02)
+            time.sleep(0.05)
             for i in range(self.options['workers']):
                 transport = self.reactor.spawnProcess(
                     None, 'hxw', childFDs=self.childFDs, env=environ
@@ -270,7 +273,7 @@ class HendrixDeploy(object):
                 pids.append(str(transport.pid))
         else:
             for i in range(self.options['workers']):
-                time.sleep(0.02)
+                time.sleep(0.05)
                 transport = self.reactor.spawnProcess(
                     None, 'hx', args, childFDs=self.childFDs, env=environ
                 )
@@ -284,6 +287,9 @@ class HendrixDeploy(object):
         return pid_file
 
     def addSubprocesses(self, fds, name, factory):
+        self._lock.run(self._addSubprocesses, self, fds, name, factory)
+
+    def _addSubprocesses(self, fds, name, factory):
         self.reactor.adoptStreamPort( 
             fds[name], AF_INET, factory
         )
