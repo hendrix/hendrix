@@ -257,7 +257,11 @@ class HendrixDeploy(object):
         args = self.getSpawnArgs()
         transports = []
         if redis_available:
+            workers_lock = lock_factory.create_lock('launching_workers')
+            workers_lock.acquire()
             REDIS.lpush('worker_args', *args)
+            workers_lock.release()
+            time.sleep(0.02)
             for i in range(self.options['workers']):
                 transport = self.reactor.spawnProcess(
                     None, 'hxw', childFDs=self.childFDs, env=environ
@@ -266,6 +270,7 @@ class HendrixDeploy(object):
                 pids.append(str(transport.pid))
         else:
             for i in range(self.options['workers']):
+                time.sleep(0.02)
                 transport = self.reactor.spawnProcess(
                     None, 'hx', args, childFDs=self.childFDs, env=environ
                 )

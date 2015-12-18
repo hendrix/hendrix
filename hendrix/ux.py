@@ -17,6 +17,7 @@ from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
+from hendrix.mechanics.async.exceptions import RedisException
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -221,6 +222,8 @@ def subprocessLaunch():
     This function is called by the hxw script.
     It takes no arguments, and returns an instance of HendrixDeploy
     """
+    if not redis_available:
+        raise RedisException("can't launch this subprocess without tiempo/redis.")
     try:
         action='start'
         options = REDIS.get('worker_args')
