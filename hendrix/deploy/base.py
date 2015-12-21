@@ -14,17 +14,10 @@ from hendrix.options import options as hx_options
 from hendrix.facilities.gather import get_additional_resources, get_additional_services
 from hendrix.facilities.services import HendrixService
 from hendrix.utils import get_pid, import_string
+from hendrix.facilities.protocols import DeployServerProtocol
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredLock
-
-try:
-    from tiempo.conn import REDIS
-    from tiempo.locks import lock_factory
-    redis_available = True
-except:
-    ImportError
-    redis_available = False
 
 
 class HendrixDeploy(object):
@@ -158,7 +151,7 @@ class HendrixDeploy(object):
         '''
         self.hendrix = HendrixService(
             self.application,
-            self.options['http_port'],
+            port=self.options['http_port'],
             threadpool=self.getThreadPool(),
             resources=self.resources,
             services=self.services,
@@ -240,11 +233,16 @@ class HendrixDeploy(object):
                 factories[name] = factory
             self.hendrix.startService()
             for name, factory in factories.iteritems():
-                self.addSubprocesses(fds, name, factory)
+                self.addSubprocess(fds, name, factory)
             chalk.eraser()
             chalk.blue('Starting Hendrix...')
 
     def setFDs(self):
+        """
+        Iterator for file descriptors.
+        Seperated from launchworkers for clarity and readability.
+        """
+        #0 corresponds to stdin, 1 to stdout, 2 to stderr
         self.childFDs = {0: 0, 1: 1, 2: 2}
         self.fds = {}
         for name in self.servers:
@@ -252,6 +250,8 @@ class HendrixDeploy(object):
             fd = self.port.fileno()
             self.childFDs[fd] = fd
             self.fds[name] = fd
+            print self.childFDs
+            print self.fds
 
     def launchWorkers(self, pids):
         # Create a new listening port and several other processes to
@@ -259,26 +259,13 @@ class HendrixDeploy(object):
         self.setFDs()
         args = self.getSpawnArgs()
         transports = []
-        if redis_available:
-            workers_lock = lock_factory.create_lock('launching_workers')
-            workers_lock.acquire()
-            REDIS.lpush('worker_args', *args)
-            workers_lock.release()
+        for i in range(self.options['workers']):
             time.sleep(0.05)
-            for i in range(self.options['workers']):
-                transport = self.reactor.spawnProcess(
-                    None, 'hxw', childFDs=self.childFDs, env=environ
+            transport = self.reactor.spawnProcess(
+                DeployServerProtocol(args), 'hx', args, childFDs=self.childFDs, env=environ
                 )
-                transports.append(transport)
-                pids.append(str(transport.pid))
-        else:
-            for i in range(self.options['workers']):
-                time.sleep(0.05)
-                transport = self.reactor.spawnProcess(
-                    None, 'hx', args, childFDs=self.childFDs, env=environ
-                )
-                transports.append(transport)
-                pids.append(str(transport.pid))
+            transports.append(transport)
+            pids.append(str(transport.pid))
 
 
     def openPidList(self, pids):
@@ -286,11 +273,17 @@ class HendrixDeploy(object):
             pid_file.write('\n'.join(pids))
         return pid_file
 
-    def addSubprocesses(self, fds, name, factory):
-        self._lock.run(self._addSubprocesses, self, fds, name, factory)
+    def addSubprocess(self, fds, name, factory):
+        """
+        Public method for _addSubprocess.
+        Wraps reactor.adoptStreamConnection in 
+        a simple DeferredLock to guarantee
+        workers play well together.
+        """
+        self._lock.run(self._addSubprocess, self, fds, name, factory)
 
-    def _addSubprocesses(self, fds, name, factory):
-        self.reactor.adoptStreamPort( 
+    def _addSubprocess(self, fds, name, factory):
+        self.reactor.adoptStreamConnection(
             fds[name], AF_INET, factory
         )
 

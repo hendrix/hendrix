@@ -11,7 +11,7 @@ class HendrixService(service.MultiService):
     """
     HendrixService is a constructor that facilitates the collection of services
     and the extension of resources on the website by subclassing MultiService.
-    'application' refers to a django.core.handlers.wsgi.WSGIHandler
+    'application' refers to a WSGI application object: likely a django.core.handlers.wsgi.WSGIHandler
     'resources' refers to a list of Resources with a namespace attribute
     'services' refers to a list of twisted Services to add to the collection.
     """
@@ -27,7 +27,7 @@ class HendrixService(service.MultiService):
             services=None,
             loud=False):
         service.MultiService.__init__(self)
-
+ 
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
         if not threadpool:
