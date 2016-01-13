@@ -26,43 +26,38 @@ class HendrixDeploy(object):
     the HendrixService on a single or multiple processes.
     """
 
-    def __init__(self, action='start', options={},
-                 reactor=reactor, threadpool=None):
-        self.action = action
-        self.options = hx_options()
-        self.options.update(options)
-        self.services = []
-        self.resources = []
+    def __init__(self, cls, reactor=reactor, threadpool=None):
         self.reactor = reactor
 
         self.threadpool = threadpool or ThreadPool(name="Hendrix Web Service")
 
+        self.data = cls
         self.use_settings = True
         # because running the management command overrides self.options['wsgi']
-        if self.options['wsgi']:
-            if hasattr(self.options['wsgi'], '__call__'):
+        if self.data.options['wsgi']:
+            if hasattr(self.data.options['wsgi'], '__call__'):
                 # If it has a __call__, we assume that it is the application
                 # object itself.
-                self.application = self.options['wsgi']
+                self.application = self.data.options['wsgi']
                 try:
-                    self.options['wsgi'] = "%s.%s" % (
+                    self.data.options['wsgi'] = "%s.%s" % (
                         self.application.__module__, self.application.__name__
                     )
                 except AttributeError:
-                    self.options['wsgi'] = self.application.__class__.__name__
+                    self.data.options['wsgi'] = self.application.__class__.__name__
             else:
                 # Otherwise, we'll try to discern an application in the belief
                 # that this is a dot path.
-                wsgi_dot_path = self.options['wsgi']
+                wsgi_dot_path = self.data.options['wsgi']
                 # will raise AttributeError if we can't import it.
                 self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
             self.use_settings = False
         else:
-            os.environ['DJANGO_SETTINGS_MODULE'] = self.options['settings']
+            os.environ['DJANGO_SETTINGS_MODULE'] = self.data.options['settings']
             settings = import_string('django.conf.settings')
             self.services = get_additional_services(settings)
             self.resources = get_additional_resources(settings)
-            self.options = HendrixDeploy.getConf(settings, self.options)
+            self.data.options = HendrixDeploy.getConf(settings, self.data.options)
 
         if self.use_settings:
             django = importlib.import_module('django')
@@ -71,7 +66,7 @@ class HendrixDeploy(object):
             wsgi_dot_path = getattr(settings, 'WSGI_APPLICATION', None)
             self.application = HendrixDeploy.importWSGI(wsgi_dot_path)
 
-        self.is_secure = self.options['key'] and self.options['cert']
+        self.is_secure = self.data.options['key'] and self.data.options['cert']
 
         self.servers = []
         self._lock = DeferredLock()
@@ -151,11 +146,11 @@ class HendrixDeploy(object):
         '''
         self.hendrix = HendrixService(
             self.application,
-            port=self.options['http_port'],
+            port=self.data.options['http_port'],
             threadpool=self.getThreadPool(),
             resources=self.resources,
             services=self.services,
-            loud=self.options['loud']
+            loud=self.data.options['loud']
         )
 
     def catalogServers(self, hendrix):
@@ -168,12 +163,12 @@ class HendrixDeploy(object):
         "sets up the desired services and runs the requested action"
         self.addServices()
         self.catalogServers(self.hendrix)
-        action = self.action
-        fd = self.options['fd']
+        action = self.data.action
+        fd = self.data.options['fd']
 
         if action.startswith('start'):
             chalk.blue(
-                'Ready and Listening on port %d...' % self.options.get(
+                'Ready and Listening on port %d...' % self.data.options.get(
                     'http_port'
                 )
             )
@@ -192,29 +187,8 @@ class HendrixDeploy(object):
     @property
     def pid(self):
         "The default location of the pid file for process management"
-        return get_pid(self.options)
+        return get_pid(self.data.options)
 
-    def getSpawnArgs(self):
-        _args = [
-            'hx',
-            'start',  # action
-
-            # kwargs
-            '--http_port', str(self.options['http_port']),
-            '--https_port', str(self.options['https_port']),
-            '--cache_port', str(self.options['cache_port']),
-            '--workers', '0',
-            '--fd', pickle.dumps(self.fds),
-        ]
-
-        # args/signals
-        if self.options['dev']:
-            _args.append('--dev')
-
-
-        if not self.use_settings:
-            _args += ['--wsgi', self.options['wsgi']]
-        return _args
 
     def start(self, fd=None):
         if fd is None:
@@ -222,7 +196,7 @@ class HendrixDeploy(object):
             self.addGlobalServices()
             self.hendrix.startService()
             pids = [str(os.getpid())]  # script pid
-            if self.options['workers']:
+            if self.data.options['workers']:
                 self.launchWorkers(pids)
             self.pid_file = self.openPidList(pids)
         else:
@@ -237,32 +211,14 @@ class HendrixDeploy(object):
             chalk.eraser()
             chalk.blue('Starting Hendrix...')
 
-    def setFDs(self):
-        """
-        Iterator for file descriptors.
-        Seperated from launchworkers for clarity and readability.
-        """
-        #0 corresponds to stdin, 1 to stdout, 2 to stderr
-        self.childFDs = {0: 0, 1: 1, 2: 2}
-        self.fds = {}
-        for name in self.servers:
-            self.port = self.hendrix.get_port(name)
-            fd = self.port.fileno()
-            self.childFDs[fd] = fd
-            self.fds[name] = fd
-            print self.childFDs
-            print self.fds
-
     def launchWorkers(self, pids):
         # Create a new listening port and several other processes to
         # help out.
-        self.setFDs()
-        args = self.getSpawnArgs()
         transports = []
-        for i in range(self.options['workers']):
+        for i in range(self.data.options['workers']):
             time.sleep(0.05)
             transport = self.reactor.spawnProcess(
-                DeployServerProtocol(args), 'hx', args, childFDs=self.childFDs, env=environ
+                DeployServerProtocol(), 'hx', [], env=environ
                 )
             transports.append(transport)
             pids.append(str(transport.pid))
@@ -309,10 +265,19 @@ class HendrixDeploy(object):
 
     def disownService(self, name):
         """
-        disowns a service on hendirix by name
-        returns a factory for use in the adoptStreamPort part of setting up
+        disowns a service on hendrix by name
+        returns a factory for use in the adoptStreamConnection part of setting up
         multiple processes
         """
         _service = self.hendrix.getServiceNamed(name)
         _service.disownServiceParent()
         return _service.factory
+
+
+class Data(object):
+
+    def __init__(self, action='start', options={}):
+        self.action = action
+        self.options = options
+        self.services = []
+        self.resources = []

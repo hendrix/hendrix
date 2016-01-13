@@ -7,9 +7,5 @@ class DeployServerProtocol(Server):
     HendrixDeploy and its workers.
     """
 
-    def __init__(self, args):
-        self.args = args
-
-    def connectionMade(self):
-        self.transport.write(self.args)
-        self.transport.closeStdin()
+    def __init__(self):
+        pass
