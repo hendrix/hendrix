@@ -17,12 +17,16 @@ class ThroughToYou(object):
                  reactor=reactor,
                  same_thread=False,
                  no_go_status_codes=['5xx', '4xx'],
-                 fail_without_response=False
+                 fail_without_response=False,
+                 block_without_response=True,
+                 always_spawn_worker=False,
                  ):
         self.reactor = reactor
         self.same_thread = same_thread
         self.no_go_status_codes = no_go_status_codes
         self.fail_without_response = fail_without_response
+        self.block_without_response = block_without_response
+        self.always_spawn_worker = always_spawn_worker
 
         self.no_go = False
         self.status_code = None
@@ -46,6 +50,8 @@ class ThroughToYou(object):
             raise ThreadHasNoResponse("This crosstown decorator cannot proceed without a response.  To run the crosstown_task at this time, set fail_without_response = False.")
         else:
             self.log.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
+            # Since we have no response, we now want to run on the same thread if block_without_response is True.
+            self.same_thread = self.block_without_response
             self.run()
 
     def run(self, threadpool=None):
