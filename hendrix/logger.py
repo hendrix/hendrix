@@ -19,4 +19,3 @@ def hendrixObserver(path=DEFAULT_LOG_FILE, log_level=LogLevel.warn):
     )
 
 
-globalLogPublisher.addObserver(hendrixObserver(log_level=LogLevel.debug))
