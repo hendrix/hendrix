@@ -4,6 +4,7 @@
 
 *A Python web server that makes async and offbeat network traffic easy, fun, and fast.*
 
+[![Gitter](https://badges.gitter.im/hendrix/hendrix.svg)](https://gitter.im/hendrix/hendrix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Build Status](https://travis-ci.org/hendrix/hendrix.png?branch=master)](https://travis-ci.org/hendrix/hendrix)[![Latest Docs](https://readthedocs.org/projects/hendrix/badge/?version=latest)](http://hendrix.readthedocs.org/en/latest/)
 
 ## Overview
