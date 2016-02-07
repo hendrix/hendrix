@@ -4,13 +4,17 @@ env:
 install:
 - pip install tox
 notifications:
+  webhooks:
+    urls:
+      - secure: "ZZY1i8utifJs47jvQeT0AH+qGmfMM/as1x7ycKteJ1TjSjol4jRxuao67XeSMpVZQ9+HUBcvynO1+6mKcV9wG5XK8sWSf2grv7ErmDee9VkzMvlxXunZXFcESCErffrSm+Bq4koXxX9KRLTpwsPxJOyXPNJr+jthosKigBT6pKw="
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
   email:
     recipients:
     - justin@justinholmes.com
     on_success: change
     on_failure: always
-    slack:
-      secure: aKXvBENfgjk1dZctyQa0b3eBaLZuGgqKuO/S+WfjYguqESlOoLhOlHo/vMB90K6S9HiIocMQVGEKnyLWZVy4tQg/bH4iNvs1ag/JWGGsaFX1gGjqq+2TbPzSL90Uvw49jprgH10x37Qt4z21W3rm1/zi5Iw9JgpJtJ1YpXkIvvg=
   irc:
     channels:
     - chat.freenode.net#hendrix
@@ -20,8 +24,6 @@ notifications:
     - 'Build details: %{build_url}'
     - 'Result: %{result}'
     use_notice: true
-  slack:
-    secure: GFEH6jWPBgEY01gX6KmWSpKgsyLAtofD0C2kKaj1a5j2uit9NDwys2JM5ULUSPw7acy09XecySXABTymUDuhTGcXhivP0LLkzL0xA0eILz9Z1HbkJy7lxVufb7Q3qwM58MXzscRayvpAmODK8zJDFE5739NH6oYSJOlGMDn+l+c=
 script: tox
 before_install:
   - pip install codecov
