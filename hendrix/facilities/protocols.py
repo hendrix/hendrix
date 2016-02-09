@@ -1,5 +1,10 @@
+import sys
 from twisted.internet import protocol
-from twisted.internet.unix import Server
+
+if sys.platform=='win32':
+    from twisted.internet.iocpreactor.tcp import Server
+else:
+    from twisted.internet.unix import Server
 
 class DeployServerProtocol(Server):
     """
