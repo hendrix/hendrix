@@ -12,6 +12,6 @@ Enter Twisted, which, after some configuration, this process became both easy an
 
 It is disheartening, albeit understandable, that Twisted hasn't become the de facto server for python web projects.  To truly make an environment out of Twisted that is easy, practical, and performant for most typical web cases is an undertaking which requires both a substantial dive into Twisted and a fair amount of code.
 
-We submit that hendrix is the nature conclusion of such an undertaking.
+We submit that hendrix is the natural conclusion of such an undertaking.
 
 In 2013, when Justin started working on the [Reelio](reelio.com) project, he brought with him the [slashRoot deployment module](https://github.com/SlashRoot/WHAT/tree/44f50ee08c5d7acb74ed8a4ce928e85eb2dc714f/deployment).  After a relatively short deliberation about what a "Twisted" version of Django Reinhardt might be, the name was settled.
