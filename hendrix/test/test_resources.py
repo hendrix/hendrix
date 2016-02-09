@@ -47,7 +47,7 @@ class TestHendrixResource(unittest.TestCase):
             actual_res = getChildForRequest(self.hr, request)
             self.assertEqual(self.res, actual_res)
             
-            
+            # Add duplicate
             duplicate = NamedResource(self.res.namespace)
             self.hr.putNamedChild(duplicate)
             
