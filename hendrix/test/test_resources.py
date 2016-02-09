@@ -42,18 +42,14 @@ class TestHendrixResource(unittest.TestCase):
     def test_putNamedChild_duplicate(self):
         "check that duplicate resources work"
         with mock.patch('hendrix.facilities.resources.WSGIResource') as wsgi:
-            # Before duplicate
             request = DummyRequest(['path', 'to', 'child'])
             actual_res = getChildForRequest(self.hr, request)
-            self.assertEqual(self.res, actual_res)
+            self.assertEqual(self.res, actual_res) # Before duplicate
             
-            # Add duplicate
             duplicate = NamedResource(self.res.namespace)
             self.hr.putNamedChild(duplicate)
-            
-            # After duplicate
             request = DummyRequest(['path', 'to', 'child'])
             actual_duplicate_res = getChildForRequest(self.hr, request)
-            self.assertEqual(duplicate, actual_duplicate_res)
+            self.assertEqual(duplicate, actual_duplicate_res) # After duplicate
             
             
