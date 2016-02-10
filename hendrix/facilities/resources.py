@@ -6,7 +6,7 @@ from twisted.web.server import NOT_DONE_YET
 from twisted.web.wsgi import WSGIResource, _WSGIResponse
 import chalk
 from hendrix.facilities.response import HendrixWSGIResponse, LoudWSGIResponse
-
+from twisted.logger import Logger
 
 class HendrixWSGIResource(WSGIResource):
 
@@ -36,6 +36,8 @@ class HendrixResource(resource.Resource):
     the request.postpath list to its original state. This is essentially a hack
     to ensure that django always gets the full path.
     """
+
+    logger = Logger()
 
     def __init__(self, reactor, threads, application, loud=False):
         resource.Resource.__init__(self)
@@ -88,7 +90,7 @@ class HendrixResource(resource.Resource):
 
             name = parts[-1]  # get the path part that we care about
             if children.get(name):
-                logger.warning(
+                self.logger.warning(
                     'A resource already exists at this path. Check '
                     'your resources list to ensure each path is '
                     'unique. The previous resource will be overridden.'
