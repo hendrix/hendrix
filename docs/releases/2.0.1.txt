@@ -1,0 +1,18 @@
+===========================
+hendrix 2.0.1 release notes
+===========================
+
+*February 2, 2016*
+
+Bugfix release
+--------------
+
+* Fixed issues:
+** https://github.com/hendrix/hendrix/issues/114
+
+The documentation for testing asynchrony says that the responseless_fallback case will run the crosstown_task synchronously and in the calling thread (see: https://hendrix.readthedocs.org/en/latest/testing-asynchrony/).
+
+However, this was not the current behavior. Instead, it ran in the crosstown_traffic threadpool.
+
+Fixes this.
+

@@ -1,0 +1,20 @@
+===========================
+hendrix 2.0.2 release notes
+===========================
+
+*February 11, 2016*
+
+Bugfix release
+--------------
+
+* Fixed issues:
+** https://github.com/hendrix/hendrix/issues/115
+** https://github.com/hendrix/hendrix/issues/117
+
+Logging was broken in one case of adding a child to a HendrixResource.
+
+Also, in some conditions, a runaway log file was created, rapidly growing to several gigs.
+
+Good job @billjohnston noticing the logging problem.  And @vepkenez with the ballooning log file.
+
+And thanks to new contributors @frmdstryr and @jrmarti3 for the rockin' test.
