@@ -90,7 +90,7 @@ class HendrixResource(resource.Resource):
 
             name = parts[-1]  # get the path part that we care about
             if children.get(name):
-                self.logger.warning(
+                self.logger.warn(
                     'A resource already exists at this path. Check '
                     'your resources list to ensure each path is '
                     'unique. The previous resource will be overridden.'
