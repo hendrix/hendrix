@@ -69,9 +69,9 @@ class HendrixResource(resource.Resource):
 
         """
         try:
-            EmptyResource = resource.Resource
+            EmptyResource = resource.ForbiddenResource if isinstance(res, static.File) else resource.Resource
             namespace = res.namespace
-            parts = namespace.strip('/').split('/')
+            parts = namespace.replace('\\','/').strip('/').split('/') # replace fixes windows using different paths
 
             # initialise parent and children
             parent = self
@@ -89,12 +89,26 @@ class HendrixResource(resource.Resource):
                 children = parent.children
 
             name = parts[-1]  # get the path part that we care about
-            if children.get(name):
-                self.logger.warn(
-                    'A resource already exists at this path. Check '
-                    'your resources list to ensure each path is '
-                    'unique. The previous resource will be overridden.'
-                )
+            child = children.get(name)
+            if child:
+                if isinstance(child, MediaResource):
+                    self.logger.warn(
+                        'A resource already exists at this path. This '
+                        'resource will only be used if the existing resource '
+                        'does not find a child for the request.'
+                    )
+                    child.putDelegate(res)
+                    return
+                elif isinstance(child, resource.ForbiddenResource):
+                    # This is an EmptyResource do NOT override (it doesn't do anything)
+                    # TODO: This catches all static error pages... is this OK?
+                    return 
+                else:
+                    self.logger.warn(
+                        'A resource already exists at this path. Check '
+                        'your resources list to ensure each path is '
+                        'unique. The previous resource will be overridden.'
+                    )
             parent.putChild(name, res)
         except AttributeError:
             # raise an attribute error if the resource `res` doesn't contain
@@ -137,13 +151,36 @@ class MediaResource(static.File):
     '''
     A simple static service with directory listing disabled
     (gives the client a 403 instead of letting them browse
-    a static directory).
+    a static directory). Also allows static file overrides.
     '''
+
+    def __init__(self, path, defaultType="text/html", ignoredExts=(), registry=None, allowExt=0):
+        static.File.__init__(self, path, defaultType, ignoredExts, registry, allowExt)
+        self.delegates = []
 
     def directoryListing(self):
         # Override to forbid directory listing
         return resource.ForbiddenResource()
+    
+    def putDelegate(self,res):
+        """
+        Put delegate resources here so it can look up files in the overridden folders.  
+        This way static files work much in the same way as django's templates and 'collectstatic'.
+        """
+        self.delegates.append(res)
 
+    def getChild(self, path, request):
+        """ 
+        First try to get the child from the highest point in the inheritance chain. If it is not found
+        search in any overridden directories.
+        """
+        child = static.File.getChild(self, path, request)
+        if child==self.childNotFound:
+            for delegate in self.delegates:
+                child = delegate.getChild(path,request)
+                if child!=delegate.childNotFound:
+                    break
+        return child
 
 def DjangoStaticResource(path, rel_url='static'):
     """
@@ -161,12 +198,11 @@ def DjangoStaticResource(path, rel_url='static'):
         [...in settings...]
         HENDRIX_CHILD_RESOURCES = (
             ...,
-            'app.resource.StaticResource',
             ...
         )
     """
-    rel_url = rel_url.strip('/')
-    StaticFilesResource = MediaResource(path)
+    rel_url = str(rel_url.strip('/'))
+    StaticFilesResource = MediaResource(str(path))
     StaticFilesResource.namespace = rel_url
     chalk.green(
         "Adding media resource for URL '%s' at path '%s'" % (rel_url, path)
