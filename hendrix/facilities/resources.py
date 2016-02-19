@@ -198,6 +198,7 @@ def DjangoStaticResource(path, rel_url='static'):
         [...in settings...]
         HENDRIX_CHILD_RESOURCES = (
             ...,
+            'app.resource.StaticResource',
             ...
         )
     """
