@@ -65,10 +65,9 @@ class Reload(FileSystemEventHandler):
 
     def restart(self):
         self.process.kill()
-        process = subprocess.Popen(
+        self.process = subprocess.Popen(
             ['hx', 'start_reload'] + self.options
         )
-        self.process = self.restart()
         return self.process
 
 def hendrixLauncher(action, options, with_tiempo=False):
