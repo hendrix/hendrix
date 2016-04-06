@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 import pickle
+import threading
 from hendrix.options import cleanOptions
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
@@ -22,7 +23,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from twisted.logger import globalLogPublisher
-import threading
+
 try:
     from tiempo.conn import REDIS
     from tiempo.locks import lock_factory
