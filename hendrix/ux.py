@@ -228,8 +228,8 @@ def subprocessLaunch():
         action='start'
         options = REDIS.get('worker_args')
         assignDeploymentInstance(action='start', options=options)
-    except Exception, Argument:
-        print Argument
+    except Exception as Argument:
+        print(Argument) 
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
 
 def main():
@@ -253,6 +253,6 @@ def main():
 
     try:
         launch(*args, **options)
-    except Exception, Argument:
-        print Argument
+    except Exception as Argument:
+        print(Argument)
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)
