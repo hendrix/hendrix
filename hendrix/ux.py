@@ -16,19 +16,13 @@ from hendrix.options import cleanOptions
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
+from hendrix.deploy.base import Data
 from hendrix.logger import hendrixObserver
 from hendrix.mechanics.async.exceptions import RedisException
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from twisted.logger import globalLogPublisher
-try:
-    from tiempo.conn import REDIS
-    from tiempo.locks import lock_factory
-    redis_available = True
-except:
-    ImportError
-    redis_available = False
 
 
 class Reload(FileSystemEventHandler):
@@ -61,7 +55,7 @@ class Reload(FileSystemEventHandler):
         )
         return process
 
-def hendrixLauncher(action, options, with_tiempo=False):
+def hendrixLauncher(cls, options):
     """
     Decides which version of HendrixDeploy to use and then
     launches it.
@@ -76,18 +70,14 @@ def hendrixLauncher(action, options, with_tiempo=False):
         HendrixDeploy = cache.HendrixDeployCache
     else:
         HendrixDeploy = base.HendrixDeploy
-    if with_tiempo:
-        deploy = HendrixDeploy(action='start', options=options)
-        deploy.run()
-    else:
-        deploy = HendrixDeploy(action, options)
-        deploy.run()
+    deploy = HendrixDeploy(cls)
+    deploy.run()
 
-def assignDeploymentInstance(action, options):
+def assignDeploymentInstance(cls, options):
     try:
-        hendrixLauncher(action, options)
+        hendrixLauncher(cls, options)
     except Exception as e:
-        tb = sys.exc_info()[2]
+        tb = sys.exc_info()
         msg = traceback.format_exc(tb)
         chalk.red(msg, pipe=chalk.stderr)
         os._exit(1)
@@ -118,10 +108,11 @@ def launch(*args, **options):
     Hedrix.run
     """
     action = args[0]
+    data = Data(action, options)
     if options['reload']:
         logReload(options)
     else:
-        assignDeploymentInstance(action, options)
+        assignDeploymentInstance(data, options)
 
 
 def findSettingsModule():
@@ -153,7 +144,7 @@ def findSettingsModule():
             str(e) + '\nPlease ensure that you are in the same directory '
             'as django\'s "manage.py" file.'
         )
-        raise IOError(chalk.format_red(msg), None, sys.exc_info()[2])
+        raise IOError(chalk.format_red(msg), None, sys.exc_info())
     except AttributeError:
         settings_mod = ''
     return settings_mod
@@ -172,7 +163,7 @@ def djangoVsWsgi(options):
                 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", '
                 '"mysettings.dot.path")'
             )
-            raise SettingsError(chalk.format_red(msg), None, sys.exc_info()[2])
+            raise SettingsError(chalk.format_red(msg), None, sys.exc_info())
         elif user_settings:
             # if the user specified the settings to use then these take
             # precedence
@@ -216,21 +207,6 @@ def noiseControl(options):
         log_path = options['log']
         globalLogPublisher.addObserver(hendrixObserver(log_path))
     return None
-
-def subprocessLaunch():
-    """
-    This function is called by the hxw script.
-    It takes no arguments, and returns an instance of HendrixDeploy
-    """
-    if not redis_available:
-        raise RedisException("can't launch this subprocess without tiempo/redis.")
-    try:
-        action='start'
-        options = REDIS.get('worker_args')
-        assignDeploymentInstance(action='start', options=options)
-    except Exception, Argument:
-        print Argument
-        chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
 
 def main():
     "The function to execute when running hx"
