@@ -9,6 +9,8 @@
 
 ## Overview
 
+[![Join the chat at https://gitter.im/hendrix/hendrix](https://badges.gitter.im/hendrix/hendrix.svg)](https://gitter.im/hendrix/hendrix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 **hendrix** is a tool for handling bytes-on-the-wire to and from your python web application.  In this sense, it is similar to [mod_wsgi](https://modwsgi.readthedocs.org), [uWSGI](https://uwsgi-docs.readthedocs.org), and [gunicorn](http://gunicorn-docs.readthedocs.org).  
 
 However, hendrix differs from these other technologies in that it is natively asynchronous and designed with background tasks in mind.  In this sense, it may serve some projects as a replacement for [gevent](https://readthedocs.org/projects/gevent/) or [celery](http://celery.readthedocs.org).
