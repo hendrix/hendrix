@@ -53,7 +53,7 @@ class NoGoStatusCodes(TestCase):
     def test_bad_status_codes_cause_no_go_in_wsgi_response(self):
         self.no_go_status_codes = [404, '6xx']
 
-        request = DummyRequest('r1')
+        request = DummyRequest([b'r1'])
         request.isSecure = lambda: False
         request.content = "llamas"
 
@@ -120,7 +120,7 @@ class SameOrDifferentThread(TestCase):
     def request_same_or_different_thread_thread(self):
 
         hr = HendrixWSGIResource(reactor, self.tp, self.wsgi_thing)
-        request1 = DummyRequest('r1')
+        request1 = DummyRequest([b'r1'])
         request1.isSecure = lambda: False
         request1.content = "llamas"
         d = deferToThreadPool(reactor, self.tp, hr.render, request1)
