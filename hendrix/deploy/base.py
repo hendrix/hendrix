@@ -90,9 +90,9 @@ class HendrixDeploy(object):
             os.kill(pid, 15)
         try:
             wsgi = importlib.import_module(wsgi_module)
-        except ImportError as Argument:
+        except ImportError:
             chalk.red("Unable to Import module '%s'\n" % wsgi_dot_path)
-            raise Argument
+            raise
         return getattr(wsgi, application_name, None)
 
     @classmethod

@@ -42,8 +42,6 @@ class LoudWSGIResponse(HendrixWSGIResponse):
         """
         extends startResponse to call speakerBox in a thread
         """
-        if self.started and excInfo is not None:
-            raise excInfo[0], excInfo[1], excInfo[2]
         self.status = status
         self.headers = headers
         self.reactor.callInThread(
