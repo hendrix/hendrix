@@ -250,8 +250,6 @@ class HendrixDeploy(object):
             fd = self.port.fileno()
             self.childFDs[fd] = fd
             self.fds[name] = fd
-            print(self.childFDs)
-            print(self.fds)
 
     def launchWorkers(self, pids):
         # Create a new listening port and several other processes to
