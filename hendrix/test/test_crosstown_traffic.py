@@ -93,18 +93,18 @@ class SameOrDifferentThread(TestCase):
         super(SameOrDifferentThread, self).setUp(*args, **kwargs)
 
     def wsgi_thing(self, environ, start_response):
-            start_response('200 OK', [('Content-type', 'text/plain')])
+        start_response('200 OK', [('Content-type', 'text/plain')])
 
-            nameSpace.this_thread = threading.current_thread()
+        nameSpace.this_thread = threading.current_thread()
 
-            @crosstown_traffic(
-                same_thread=self.use_same_thread
-            )
-            def long_thing_on_same_thread():
-                nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
-                log.debug("Finished async thing on same thread.")
+        @crosstown_traffic(
+            same_thread=self.use_same_thread
+        )
+        def long_thing_on_same_thread():
+            nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
+            log.debug("Finished async thing on same thread.")
 
-            return b"Nothing."
+        return b"Nothing."
 
     def assert_that_threads_are_the_same(self):
         self.assertEqual(
@@ -117,11 +117,11 @@ class SameOrDifferentThread(TestCase):
                             nameSpace.thread_that_is_supposed_to_be_different)
 
     def request_same_or_different_thread_thread(self):
-
         hr = HendrixWSGIResource(reactor, self.tp, self.wsgi_thing)
         request1 = DummyRequest([b'r1'])
         request1.isSecure = lambda: False
         request1.content = "llamas"
+        request1.client = IPv4Address("TCP", b"50.0.50.0", 5000)
         d = deferToThreadPool(reactor, self.tp, hr.render, request1)
         return d
 
@@ -232,13 +232,13 @@ class PostResponseTest(TestCase):
         tp.start()
         self.addCleanup(tp.stop)
 
-
         log.debug("\n\nStarting the two stream stuff.")
 
         request1 = DummyRequest('r1')
         request1.isSecure = lambda: False
         request1.content = "Nothing really here."
-        request1.headers['llamas'] = 'dingo'
+        request1.requestHeaders.addRawHeader('llamas', 'dingo')
+        request1.client = IPv4Address("TCP", b"50.0.50.0", 5000)
 
         nameSpace.test_case = self
 
@@ -248,7 +248,8 @@ class PostResponseTest(TestCase):
         request2 = DummyRequest('r2')
         request2.isSecure = lambda: False
         request2.content = "Nothing really here."
-        request2.headers['llamas'] = 'dingo'
+        request2.requestHeaders.addRawHeader('llamas', 'dingo')
+        request2.client = IPv4Address("TCP", b"100.0.50.0", 5000)
 
         d2 = deferToThreadPool(reactor, tp, hr.render, request2)
 
