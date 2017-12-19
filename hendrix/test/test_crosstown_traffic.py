@@ -1,26 +1,25 @@
 import threading
-from six.moves.queue import Queue
 
-from twisted.internet.threads import deferToThreadPool
-from twisted.trial.unittest import TestCase
+from six.moves.queue import Queue
 from twisted.internet import reactor
+from twisted.internet.address import IPv4Address
 from twisted.internet.defer import gatherResults
+from twisted.internet.threads import deferToThreadPool
+from twisted.logger import Logger
 from twisted.python.threadpool import ThreadPool
+from twisted.trial.unittest import TestCase
 from twisted.web.test.requesthelper import DummyRequest
 
-from twisted.logger import Logger
 from hendrix.experience import crosstown_traffic
-from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
 from hendrix.facilities.resources import HendrixWSGIResource
-from hendrix.test.resources import TestNameSpace, application as wsgi_application,\
+from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
+from hendrix.test.resources import TestNameSpace, application as wsgi_application, \
     nameSpace
-
 
 log = Logger()
 
 
 class NoGoStatusCodes(TestCase):
-
     def __init__(self, *args, **kwargs):
         self.tp = ThreadPool(maxthreads=20)
         self.tp.start()
