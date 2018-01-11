@@ -1,30 +1,13 @@
 language: python
-env:
-- TOXENV=py27
+cache: pip
+python:
+- '2.7'
+- '3.5'
+- '3.6'
 install:
-- pip install tox
-notifications:
-  webhooks:
-    urls:
-      - secure: "ZZY1i8utifJs47jvQeT0AH+qGmfMM/as1x7ycKteJ1TjSjol4jRxuao67XeSMpVZQ9+HUBcvynO1+6mKcV9wG5XK8sWSf2grv7ErmDee9VkzMvlxXunZXFcESCErffrSm+Bq4koXxX9KRLTpwsPxJOyXPNJr+jthosKigBT6pKw="
-    on_success: always  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: never     # options: [always|never|change] default: always
-  email:
-    recipients:
-    - justin@justinholmes.com
-    on_success: change
-    on_failure: always
-  irc:
-    channels:
-    - chat.freenode.net#hendrix
-    template:
-    - "%{repository_slug} (%{branch} - %{commit} - %{commit_message} - %{author} -
-      %{message})"
-    - 'Build details: %{build_url}'
-    - 'Result: %{result}'
-    use_notice: true
-script: tox
+- pip install pipenv --upgrade
+- pipenv install --dev
+script: "coverage run runtests.py"
 before_install:
   - pip install codecov
 after_success:
