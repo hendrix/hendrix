@@ -33,6 +33,7 @@ class ThroughToYou(object):
 
         self.no_go = False
         self.status_code = None
+        self.crosstown_task = None
 
     def __call__(self, crosstown_task=None):
         self.crosstown_task = crosstown_task

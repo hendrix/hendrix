@@ -55,6 +55,7 @@ class NoGoStatusCodes(TestCase):
         request = DummyRequest([b'r1'])
         request.isSecure = lambda: False
         request.content = "llamas"
+        request.client = IPv4Address("TCP", b"50.0.50.0", 5000)
 
         finished = request.notifyFinish()
 
@@ -66,6 +67,8 @@ class NoGoStatusCodes(TestCase):
                 self.nameSpace.async_task_was_run
             )
         )
+
+        return finished
 
     def test_bad_status_codes_cause_no_go_flag(self):
         through_to_you = crosstown_traffic(
@@ -85,9 +88,8 @@ class NoGoStatusCodes(TestCase):
 
 
 class SameOrDifferentThread(TestCase):
-
     def setUp(self, *args, **kwargs):
-        self.tp = ThreadPool(maxthreads=20)
+        self.tp = ThreadPool()
         self.tp.start()
         self.addCleanup(self.tp.stop)
         super(SameOrDifferentThread, self).setUp(*args, **kwargs)
