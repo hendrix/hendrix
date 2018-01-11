@@ -104,7 +104,7 @@ class SameOrDifferentThread(TestCase):
             nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
             log.debug("Finished async thing on same thread.")
 
-        return b"Nothing."
+        return [b"Nothing."]
 
     def assert_that_threads_are_the_same(self):
         self.assertEqual(
@@ -120,7 +120,7 @@ class SameOrDifferentThread(TestCase):
         hr = HendrixWSGIResource(reactor, self.tp, self.wsgi_thing)
         request1 = DummyRequest([b'r1'])
         request1.isSecure = lambda: False
-        request1.content = "llamas"
+        request1.content = b"llamas"
         request1.client = IPv4Address("TCP", b"50.0.50.0", 5000)
         d = deferToThreadPool(reactor, self.tp, hr.render, request1)
         return d
@@ -234,7 +234,7 @@ class PostResponseTest(TestCase):
 
         log.debug("\n\nStarting the two stream stuff.")
 
-        request1 = DummyRequest('r1')
+        request1 = DummyRequest([b'r1'])
         request1.isSecure = lambda: False
         request1.content = "Nothing really here."
         request1.requestHeaders.addRawHeader('llamas', 'dingo')
@@ -245,9 +245,9 @@ class PostResponseTest(TestCase):
         hr = HendrixWSGIResource(reactor, tp, wsgi_application)
         d1 = deferToThreadPool(reactor, tp, hr.render, request1)
 
-        request2 = DummyRequest('r2')
+        request2 = DummyRequest([b'r2'])
         request2.isSecure = lambda: False
-        request2.content = "Nothing really here."
+        request2.content = b"Nothing really here."
         request2.requestHeaders.addRawHeader('llamas', 'dingo')
         request2.client = IPv4Address("TCP", b"100.0.50.0", 5000)
 
