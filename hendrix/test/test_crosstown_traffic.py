@@ -37,17 +37,17 @@ class NoGoStatusCodes(TestCase):
         super(NoGoStatusCodes, self).setUp(*args, **kwargs)
 
     def wsgi_thing(self, environ, start_response):
-            start_response('404 NOT FOUND', [('Content-type','text/plain')])
+        start_response('404 NOT FOUND', [('Content-type', 'text/plain')])
 
-            @crosstown_traffic(
-                no_go_status_codes=self.no_go_status_codes,
-                same_thread=True
-            )
-            def long_thing_on_same_thread():
-                self.nameSpace.async_task_was_run = True
-                log.debug("No bad status codes; went ahead with async thing.")
+        @crosstown_traffic(
+            no_go_status_codes=self.no_go_status_codes,
+            same_thread=True
+        )
+        def long_thing_on_same_thread():
+            self.nameSpace.async_task_was_run = True
+            log.debug("No bad status codes; went ahead with async thing.")
 
-            return b"Nothing."
+        return [b"Nothing."]
 
     def test_bad_status_codes_cause_no_go_in_wsgi_response(self):
         self.no_go_status_codes = [404, '6xx']
@@ -139,7 +139,6 @@ class SameOrDifferentThread(TestCase):
 
 
 class PostResponseTest(TestCase):
-    
     def setUp(self):
         nameSpace = TestNameSpace()
 
