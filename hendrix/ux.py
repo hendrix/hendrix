@@ -172,7 +172,7 @@ def djangoVsWsgi(options):
                 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", '
                 '"mysettings.dot.path")'
             )
-            raise SettingsError(chalk.format_red(msg), None, sys.exc_info()[2])
+            raise SettingsError(chalk.red(msg), None, sys.exc_info()[2])
         elif user_settings:
             # if the user specified the settings to use then these take
             # precedence
