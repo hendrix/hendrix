@@ -87,7 +87,7 @@ def assignDeploymentInstance(action, options):
     try:
         hendrixLauncher(action, options)
     except Exception as e:
-        tb = sys.exc_info()[2]
+        tb = sys.exc_info()
         msg = traceback.format_exc(tb)
         chalk.red(msg, pipe=chalk.stderr)
         os._exit(1)
@@ -153,7 +153,7 @@ def findSettingsModule():
             str(e) + '\nPlease ensure that you are in the same directory '
             'as django\'s "manage.py" file.'
         )
-        raise IOError(chalk.format_red(msg), None, sys.exc_info()[2])
+        raise IOError(chalk.format_red(msg), None, sys.exc_info())
     except AttributeError:
         settings_mod = ''
     return settings_mod
@@ -172,7 +172,7 @@ def djangoVsWsgi(options):
                 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", '
                 '"mysettings.dot.path")'
             )
-            raise SettingsError(chalk.format_red(msg), None, sys.exc_info()[2])
+            raise SettingsError(chalk.format_red(msg), None, sys.exc_info())
         elif user_settings:
             # if the user specified the settings to use then these take
             # precedence

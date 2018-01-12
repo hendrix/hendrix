@@ -103,7 +103,7 @@ class HendrixResource(resource.Resource):
                 '%r improperly configured. additional_resources instances must'
                 ' have a namespace attribute'
             ) % resource
-            raise AttributeError(msg, None, sys.exc_info()[2])
+            raise AttributeError(msg, None, sys.exc_info())
 
 
 class NamedResource(resource.Resource):
