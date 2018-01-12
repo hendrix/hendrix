@@ -125,6 +125,7 @@ class SameOrDifferentThread(TestCase):
         request1.content = b"llamas"
         request1.client = IPv4Address("TCP", b"50.0.50.0", 5000)
         d = deferToThreadPool(reactor, self.tp, hr.render, request1)
+        d.addCallback(lambda _: request1.notifyFinish())
         return d
 
     def test_that_threads_are_the_same(self):
