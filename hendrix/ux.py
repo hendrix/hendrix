@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 import pickle
+import threading
 from hendrix.options import cleanOptions
 from .options import HendrixOptionParser
 from hendrix.contrib import SettingsError
@@ -22,6 +23,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from twisted.logger import globalLogPublisher
+
 try:
     from tiempo.conn import REDIS
     from tiempo.locks import lock_factory
@@ -41,6 +43,7 @@ class Reload(FileSystemEventHandler):
                 'Reload should not be run if --reload has not been passed to '
                 'the command as an option.'
             )
+        self._timer = None
         self.process = subprocess.Popen(
             ['hx', 'start_reload'] + self.options
         )
@@ -50,16 +53,22 @@ class Reload(FileSystemEventHandler):
             return
         ext = os.path.splitext(event.src_path)[1]
         if ext == '.py':
-            self.process = self.restart()
+            self.schedule_restart()
             chalk.eraser()
-            chalk.yellow("Detected changes, restarting...")
+            chalk.yellow("Detected changes in {}, restarting...".format(event.src_path))
+            
+    def schedule_restart(self):
+        if self._timer:
+            self._timer.cancel()
+        self._timer = threading.Timer(1.0,self.restart)
+        self._timer.start()
 
     def restart(self):
         self.process.kill()
-        process = subprocess.Popen(
+        self.process = subprocess.Popen(
             ['hx', 'start_reload'] + self.options
         )
-        return process
+        return self.process
 
 def hendrixLauncher(action, options, with_tiempo=False):
     """

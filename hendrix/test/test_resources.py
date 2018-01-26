@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from twisted.web.resource import getChildForRequest, NoResource
@@ -8,7 +9,7 @@ try:
 except ImportError:
     import mock
 
-from hendrix.facilities.resources import HendrixResource, NamedResource, WSGIResource
+from hendrix.facilities.resources import HendrixResource, NamedResource, WSGIResource, DjangoStaticResource
 
 
 class TestHendrixResource(unittest.TestCase):
@@ -52,4 +53,33 @@ class TestHendrixResource(unittest.TestCase):
             actual_duplicate_res = getChildForRequest(self.hr, request)
             self.assertEqual(duplicate, actual_duplicate_res) # After duplicate
             
+    def test_putNamedChild_django_static_override(self):
+        "check that overridden resources work"
+        with mock.patch('hendrix.facilities.resources.WSGIResource') as wsgi:
+            static_dir = os.path.join(os.path.dirname(__file__),'testproject','static')
+            
+            # Django finders import in order of INSTALLED_APPS so overrides must happen first
+            overridden_media = DjangoStaticResource(static_dir+'/override/css','/static/base/css') # Same rel_url -> overrides
+            self.hr.putNamedChild(overridden_media)
+            base_media = DjangoStaticResource(static_dir+'/base/css','/static/base/css')
+            self.hr.putNamedChild(base_media)
+            
+            # main.css file should be the same as it is not overridden
+            request = DummyRequest(['static', 'base', 'css','main.css'])
+            actual_res = getChildForRequest(self.hr, request)
+            with actual_res.open() as f:
+                actual_content = f.read() 
+                
+            with open(static_dir+'/base/css/main.css') as f:
+                expected_content = f.read()
+            self.assertEqual(expected_content,actual_content)
+            
+            # form.css should be the same as the overridden folder 
+            request = DummyRequest(['static', 'base', 'css','form.css'])
+            actual_res = getChildForRequest(self.hr, request)
+            with actual_res.open() as f:
+                actual_content = f.read()
+            with open(static_dir+'/override/css/form.css') as f:
+                expected_content = f.read()
+            self.assertEqual(expected_content,actual_content)
             
