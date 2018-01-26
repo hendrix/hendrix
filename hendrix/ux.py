@@ -172,7 +172,7 @@ def djangoVsWsgi(options):
                 'os.environ.setdefault("DJANGO_SETTINGS_MODULE", '
                 '"mysettings.dot.path")'
             )
-            raise SettingsError(chalk.format_red(msg), None, sys.exc_info()[2])
+            raise SettingsError(chalk.red(msg), None, sys.exc_info()[2])
         elif user_settings:
             # if the user specified the settings to use then these take
             # precedence
@@ -228,8 +228,7 @@ def subprocessLaunch():
         action='start'
         options = REDIS.get('worker_args')
         assignDeploymentInstance(action='start', options=options)
-    except Exception as Argument:
-        print(Argument) 
+    except Exception:
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
 
 def main():
@@ -253,6 +252,5 @@ def main():
 
     try:
         launch(*args, **options)
-    except Exception as Argument:
-        print(Argument)
+    except Exception:
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)

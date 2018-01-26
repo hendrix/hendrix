@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+name = "pypi"
+verify_ssl = true
+
+[packages]
+
+twisted = "*"
+"zope.interface" = "*"
+watchdog = "*"
+"jinja2" = "*"
+pychalk = "*"
+"service-identity" = "*"
+"zope-interface" = "*"
+six = "*"
+
+
+[dev-packages]
+django = "<2.0"
+flask = "*"
+
+
+[requires]
+python_version = "3.5"

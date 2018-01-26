@@ -22,7 +22,7 @@ nameSpace = TestNameSpace()
 def application(environ, start_response):
     start_response('200 OK', [('Content-type', 'text/plain')])
 
-    if 'test_crosstown_traffic' in environ['QUERY_STRING'] or environ['PATH_INFO'] == '/r/1':
+    if 'test_crosstown_traffic' in environ['QUERY_STRING'] or environ['PATH_INFO'] == '/r1':
 
         log.debug('Starting first cycle...')
 
@@ -56,9 +56,9 @@ def application(environ, start_response):
         # ...and again, the async task still hasn't been run yet.
         nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
 
-        return b'The first sync response'
+        return [b'The first sync response']
 
-    if environ['PATH_INFO'] == '/r/2':
+    if environ['PATH_INFO'] == '/r2':
         nameSpace.ready_to_proceed_with_second_cycle.get(True, 3)
 
         second_response_tasks = get_tasks_to_follow_current_response()
@@ -83,9 +83,8 @@ def application(environ, start_response):
         )
 
         nameSpace.second_cycle_complete.put(True)
-        return b'The second sync request.'
+        return [b'The second sync request.']
 
     other_inane_thing = False
 
-    return [str(threading.current_thread()),
-            str(crosstown_traffic.tasks_to_follow_response)]
+    return [b"Finished."]

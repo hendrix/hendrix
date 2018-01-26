@@ -1,26 +1,25 @@
 import threading
-from six.moves.queue import Queue
 
-from twisted.internet.threads import deferToThreadPool
-from twisted.trial.unittest import TestCase
+from six.moves.queue import Queue
 from twisted.internet import reactor
+from twisted.internet.address import IPv4Address
 from twisted.internet.defer import gatherResults
+from twisted.internet.threads import deferToThreadPool
+from twisted.logger import Logger
 from twisted.python.threadpool import ThreadPool
+from twisted.trial.unittest import TestCase
 from twisted.web.test.requesthelper import DummyRequest
 
-from twisted.logger import Logger
 from hendrix.experience import crosstown_traffic
-from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
 from hendrix.facilities.resources import HendrixWSGIResource
-from hendrix.test.resources import TestNameSpace, application as wsgi_application,\
+from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
+from hendrix.test.resources import TestNameSpace, application as wsgi_application, \
     nameSpace
-
 
 log = Logger()
 
 
 class NoGoStatusCodes(TestCase):
-
     def __init__(self, *args, **kwargs):
         self.tp = ThreadPool(maxthreads=20)
         self.tp.start()
@@ -38,24 +37,25 @@ class NoGoStatusCodes(TestCase):
         super(NoGoStatusCodes, self).setUp(*args, **kwargs)
 
     def wsgi_thing(self, environ, start_response):
-            start_response('404 NOT FOUND', [('Content-type','text/plain')])
+        start_response('404 NOT FOUND', [('Content-type', 'text/plain')])
 
-            @crosstown_traffic(
-                no_go_status_codes=self.no_go_status_codes,
-                same_thread=True
-            )
-            def long_thing_on_same_thread():
-                self.nameSpace.async_task_was_run = True
-                log.debug("No bad status codes; went ahead with async thing.")
+        @crosstown_traffic(
+            no_go_status_codes=self.no_go_status_codes,
+            same_thread=True
+        )
+        def long_thing_on_same_thread():
+            self.nameSpace.async_task_was_run = True
+            log.debug("No bad status codes; went ahead with async thing.")
 
-            return b"Nothing."
+        return [b"Nothing."]
 
     def test_bad_status_codes_cause_no_go_in_wsgi_response(self):
         self.no_go_status_codes = [404, '6xx']
 
-        request = DummyRequest('r1')
+        request = DummyRequest([b'r1'])
         request.isSecure = lambda: False
         request.content = "llamas"
+        request.client = IPv4Address("TCP", b"50.0.50.0", 5000)
 
         finished = request.notifyFinish()
 
@@ -67,6 +67,8 @@ class NoGoStatusCodes(TestCase):
                 self.nameSpace.async_task_was_run
             )
         )
+
+        return finished
 
     def test_bad_status_codes_cause_no_go_flag(self):
         through_to_you = crosstown_traffic(
@@ -86,26 +88,25 @@ class NoGoStatusCodes(TestCase):
 
 
 class SameOrDifferentThread(TestCase):
-
     def setUp(self, *args, **kwargs):
-        self.tp = ThreadPool(maxthreads=20)
+        self.tp = ThreadPool()
         self.tp.start()
         self.addCleanup(self.tp.stop)
         super(SameOrDifferentThread, self).setUp(*args, **kwargs)
 
     def wsgi_thing(self, environ, start_response):
-            start_response('200 OK', [('Content-type', 'text/plain')])
+        start_response('200 OK', [('Content-type', 'text/plain')])
 
-            nameSpace.this_thread = threading.current_thread()
+        nameSpace.this_thread = threading.current_thread()
 
-            @crosstown_traffic(
-                same_thread=self.use_same_thread
-            )
-            def long_thing_on_same_thread():
-                nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
-                log.debug("Finished async thing on same thread.")
+        @crosstown_traffic(
+            same_thread=self.use_same_thread
+        )
+        def long_thing_on_same_thread():
+            nameSpace.thread_that_is_supposed_to_be_the_same = threading.current_thread()
+            log.debug("Finished async thing on same thread.")
 
-            return b"Nothing."
+        return [b"Nothing."]
 
     def assert_that_threads_are_the_same(self):
         self.assertEqual(
@@ -118,12 +119,13 @@ class SameOrDifferentThread(TestCase):
                             nameSpace.thread_that_is_supposed_to_be_different)
 
     def request_same_or_different_thread_thread(self):
-
         hr = HendrixWSGIResource(reactor, self.tp, self.wsgi_thing)
-        request1 = DummyRequest('r1')
+        request1 = DummyRequest([b'r1'])
         request1.isSecure = lambda: False
-        request1.content = "llamas"
+        request1.content = b"llamas"
+        request1.client = IPv4Address("TCP", b"50.0.50.0", 5000)
         d = deferToThreadPool(reactor, self.tp, hr.render, request1)
+        d.addCallback(lambda _: request1.notifyFinish())
         return d
 
     def test_that_threads_are_the_same(self):
@@ -140,7 +142,6 @@ class SameOrDifferentThread(TestCase):
 
 
 class PostResponseTest(TestCase):
-    
     def setUp(self):
         nameSpace = TestNameSpace()
 
@@ -233,23 +234,24 @@ class PostResponseTest(TestCase):
         tp.start()
         self.addCleanup(tp.stop)
 
-
         log.debug("\n\nStarting the two stream stuff.")
 
-        request1 = DummyRequest('r1')
+        request1 = DummyRequest([b'r1'])
         request1.isSecure = lambda: False
         request1.content = "Nothing really here."
-        request1.headers['llamas'] = 'dingo'
+        request1.requestHeaders.addRawHeader('llamas', 'dingo')
+        request1.client = IPv4Address("TCP", b"50.0.50.0", 5000)
 
         nameSpace.test_case = self
 
         hr = HendrixWSGIResource(reactor, tp, wsgi_application)
         d1 = deferToThreadPool(reactor, tp, hr.render, request1)
 
-        request2 = DummyRequest('r2')
+        request2 = DummyRequest([b'r2'])
         request2.isSecure = lambda: False
-        request2.content = "Nothing really here."
-        request2.headers['llamas'] = 'dingo'
+        request2.content = b"Nothing really here."
+        request2.requestHeaders.addRawHeader('llamas', 'dingo')
+        request2.client = IPv4Address("TCP", b"100.0.50.0", 5000)
 
         d2 = deferToThreadPool(reactor, tp, hr.render, request2)
 
