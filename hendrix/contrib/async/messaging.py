@@ -82,7 +82,7 @@ class MessageDispatcher(object):
             removes a transport from all channels to which it belongs.
         """
         recipients = copy.copy(self.recipients)
-        for address, recManager in recipients.iteritems():
+        for address, recManager in recipients.items():
             recManager.remove(transport)
             if not len(recManager.transports):
                 del self.recipients[address]
