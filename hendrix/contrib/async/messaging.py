@@ -26,12 +26,12 @@ class RecipientManager(object):
         """
         self.transports[transport.uid] = transport
 
-    def send(self, string):  # usually a json string...
+    def send(self, message):  # usually a json string...
         """
             sends whatever it is to each transport
         """
         for transport in self.transports.values():
-            transport.write(string)
+            transport.protocol.sendMessage(message)
 
     def remove(self, transport):
         """
