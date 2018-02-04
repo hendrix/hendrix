@@ -13,7 +13,7 @@ class RecipientManager(object):
         self.transports = {}
 
         if transport is not None:
-            self.transports[transport.uid] = transport
+            self.add(transport)
 
     def __repr__(self):
         return 'RecipientManager object at %s with %d recipients' % (
