@@ -102,17 +102,17 @@ class MessageDispatcher(object):
         if recipients:
             for recipient in recipients:
                 if recipient:
-                    recipient.send(json.dumps(data_dict))
+                    recipient.send(json.dumps(data_dict).encode())
 
     def subscribe(self, transport, data):
         """
             adds a transport to a channel
         """
 
-        self.add(transport, address=data.get('hx_subscribe'))
+        self.add(transport, address=data.get('hx_subscribe').encode())
 
         self.send(
-            data.get('hx_subscribe'),
+            data['hx_subscribe'],
             {'message': "%r is listening" % transport}
         )
 
