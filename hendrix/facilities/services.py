@@ -106,6 +106,7 @@ from twisted.internet.ssl import DefaultOpenSSLContextFactory
 class ContextWithECC(SSL.Context):
 
     def use_privatekey(self, _private_key):
+        # At some point, we hope to use PyOpenSSL tooling to do this.  See #144.
         from OpenSSL._util import lib as _OpenSSLlib
         cryptography_key = _private_key.bn_key.to_cryptography_priv_key()
         use_result = _OpenSSLlib.SSL_CTX_use_PrivateKey(self._context, cryptography_key._evp_pkey)
