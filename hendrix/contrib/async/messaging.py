@@ -13,7 +13,7 @@ class RecipientManager(object):
         self.transports = {}
 
         if transport is not None:
-            self.transports[transport.uid] = transport
+            self.add(transport)
 
     def __repr__(self):
         return 'RecipientManager object at %s with %d recipients' % (
@@ -26,12 +26,12 @@ class RecipientManager(object):
         """
         self.transports[transport.uid] = transport
 
-    def send(self, string):  # usually a json string...
+    def send(self, message):  # usually a json string...
         """
             sends whatever it is to each transport
         """
         for transport in self.transports.values():
-            transport.write(string)
+            transport.protocol.sendMessage(message)
 
     def remove(self, transport):
         """
@@ -82,7 +82,7 @@ class MessageDispatcher(object):
             removes a transport from all channels to which it belongs.
         """
         recipients = copy.copy(self.recipients)
-        for address, recManager in recipients.iteritems():
+        for address, recManager in recipients.items():
             recManager.remove(transport)
             if not len(recManager.transports):
                 del self.recipients[address]
@@ -102,17 +102,17 @@ class MessageDispatcher(object):
         if recipients:
             for recipient in recipients:
                 if recipient:
-                    recipient.send(json.dumps(data_dict))
+                    recipient.send(json.dumps(data_dict).encode())
 
     def subscribe(self, transport, data):
         """
             adds a transport to a channel
         """
 
-        self.add(transport, address=data.get('hx_subscribe'))
+        self.add(transport, address=data.get('hx_subscribe').encode())
 
         self.send(
-            data.get('hx_subscribe'),
+            data['hx_subscribe'],
             {'message': "%r is listening" % transport}
         )
 

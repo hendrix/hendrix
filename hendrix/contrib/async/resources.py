@@ -3,7 +3,6 @@ import uuid
 
 from twisted.internet import threads
 from twisted.internet.protocol import Factory, Protocol
-from txsockjs.factory import SockJSResource
 
 from hendrix.facilities.resources import NamedResource
 
@@ -51,11 +50,11 @@ class MessageHandlerProtocol(Protocol):
 
             self.dispatcher.send(address, data)
 
-        except Exception, exc:
+        except Exception as e:
             raise
             self.dispatcher.send(
                 self.guid,
-                {'message': data, 'error': str(exc)}
+                {'message': data, 'error': str(e)}
             )
 
     def connectionMade(self):
@@ -78,7 +77,3 @@ class MessageHandlerProtocol(Protocol):
 
 
 MessageResource = NamedResource('messages')
-MessageResource.putChild(
-    'main',
-    SockJSResource(Factory.forProtocol(MessageHandlerProtocol))
-)

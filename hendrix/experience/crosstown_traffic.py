@@ -22,7 +22,8 @@ class ModuleCaller(object):
 
     def __call__(self, *args, **kwargs):
         try:
-            return self.decorator(threadpool=self.threadpool, *args, **kwargs)
+            threadpool = kwargs.pop('threadpool', self.threadpool)
+            return self.decorator(threadpool=threadpool, *args, **kwargs)
         except TypeError as e:
             if e.args[0] == "__init__() got multiple values for keyword argument 'threadpool'":
                 raise TypeError("Did you forget the '()' when using the crosstown_traffic decorator?  (ie, '@crosstown_traffic()').  Caught '%s'" % e.args[0])
