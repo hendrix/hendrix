@@ -165,6 +165,10 @@ class HendrixDeploy(object):
             if isinstance(service, (TCPServer, SSLServer)):
                 self.servers.append(service.name)
 
+    def _listening_message(self):
+        message = "non-TLS listening on port {}".format(self.options['http_port'])
+        return message
+
     def run(self):
         "sets up the desired services and runs the requested action"
         self.addServices()
@@ -173,11 +177,7 @@ class HendrixDeploy(object):
         fd = self.options['fd']
 
         if action.startswith('start'):
-            chalk.blue(
-                'Ready and Listening on port %d...' % self.options.get(
-                    'http_port'
-                )
-            )
+            chalk.blue(self._listening_message())
             getattr(self, action)(fd)
 
             ###########################

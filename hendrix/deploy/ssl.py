@@ -63,3 +63,9 @@ class HendrixDeployTLS(HendrixDeploy):
             '--cert', self.options.get('cert')
         ]
         return args
+
+    def _listening_message(self):
+        message = "TLS listening on port {}".format(self.options['https_port'])
+        if self.options['https_only'] is not True:
+            message += " and non-TLS on port {}".format(self.options['http_port'])
+        return message
