@@ -12,7 +12,7 @@ from twisted.python.threadpool import ThreadPool
 from hendrix import defaults
 from hendrix.options import options as hx_options
 from hendrix.facilities.gather import get_additional_resources, get_additional_services
-from hendrix.facilities.services import HendrixService
+from hendrix.facilities.services import HendrixService, HendrixTCPService, HendrixTCPServiceWithTLS
 from hendrix.utils import get_pid, import_string
 from hendrix.facilities.protocols import DeployServerProtocol
 from twisted.application.internet import TCPServer, SSLServer
