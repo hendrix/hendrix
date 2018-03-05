@@ -1,3 +1,4 @@
+from twisted.internet import ssl
 from twisted.application import internet, service
 from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
@@ -5,6 +6,8 @@ from twisted.web import server
 
 from twisted.logger import Logger
 from hendrix.facilities.resources import HendrixResource
+from OpenSSL import SSL
+from OpenSSL.crypto import get_elliptic_curve
 
 
 class HendrixService(service.MultiService):
@@ -21,7 +24,6 @@ class HendrixService(service.MultiService):
     def __init__(
             self,
             application,
-            port=80,  # TODO: When will this ever be optional?  And why 80 by default?
             threadpool=None,
             resources=None,
             services=None,
@@ -49,17 +51,20 @@ class HendrixService(service.MultiService):
                 else:
                     resource.putNamedChild(res)
 
-        factory = server.Site(resource)
-        # add a tcp server that binds to port=port
-        main_web_tcp = TCPServer(port, factory)
+        self.site = server.Site(resource)
+
+    def spawn_new_server(self, port, server_class, additional_services=None, *args, **kwargs):
+
+        main_web_tcp = server_class(port, self.site, *args, **kwargs)
         main_web_tcp.setName('main_web_tcp')
+
         # to get this at runtime use
         # hedrix_service.getServiceNamed('main_web_tcp')
         main_web_tcp.setServiceParent(self)
 
         # add any additional services
-        if services:
-            for srv_name, srv in services:
+        if additional_services:
+            for srv_name, srv in additional_services:
                 srv.setName(srv_name)
                 srv.setServiceParent(self)
 
@@ -95,8 +100,72 @@ class ThreadPoolService(service.Service):
         self.pool.stop()
 
 
-class TCPServer(internet.TCPServer):
+from twisted.internet.ssl import DefaultOpenSSLContextFactory
 
-    def __init__(self, port, factory, *args, **kwargs):
-        internet.TCPServer.__init__(self, port, factory, *args, **kwargs)
-        self.factory = factory
+
+class ContextWithECC(SSL.Context):
+
+    def use_privatekey(self, _private_key):
+        from OpenSSL._util import lib as _OpenSSLlib
+        cryptography_key = _private_key.bn_key.to_cryptography_priv_key()
+        use_result = _OpenSSLlib.SSL_CTX_use_PrivateKey(self._context, cryptography_key._evp_pkey)
+        if not use_result:
+            self._raise_passphrase_exception()
+
+
+class ExistingKeyTLSContextFactory(DefaultOpenSSLContextFactory):
+
+    _context = None
+
+    def __init__(self, private_key, cert, curve_name=None,
+                 sslmethod=SSL.SSLv23_METHOD, _contextFactory=ContextWithECC):
+
+        self._private_key = private_key
+        self.curve_name = curve_name
+        self.certificate = cert
+        self.sslmethod = sslmethod
+        self._contextFactory = _contextFactory
+
+        # Create a context object right now.  This is to force validation of
+        # the given parameters so that errors are detected earlier rather
+        # than later.
+        self.cacheContext()
+
+    def cacheContext(self):
+        if self._context is None:
+            ctx = self._contextFactory(self.sslmethod)
+            ctx.set_options(SSL.OP_NO_SSLv2)  # No allow v2.  Obviously.
+            ctx.use_certificate(self.certificate)
+            ctx.use_privatekey(self._private_key)
+            if self.curve_name:
+                curve = get_elliptic_curve(self.curve_name)
+                ctx.set_tmp_ecdh(curve)
+            self._context = ctx
+
+
+class HendrixTCPService(internet.TCPServer):
+
+    def __init__(self, port, site, *args, **kwargs):
+        internet.TCPServer.__init__(self, port, site, *args, **kwargs)
+        self.site = site
+
+
+class HendrixTCPServiceWithTLS(internet.SSLServer):
+
+    def __init__(self, port, site, key, cacert, context_factory=None, context_factory_kwargs=None):
+        context_factory = context_factory or ssl.DefaultOpenSSLContextFactory
+        context_factory_kwargs = context_factory_kwargs or {}
+
+        sslContext = context_factory(
+            key,
+            cacert,
+            **context_factory_kwargs
+        )
+        internet.SSLServer.__init__(
+            self,
+            port,  # integer port
+            site,  # our site object, see the web howto
+            contextFactory=sslContext,
+        )
+
+        self.site = site
