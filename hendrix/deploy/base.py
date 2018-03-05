@@ -151,12 +151,13 @@ class HendrixDeploy(object):
         '''
         self.hendrix = HendrixService(
             self.application,
-            port=self.options['http_port'],
             threadpool=self.getThreadPool(),
             resources=self.resources,
             services=self.services,
             loud=self.options['loud']
         )
+        if self.options["https_only"] is not True:
+            self.hendrix.spawn_new_server(self.options['http_port'], HendrixTCPService)
 
     def catalogServers(self, hendrix):
         "collects a list of service names serving on TCP or SSL"
