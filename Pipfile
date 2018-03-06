@@ -1,7 +1,9 @@
 [[source]]
+
 url = "https://pypi.python.org/simple"
 name = "pypi"
 verify_ssl = true
+
 
 [packages]
 
@@ -10,15 +12,17 @@ twisted = "*"
 watchdog = "*"
 "jinja2" = "*"
 pychalk = "*"
-"service-identity" = "*"
-"zope-interface" = "*"
+service-identity = "*"
+zope-interface = "*"
 six = "*"
+autobahn = "*"
 
 
 [dev-packages]
+
 django = "<2.0"
 flask = "*"
-
-
-[requires]
-python_version = "3.5"
+cryptography = "*"
+ipython = "*"
+"urllib3" = "*"
+requests = "*"
