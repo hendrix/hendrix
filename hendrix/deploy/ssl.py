@@ -13,7 +13,7 @@ class HendrixDeployTLS(HendrixDeploy):
 
     def __init__(self, action='start', options={},
                  reactor=reactor, threadpool=None,
-                 key=None, cert=None, context_class=None,
+                 key=None, cert=None, context_factory=None,
                  context_factory_kwargs=None,
                  *args, **kwargs):
 
@@ -27,7 +27,7 @@ class HendrixDeployTLS(HendrixDeploy):
             raise ValueError("Can't launch with TLS unless you pass a valid key and cert.")
         self.key = key
         self.cert = cert
-        self.context_class = context_class
+        self.context_factory = context_factory
         self.context_factory_kwargs = context_factory_kwargs or {}
 
     def addServices(self):
@@ -43,7 +43,7 @@ class HendrixDeployTLS(HendrixDeploy):
         "adds a SSLService to the instaitated HendrixService"
         https_port = self.options['https_port']
         tls_service = HendrixTCPServiceWithTLS(https_port, self.hendrix.site, self.key, self.cert,
-                             self.context_class, self.context_factory_kwargs)
+                             self.context_factory, self.context_factory_kwargs)
         tls_service.setServiceParent(self.hendrix)
 
     def addSubprocesses(self, fds, name, factory):

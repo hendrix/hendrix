@@ -108,13 +108,23 @@ class ContextWithECC(SSL.Context):
     def use_privatekey(self, _private_key):
         # At some point, we hope to use PyOpenSSL tooling to do this.  See #144.
         from OpenSSL._util import lib as _OpenSSLlib
-        cryptography_key = _private_key.bn_key.to_cryptography_priv_key()
-        use_result = _OpenSSLlib.SSL_CTX_use_PrivateKey(self._context, cryptography_key._evp_pkey)
+        use_result = _OpenSSLlib.SSL_CTX_use_PrivateKey(self._context, _private_key._evp_pkey)
         if not use_result:
             self._raise_passphrase_exception()
 
 
-class ExistingKeyTLSContextFactory(DefaultOpenSSLContextFactory):
+class SpecifiedCurveContextFactory(DefaultOpenSSLContextFactory):
+
+    def __init__(self, private_key, cert, curve_name=None, *args, **kwargs):
+        DefaultOpenSSLContextFactory.__init__(self, private_key, cert, *args, **kwargs)
+        self.set_curve(curve_name)
+
+    def set_curve(self, curve_name):
+        curve = get_elliptic_curve(curve_name)
+        self._context.set_tmp_ecdh(curve)
+
+
+class ExistingKeyTLSContextFactory(SpecifiedCurveContextFactory):
 
     _context = None
 
@@ -126,11 +136,8 @@ class ExistingKeyTLSContextFactory(DefaultOpenSSLContextFactory):
         self.certificate = cert
         self.sslmethod = sslmethod
         self._contextFactory = _contextFactory
-
-        # Create a context object right now.  This is to force validation of
-        # the given parameters so that errors are detected earlier rather
-        # than later.
         self.cacheContext()
+        self.set_curve(curve_name)
 
     def cacheContext(self):
         if self._context is None:
@@ -138,9 +145,6 @@ class ExistingKeyTLSContextFactory(DefaultOpenSSLContextFactory):
             ctx.set_options(SSL.OP_NO_SSLv2)  # No allow v2.  Obviously.
             ctx.use_certificate(self.certificate)
             ctx.use_privatekey(self._private_key)
-            if self.curve_name:
-                curve = get_elliptic_curve(self.curve_name)
-                ctx.set_tmp_ecdh(curve)
             self._context = ctx
 
 
