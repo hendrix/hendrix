@@ -1,7 +1,7 @@
-"""
-Run these tests using nosetests
-"""
 import os
+import io
+
+from twisted.logger import eventsFromJSONLogFile
 import unittest
 
 from hendrix.contrib import SettingsError
@@ -11,8 +11,14 @@ from hendrix.utils import get_pid
 
 from twisted.internet import reactor
 
+TEST_SETTINGS = 'test.testproject.settings'
 
-TEST_SETTINGS = 'hendrix.test.testproject.settings'
+
+def iter_test_logs():
+    log_file = io.open(DEFAULT_LOG_FILE)
+    for event in eventsFromJSONLogFile(log_file):
+        if event.get('log_namespace').startswith('test'):
+            yield event
 
 
 class HendrixTestCase(unittest.TestCase):
@@ -50,7 +56,7 @@ class HendrixTestCase(unittest.TestCase):
         if options.get('settings'):
             raise SettingsError("uh uh uh... Don't use settings here.")
         if not options.get('wsgi'):
-            options.update({'wsgi': 'hendrix.test.wsgi'})
+            options.update({'wsgi': 'test.wsgi'})
         return self.deploy(action, options)
 
     def settingsDeploy(self, action='start', options={}):

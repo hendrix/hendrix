@@ -1,7 +1,6 @@
 import uuid
 
-from autobahn.twisted.websocket import WebSocketServerProtocol, \
-    WebSocketServerFactory
+from autobahn.twisted.websocket import WebSocketServerProtocol
 from autobahn.websocket.protocol import WebSocketProtocol
 import json
 
@@ -37,7 +36,7 @@ class MyServerProtocol(WebSocketServerProtocol):
         self.guid = self.dispatcher.add(self.transport)
         self.dispatcher.send(self.guid.encode(), {'setup_connection': self.guid})
 
-    def _____dataReceived(self, data):
+    def dataReceived(self, data):
 
         """
             Takes "data" which we assume is json encoded
@@ -72,9 +71,6 @@ class MyServerProtocol(WebSocketServerProtocol):
                 self.guid,
                 {'message': json_payload, 'error': str(e)}
             )
-
-
-
 
         if isBinary:
             print("Binary message received: {0} bytes".format(len(payload)))

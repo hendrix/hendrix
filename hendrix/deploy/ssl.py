@@ -7,8 +7,16 @@ from twisted.internet import reactor
 
 class HendrixDeployTLS(HendrixDeploy):
     """
-    HendrixDeploy encapsulates the necessary information needed to deploy the
-    HendrixService on a single or multiple processes.
+    A HendrixDeploy that listens only via TLS.
+
+    This class can accept a key and certificate combination and can
+    also pass arbitrary kwargs to the SSLContextFactory which
+    governs it use.
+
+    Notice that there's no hazmat here.  For the main service, all of the TLS is done
+    through Twisted (and thus PyOpenSSL) via the HendrixTCPServiceWithTLS
+    class, which is worth a look if you're interested in how this thing is
+    secured.
     """
 
     def __init__(self, action='start', options={},
@@ -23,7 +31,7 @@ class HendrixDeployTLS(HendrixDeploy):
             self.options["https_only"] = True
         key = key or self.options['key']
         cert = cert or self.options['cert']
-        if not key and cert:
+        if not (key and cert):
             raise ValueError("Can't launch with TLS unless you pass a valid key and cert.")
         self.key = key
         self.cert = cert

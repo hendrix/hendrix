@@ -196,5 +196,5 @@ def options(argv=[]):
     A helper function that returns a dictionary of the default key-values pairs
     """
     parser = HendrixOptionParser
-    parsed_arugs = parser.parse_args(argv)
-    return vars(parsed_arugs[0])
+    parsed_args = parser.parse_args(argv)
+    return vars(parsed_args[0])

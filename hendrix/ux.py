@@ -231,6 +231,7 @@ def subprocessLaunch():
     except Exception:
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
 
+
 def main():
     "The function to execute when running hx"
     options, args = HendrixOptionParser.parse_args(sys.argv[1:])

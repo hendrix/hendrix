@@ -1,3 +1,4 @@
+from __future__ import print_function
 from multiprocessing import Process, Queue
 from twisted.internet import reactor
 from httperfpy import Httperf
@@ -47,9 +48,9 @@ def stereotypical_view(request):
             # print("Making API call number %s" % i)
             time.sleep(.5)
         test_state.num_async_complete += 1
-        print "API call %s" % test_state.num_async_complete
+        print("API call %s" % test_state.num_async_complete)
         if test_state.num_async_complete == total_calls:
-            print "DONE!"
+            print("DONE!")
             reactor.stop()
 
     reply_message = "Thanks for doing whatever you did!"
@@ -65,7 +66,7 @@ deployer = HendrixDeploy(options={'wsgi': app})
 
 
 def run_http_battery():
-    print "Running HTTP Battery"
+    print("Running HTTP Battery")
     battery = Httperf(
         server="localhost",
         port=8000,
@@ -85,9 +86,9 @@ def http_battery_process():
 
 
 def analyze_results(results):
-    print results
+    print(results)
 
 d = deferToThread(http_battery_process)
 d.addCallback(analyze_results)
 deployer.run()
-print "Reactor unblocked."
+print("Reactor unblocked.")

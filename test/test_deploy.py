@@ -1,4 +1,4 @@
-from hendrix.test import HendrixTestCase
+from .utils import HendrixTestCase
 try:
     from unittest.mock import patch
 except ImportError:
@@ -45,7 +45,7 @@ class DeployTests(HendrixTestCase):
         self.assertIsInstance(deploy.hendrix, service.MultiService)
 
     def test_flask_deployment(self):
-        deploy = self.wsgiDeploy(options={'wsgi': 'hendrix.test.flasky.app'})
+        deploy = self.wsgiDeploy(options={'wsgi': 'test.flasky.app'})
         deploy.addServices()
         deploy.start()
         readers = deploy.reactor.getReaders()

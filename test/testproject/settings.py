@@ -31,9 +31,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'hendrix.tests.testproject.urls'
+ROOT_URLCONF = 'urls'
 
-WSGI_APPLICATION = 'hendrix.test.testproject.wsgi.application'
+WSGI_APPLICATION = 'test.wsgi.application'
 
 INSTALLED_APPS = (
     'django.contrib.auth',

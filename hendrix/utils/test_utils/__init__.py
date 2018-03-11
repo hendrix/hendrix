@@ -1,4 +1,3 @@
-from twisted.logger import Logger
 from hendrix.experience import crosstown_traffic
 from hendrix.mechanics.async.decorators import ThroughToYou
 

@@ -157,13 +157,13 @@ class HendrixTCPService(internet.TCPServer):
 
 class HendrixTCPServiceWithTLS(internet.SSLServer):
 
-    def __init__(self, port, site, key, cacert, context_factory=None, context_factory_kwargs=None):
+    def __init__(self, port, site, private_key, cert, context_factory=None, context_factory_kwargs=None):
         context_factory = context_factory or ssl.DefaultOpenSSLContextFactory
         context_factory_kwargs = context_factory_kwargs or {}
 
         sslContext = context_factory(
-            key,
-            cacert,
+            private_key,
+            cert,
             **context_factory_kwargs
         )
         internet.SSLServer.__init__(
