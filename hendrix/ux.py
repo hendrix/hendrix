@@ -153,7 +153,7 @@ def findSettingsModule():
             str(e) + '\nPlease ensure that you are in the same directory '
             'as django\'s "manage.py" file.'
         )
-        raise IOError(chalk.format_red(msg), None, sys.exc_info()[2])
+        raise IOError(chalk.red(msg), None, sys.exc_info()[2])
     except AttributeError:
         settings_mod = ''
     return settings_mod
@@ -253,5 +253,5 @@ def main():
 
     try:
         launch(*args, **options)
-    except Exception:
-        chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)
+    except Exception as e:
+        chalk.red('\n Could not %s hendrix.\n' % action)
