@@ -232,9 +232,11 @@ def subprocessLaunch():
         chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
 
 
-def main():
+def main(args=None):
     "The function to execute when running hx"
-    options, args = HendrixOptionParser.parse_args(sys.argv[1:])
+    if args is None:
+        args = sys.argv[1:]
+    options, args = HendrixOptionParser.parse_args(args)
     options = vars(options)
 
     try:

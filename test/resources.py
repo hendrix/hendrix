@@ -51,10 +51,10 @@ def application(environ, start_response):
         nameSpace.second_cycle_complete.get(True, 3)
 
         # Second cycle has completed, yet it didn't steal our crosstown_traffic
-        nameSpace.test_case.assertEqual(len(tasks), 1)
+        assert len(tasks) == 1
 
         # ...and again, the async task still hasn't been run yet.
-        nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
+        assert not nameSpace.async_task_was_run
 
         return [b'The first sync response']
 
