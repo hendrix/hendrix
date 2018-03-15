@@ -1,85 +1,120 @@
-import uuid
-
-from autobahn.twisted.websocket import WebSocketServerProtocol
-from autobahn.websocket.protocol import WebSocketProtocol
 import json
+import uuid
+from collections import defaultdict
+from itertools import chain
 
-from hendrix.contrib.async.messaging import hxdispatcher
+from autobahn.twisted import WebSocketServerFactory
+from autobahn.twisted.websocket import WebSocketServerProtocol
 
 
-class MyServerProtocol(WebSocketServerProtocol):
+class _ParticipantRegistry(object):
+    """
+    A basic registry for our PubSub pattern - tracks topics and the transports who wish to receive messages for them.
+    """
+    def __init__(self):
+        self._transports_by_topic = defaultdict(list)
 
-    dispatcher = hxdispatcher
+    def add(self, transport, topic=None):
+        if not topic:
+            topic = str(uuid.uuid1())
+        self._transports_by_topic[topic].append(transport)
+        return topic
 
-    def __init__(self, *args, **kwargs):
-        self.state = WebSocketProtocol.STATE_CLOSED
-        super().__init__(*args, **kwargs)
+    def remove(self, transport):
+        for topic, recipients in list(self._transports_by_topic.items()):
+            recipients.remove(transport)
+            if not recipients:  # IE, nobody is still listening at this topic.
+                del self._transports_by_topic[topic]
+
+    def send(self, topic, data_dict):
+        """
+        topic can either be a string or a list of strings
+
+        data_dict gets sent along as is and could contain anything
+        """
+        if type(topic) == list:
+            recipients = chain(self._transports_by_topic.get(rec) for rec in topic)
+        else:
+            recipients = self._transports_by_topic.get(topic)
+
+        if recipients:
+            for recipient in recipients:
+                if recipient:
+                    recipient.protocol.sendMessage(json.dumps(data_dict).encode())
+
+    def subscribe(self, transport, topic):
+        self.add(transport=transport, topic=topic)
+
+        self.send(
+            topic,
+            {'message': "%r is listening" % transport}
+        )
+
+# The main singleton instance to use with the subsequent classes here.
+_registry = _ParticipantRegistry()
+
+
+class _WayDownSouth(WebSocketServerProtocol):
+
+    def __init__(self, allow_free_redirect=False, subscription_message=None, *args, **kwargs):
+        self.subscription_message = subscription_message or "hx_subscribe"
+        self.allow_free_redirect = allow_free_redirect
+        super(_WayDownSouth, self).__init__(*args, **kwargs)
 
     def onConnect(self, request):
+        super(_WayDownSouth, self).onConnect(request)
         print("Client connecting: {0}".format(request.peer))
 
     def onOpen(self):
+        super(_WayDownSouth, self).onOpen()
         print("WebSocket connection open.")
 
     def connectionMade(self, *args, **kwargs):
-        """
-        establish the address of this new connection and add it to the list of
-        sockets managed by the dispatcher
-
-        reply to the transport with a "setup_connection" notice
-        containing the recipient's address for use by the client as a return
-        address for future communications
-        """
-        super().connectionMade(*args, **kwargs)
+        super(_WayDownSouth, self).connectionMade(*args, **kwargs)
         self.transport.uid = str(uuid.uuid1())
 
-        self.guid = self.dispatcher.add(self.transport)
-        self.dispatcher.send(self.guid.encode(), {'setup_connection': self.guid})
+        self.guid = _registry.add(self.transport)
+        _registry.send(self.guid, {'setup_connection': self.guid})
 
-    def dataReceived(self, data):
-
-        """
-            Takes "data" which we assume is json encoded
-            If data has a subject_id attribute, we pass that to the dispatcher
-            as the subject_id so it will get carried through into any
-            return communications and be identifiable to the client
-
-            falls back to just passing the message along...
-
-        """
-
-    def onMessage(self, payload, isBinary):
+    def onMessage(self, payload_as_json, isBinary):
 
         try:
-            address = self.guid
-            json_payload = json.loads(payload.decode())
-            # threads.deferToThread(send_signal, self.dispatcher, data)
+            payload = json.loads(payload_as_json.decode())
 
-            if 'hx_subscribe' in json_payload:
-                return self.dispatcher.subscribe(self.transport, json_payload)
+            subscription_topic = payload.get(self.subscription_message)
+            if subscription_topic:
+                _registry.subscribe(self.transport, subscription_topic)
 
-            if 'address' in json_payload:
-                address = json_payload['address']
-            else:
-                address = self.guid
+            if self.allow_free_redirect:
+                if 'address' in payload:
+                    address = payload['address']
+                else:
+                    address = self.guid
 
-            self.dispatcher.send(address, json_payload)
+            self._dispatcher.send(address, payload)
 
         except Exception as e:
             raise
-            self.dispatcher.send(
+            self._dispatcher.send(
                 self.guid,
-                {'message': json_payload, 'error': str(e)}
+                {'message': payload, 'error': str(e)}
             )
 
-        if isBinary:
-            print("Binary message received: {0} bytes".format(len(payload)))
-        else:
-            print("Text message received: {0}".format(payload.decode('utf8')))
-
-        # echo back message verbatim
-        self.sendMessage(payload, isBinary)
-
     def onClose(self, wasClean, code, reason):
-        self.dispatcher.remove(self.transport)
+        super(_WayDownSouth, self).onClose(wasClean, code, reason)
+        _registry.remove(self.transport)
         print("WebSocket connection closed: {0}".format(reason))
+
+
+class WebSocketService(WebSocketServerFactory):
+
+    def __init__(self, host_address, port, *args, **kwargs):
+        # Note: You can pass a test reactor here a as a kwarg; the parent objects will respect it.
+        self._hey_joe_addr = "ws://{}:{}".format(host_address, port)
+        super(WebSocketService, self).__init__(self._hey_joe_addr, *args, **kwargs)
+        self.protocol = _WayDownSouth
+        self.server = "hendrix/Twisted/" + self.server
+
+
+def send(address, data_dict):
+    return _registry.send(address, data_dict)
