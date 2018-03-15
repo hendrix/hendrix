@@ -16,7 +16,7 @@ def cleanOptions(options):
         '--nocache', '--global_cache', '--quiet', '--loud'
     ]
     store_false = []
-    for key, value in options.iteritems():
+    for key, value in options.items():
         key = '--' + key
         if (key in store_true and value) or (key in store_false and not value):
             opts += [key, ]

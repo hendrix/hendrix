@@ -4,30 +4,32 @@ A module to encapsulate the user experience logic
 
 from __future__ import with_statement
 
-import chalk
 import os
 import re
 import subprocess
 import sys
 import time
 import traceback
-import pickle
-from hendrix.options import cleanOptions
-from .options import HendrixOptionParser
+
+import chalk
+from twisted.logger import globalLogPublisher
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
 from hendrix.mechanics.async.exceptions import RedisException
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from hendrix.options import cleanOptions
+from .options import HendrixOptionParser
 
-from twisted.logger import globalLogPublisher
 try:
     from tiempo.conn import REDIS
     from tiempo.locks import lock_factory
+
     redis_available = True
-except:
-    ImportError
+except ImportError:
+
     redis_available = False
 
 
@@ -61,6 +63,7 @@ class Reload(FileSystemEventHandler):
         )
         return process
 
+
 def hendrixLauncher(action, options, with_tiempo=False):
     """
     Decides which version of HendrixDeploy to use and then
@@ -70,8 +73,8 @@ def hendrixLauncher(action, options, with_tiempo=False):
         from hendrix.deploy import hybrid
         HendrixDeploy = hybrid.HendrixDeployHybrid
     elif options['key'] and options['cert']:
-        from hendrix.deploy import ssl
-        HendrixDeploy = ssl.HendrixDeploySSL
+        from hendrix.deploy import tls
+        HendrixDeploy = tls.HendrixDeployTLS
     elif options['cache']:
         HendrixDeploy = cache.HendrixDeployCache
     else:
@@ -83,6 +86,7 @@ def hendrixLauncher(action, options, with_tiempo=False):
         deploy = HendrixDeploy(action, options)
         deploy.run()
 
+
 def assignDeploymentInstance(action, options):
     try:
         hendrixLauncher(action, options)
@@ -91,6 +95,7 @@ def assignDeploymentInstance(action, options):
         msg = traceback.format_exc(tb)
         chalk.red(msg, pipe=chalk.stderr)
         os._exit(1)
+
 
 def logReload(options):
     """
@@ -111,6 +116,7 @@ def logReload(options):
         os.kill(pid, 15)
     observer.join()
     exit('\n')
+
 
 def launch(*args, **options):
     """
@@ -150,8 +156,8 @@ def findSettingsModule():
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_mod)
     except IOError as e:
         msg = (
-            str(e) + '\nPlease ensure that you are in the same directory '
-            'as django\'s "manage.py" file.'
+                str(e) + '\nPlease ensure that you are in the same directory '
+                         'as django\'s "manage.py" file.'
         )
         raise IOError(chalk.red(msg), None, sys.exc_info()[2])
     except AttributeError:
@@ -217,6 +223,7 @@ def noiseControl(options):
         globalLogPublisher.addObserver(hendrixObserver(log_path))
     return None
 
+
 def subprocessLaunch():
     """
     This function is called by the hxw script.
@@ -225,11 +232,12 @@ def subprocessLaunch():
     if not redis_available:
         raise RedisException("can't launch this subprocess without tiempo/redis.")
     try:
-        action='start'
+        action = 'start'
         options = REDIS.get('worker_args')
         assignDeploymentInstance(action='start', options=options)
     except Exception:
-        chalk.red('\n Could not %s hendrix.\n' % action, pipe=chalk.stderr)   
+        chalk.red('\n Encountered an unhandled exception while trying to %s hendrix.\n' % action, pipe=chalk.stderr)
+        raise
 
 
 def main(args=None):
@@ -255,5 +263,6 @@ def main(args=None):
 
     try:
         launch(*args, **options)
-    except Exception as e:
-        chalk.red('\n Could not %s hendrix.\n' % action)
+    except Exception:
+        chalk.red('\n Encountered an unhandled exception while trying to %s hendrix.\n' % action, pipe=chalk.stderr)
+        raise
