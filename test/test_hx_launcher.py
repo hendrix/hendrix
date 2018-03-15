@@ -1,11 +1,8 @@
-import pytest_twisted
-
-from hendrix.ux import main
 from hendrix.options import HendrixOptionParser
+from hendrix.ux import main
 
 
 def test_no_arguments_gives_help_text(mocker):
-
     class MockFile(object):
         @classmethod
         def write(cls, whatever):
