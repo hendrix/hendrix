@@ -1,8 +1,11 @@
+import chalk
+from autobahn.twisted.websocket import listenWS
+from twisted.internet import reactor
+from twisted.internet.ssl import PrivateCertificate, DefaultOpenSSLContextFactory
+from twisted.protocols.tls import TLSMemoryBIOFactory
+
 from hendrix.facilities.services import HendrixTCPServiceWithTLS
 from .base import HendrixDeploy
-from twisted.internet.ssl import PrivateCertificate
-from twisted.protocols.tls import TLSMemoryBIOFactory
-from twisted.internet import reactor
 
 
 class HendrixDeployTLS(HendrixDeploy):
@@ -35,8 +38,16 @@ class HendrixDeployTLS(HendrixDeploy):
             raise ValueError("Can't launch with TLS unless you pass a valid key and cert.")
         self.key = key
         self.cert = cert
-        self.context_factory = context_factory
-        self.context_factory_kwargs = context_factory_kwargs or {}
+
+        if context_factory is None:
+            self.context_factory = DefaultOpenSSLContextFactory
+        else:
+            self.context_factory = context_factory
+
+        if context_factory_kwargs is None:
+            self.context_factory_kwargs = {}
+        else:
+            self.context_factory_kwargs = context_factory_kwargs
 
     def addServices(self):
         """
@@ -50,9 +61,9 @@ class HendrixDeployTLS(HendrixDeploy):
     def addSSLService(self):
         "adds a SSLService to the instaitated HendrixService"
         https_port = self.options['https_port']
-        tls_service = HendrixTCPServiceWithTLS(https_port, self.hendrix.site, self.key, self.cert,
-                             self.context_factory, self.context_factory_kwargs)
-        tls_service.setServiceParent(self.hendrix)
+        self.tls_service = HendrixTCPServiceWithTLS(https_port, self.hendrix.site, self.key, self.cert,
+                                                    self.context_factory, self.context_factory_kwargs)
+        self.tls_service.setServiceParent(self.hendrix)
 
     def addSubprocesses(self, fds, name, factory):
         super(HendrixDeployTLS, self).addSubprocesses(fds, name, factory)
@@ -77,3 +88,10 @@ class HendrixDeployTLS(HendrixDeploy):
         if self.options['https_only'] is not True:
             message += " and non-TLS on port {}".format(self.options['http_port'])
         return message
+
+    def _add_tls_websocket_service_after_running(self, websocket_factory, *args, **kwargs):
+        chalk.blue("TLS websocket listener on port {}".format(websocket_factory.port))
+        listenWS(factory=websocket_factory, contextFactory=self.tls_service.tls_context, *args, **kwargs)
+
+    def add_tls_websocket_service(self, websocket_factory, *args, **kwargs):
+        self.reactor.callWhenRunning(self._add_tls_websocket_service_after_running, websocket_factory, *args, **kwargs)
