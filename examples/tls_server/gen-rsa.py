@@ -32,11 +32,16 @@ cert = x509.CertificateBuilder().subject_name(
      critical=False,
  ).sign(rsa_key, hashes.SHA256(), default_backend())
 
-with open("rsa-key.pem", "wb") as f:
+with open("rsa-privkey.pem", "wb") as f:
     f.write(rsa_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption(),
+    ))
+with open("rsa-pubkey.pem", "wb") as f:
+    f.write(rsa_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
     ))
 
 with open("rsa-certificate.pem", "wb") as f:
