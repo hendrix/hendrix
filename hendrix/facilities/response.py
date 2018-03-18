@@ -14,6 +14,7 @@ class HendrixWSGIResponse(_WSGIResponse):
         return super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
+
         r = reactor
         self.thread = threading.current_thread()
         # thread_list.append(self.thread)  # Debug

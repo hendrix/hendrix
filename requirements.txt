@@ -1,4 +1,5 @@
 twisted
+autobahn
 # txsockjs
 zope.interface
 watchdog

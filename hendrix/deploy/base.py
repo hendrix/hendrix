@@ -12,7 +12,7 @@ from twisted.python.threadpool import ThreadPool
 from hendrix import defaults
 from hendrix.options import options as hx_options
 from hendrix.facilities.gather import get_additional_resources, get_additional_services
-from hendrix.facilities.services import HendrixService
+from hendrix.facilities.services import HendrixService, HendrixTCPService, HendrixTCPServiceWithTLS
 from hendrix.utils import get_pid, import_string
 from hendrix.facilities.protocols import DeployServerProtocol
 from twisted.application.internet import TCPServer, SSLServer
@@ -151,18 +151,23 @@ class HendrixDeploy(object):
         '''
         self.hendrix = HendrixService(
             self.application,
-            port=self.options['http_port'],
             threadpool=self.getThreadPool(),
             resources=self.resources,
             services=self.services,
             loud=self.options['loud']
         )
+        if self.options["https_only"] is not True:
+            self.hendrix.spawn_new_server(self.options['http_port'], HendrixTCPService)
 
     def catalogServers(self, hendrix):
         "collects a list of service names serving on TCP or SSL"
         for service in hendrix.services:
             if isinstance(service, (TCPServer, SSLServer)):
                 self.servers.append(service.name)
+
+    def _listening_message(self):
+        message = "non-TLS listening on port {}".format(self.options['http_port'])
+        return message
 
     def run(self):
         "sets up the desired services and runs the requested action"
@@ -172,11 +177,7 @@ class HendrixDeploy(object):
         fd = self.options['fd']
 
         if action.startswith('start'):
-            chalk.blue(
-                'Ready and Listening on port %d...' % self.options.get(
-                    'http_port'
-                )
-            )
+            chalk.blue(self._listening_message())
             getattr(self, action)(fd)
 
             ###########################

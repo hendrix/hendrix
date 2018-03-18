@@ -105,6 +105,12 @@ HX_OPTION_LIST = (
         help='Enter an ssl port number for the server to serve secure content.'
     ),
     make_option(
+        '--https_only',
+        dest='https_only',
+        default=False,
+        help='Declare whether to run only an https (not http) server.'
+    ),
+    make_option(
         '--cache_port',
         type=int,
         dest='cache_port',
@@ -190,4 +196,5 @@ def options(argv=[]):
     A helper function that returns a dictionary of the default key-values pairs
     """
     parser = HendrixOptionParser
-    return vars(parser.parse_args(argv)[0])
+    parsed_arugs = parser.parse_args(argv)
+    return vars(parsed_arugs[0])

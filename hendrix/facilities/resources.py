@@ -8,6 +8,7 @@ import chalk
 from hendrix.facilities.response import HendrixWSGIResponse, LoudWSGIResponse
 from twisted.logger import Logger
 
+
 class HendrixWSGIResource(WSGIResource):
 
     ResponseClass = HendrixWSGIResponse
