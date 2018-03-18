@@ -1,7 +1,7 @@
 # A sample server using TLS with either RSA or EC.
 # To use this, first run either gen-ec.py or gen-rsa.py (or both).
 
-from hendrix.deploy.ssl import HendrixDeployTLS
+from hendrix.deploy.tls import HendrixDeployTLS
 from hendrix.experience import hey_joe
 from hendrix.facilities.services import SpecifiedCurveContextFactory
 import sys
