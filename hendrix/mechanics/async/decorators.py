@@ -61,13 +61,11 @@ class _ThroughToYou(object):
     def run(self, threadpool=None):
         if self.no_go:
             return
-
-        if not threadpool:
-            threadpool = self.threadpool or reactor.getThreadPool()
-
         if self.same_thread:
             self.crosstown_task()
         else:
+            if not threadpool:
+                threadpool = self.threadpool or reactor.getThreadPool()
             if self.always_spawn_worker:
                 threadpool.startAWorker()
 

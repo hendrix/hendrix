@@ -19,6 +19,9 @@ from test.resources import TestNameSpace, application as wsgi_application, \
 
 log = Logger()
 
+# Using module-scoped list to keep track of pass flags.  When we drop support for Python 2, we can use nonlocal instead.
+pass_flags = []
+
 
 class NoGoStatusCodes(TestCase):
     def __init__(self, *args, **kwargs):
@@ -153,12 +156,11 @@ def async_namespace():
 
 
 @pytest.mark.usefixtures("async_namespace")
-def test_positive_decorator_coherence():
-    pass_flag = []
+def test_typical_same_thread_operation():
+    success_string = "With a Response affixed to this thread, the task will run if the status code is not a 'no-go'."
 
     def run_me_to_pass():
-        nonlocal pass_flag
-        pass_flag.append(True)
+        pass_flags.append(success_string)
 
     class FakeResponse(object):
         crosstown_tasks = []
@@ -168,17 +170,19 @@ def test_positive_decorator_coherence():
     threading.current_thread().response_object = FakeResponse()
     through_to_you(run_me_to_pass)
     # threadpool doesn't matter because same_thread is True.
+
+    # The function hasn't run yet.
+    assert success_string not in pass_flags
     through_to_you.run(reactor.threadpool)
 
-    assert not through_to_you.no_go  # If the no_go is False...
-    assert pass_flag[0]  # Then run_me_to_pass will have run.
+    assert not through_to_you.no_go  # Since the no_go is False...
+    assert success_string in pass_flags  # Then run_me_to_pass will have run.
 
 
 @pytest.mark.usefixtures("async_namespace")
-def test_negative_decorator_coherence():
+def test_no_go_causes_task_not_to_fire():
 
-    def append_me_to_pass():
-        pass
+    some_task = lambda: None
 
     class FakeResponse(object):
         crosstown_tasks = []
@@ -188,30 +192,28 @@ def test_negative_decorator_coherence():
     through_to_you = crosstown_traffic(same_thread=True)
 
     through_to_you.no_go = True  # If no_go is True...
-    through_to_you(append_me_to_pass)  # and we call it...
+    through_to_you(some_task)  # and we call it...
     assert not through_to_you.response.crosstown_tasks  # We won't have added any tasks.
 
     through_to_you.no_go = False  # However if no_go is False...
-    through_to_you(append_me_to_pass)  # and we call it...
+    through_to_you(some_task)  # and we call it...
 
     # We will have added the function.
-    assert through_to_you.response.crosstown_tasks[0].crosstown_task == append_me_to_pass
+    assert through_to_you.response.crosstown_tasks[0].crosstown_task == some_task
 
 
 @pytest.mark.usefixtures("async_namespace")
 def test_with_no_request():
-
-    has_run = []
+    success_string = "Without a request in progress, the default behavior for crosstown_traffic is to run the task immediately."
 
     def append_me_to_pass():
-        nonlocal has_run
-        has_run.append(True)
+        pass_flags.append(success_string)
 
     through_to_you = crosstown_traffic(same_thread=True)
 
-    assert not has_run
+    assert success_string not in pass_flags
     through_to_you(append_me_to_pass)
-    assert has_run[0] is True
+    assert success_string in pass_flags
 
 
 @pytest.mark.usefixtures("async_namespace")
@@ -219,16 +221,12 @@ def test_fail_without_response():
     '''
     Same test as above, but with fail_without_response, we get an error.
     '''
-    has_run = []
-
-    def append_me_to_pass():
-        nonlocal has_run
-        has_run.append(True)
+    some_task = lambda: None
 
     through_to_you = crosstown_traffic(same_thread=True, fail_without_response=True)
 
     with pytest.raises(ThreadHasNoResponse):
-        through_to_you(append_me_to_pass)
+        through_to_you(some_task)
 
 
 @pytest.mark.usefixtures("async_namespace")
