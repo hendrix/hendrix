@@ -7,8 +7,8 @@ python:
 install:
 - pip install pipenv --upgrade
 - pipenv install --dev
-script: "coverage run runtests.py"
-before_install:
-  - pip install codecov
+script:
+- pipenv run pipenv run "pytest --cov=hendrix -v test"
+- codecov
 after_success:
   - codecov

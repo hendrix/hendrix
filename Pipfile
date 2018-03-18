@@ -7,19 +7,21 @@ verify_ssl = true
 
 [packages]
 
-Twisted = "*"
+twisted = "*"
 "zope.interface" = "*"
 watchdog = "*"
-"Jinja2" = "*"
+"jinja2" = "*"
 pychalk = "*"
 service-identity = "*"
 six = "*"
+pytest-cov = "*"
+autobahn = "*"
 
 
 [dev-packages]
 
-Django = "<2.0"
-Flask = "*"
+django = "<2.0"
+flask = "*"
 cryptography = "*"
 ipython = "<6.0.0"
 "urllib3" = "*"
@@ -29,3 +31,4 @@ httperfpy = "*"
 pytest-twisted = "*"
 pytest-mock = "*"
 coverage = "*"
+codecov = "*"
