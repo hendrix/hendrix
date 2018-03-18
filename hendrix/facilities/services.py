@@ -161,7 +161,7 @@ class HendrixTCPServiceWithTLS(internet.SSLServer):
         context_factory = context_factory or ssl.DefaultOpenSSLContextFactory
         context_factory_kwargs = context_factory_kwargs or {}
 
-        sslContext = context_factory(
+        self.tls_context = context_factory(
             private_key,
             cert,
             **context_factory_kwargs
@@ -170,7 +170,7 @@ class HendrixTCPServiceWithTLS(internet.SSLServer):
             self,
             port,  # integer port
             site,  # our site object, see the web howto
-            contextFactory=sslContext,
+            contextFactory=self.tls_context
         )
 
         self.site = site
