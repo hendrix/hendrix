@@ -8,8 +8,8 @@ class ModuleCaller(object):
     decorator = None
 
     def __init__(self, decorator=None):
-        from hendrix.mechanics.async.decorators import ThroughToYou
-        self.decorator = decorator or self.decorator or ThroughToYou
+        from hendrix.mechanics.async.decorators import _ThroughToYou
+        self.decorator = decorator or self.decorator or _ThroughToYou
         self.threadpool = ThreadPool(name="Crosstown Traffic")
 
 	# The threadpool needs to start when the reactors starts...

@@ -10,7 +10,7 @@ from hendrix.mechanics.async import get_response_for_thread
 from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
 
 
-class ThroughToYou(object):
+class _ThroughToYou(object):
 
     log = Logger()
 
