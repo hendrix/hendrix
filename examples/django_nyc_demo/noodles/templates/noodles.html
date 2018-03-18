@@ -1,0 +1,40 @@
+<script type="text/javascript">
+         window.onload = function() {
+
+             const socket = new WebSocket("{{websocket_prefix}}://localhost:{{websocket_port}}");
+             socket.binaryType = "arraybuffer";
+
+             socket.onopen = function () {
+                 socket.send(
+                        JSON.stringify({'hx_subscribe': 'noodly_messages'})
+                    );
+                 isopen = true;
+             }
+
+             socket.addEventListener('message', function (event) {
+                console.log("Message from server ", event.data);
+                 var message = JSON.parse(event.data);
+                 if (typeof event.data == "string") {
+                     var div = document.getElementById(message[0]);
+                     div.innerHTML = div.innerHTML + '<li>' + message[1] + '</li>';
+                 }
+             });
+
+             socket.onerror = function (error) {
+                 console.log(error.data);
+             }
+         }
+
+</script>
+
+<ul id="YOU">
+    <h1>Messages to only you</h1>
+</ul>
+
+<ul id="noodly_messages">
+    <h1>Noodly Messages</h1>
+</ul>
+
+<ul id="BROADCAST">
+    <h1>System Broadcasts</h1>
+</ul>
