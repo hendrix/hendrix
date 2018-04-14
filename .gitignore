@@ -16,3 +16,4 @@ ignore*
 *.log
 *.log.*
 .idea
+.pytest_cache

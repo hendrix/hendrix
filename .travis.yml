@@ -8,7 +8,6 @@ install:
 - pip install pipenv --upgrade
 - pipenv install --dev
 script:
-- pipenv run pipenv run "pytest --cov=hendrix -v test"
-- codecov
+- pipenv run -- pytest --cov=hendrix -v test
 after_success:
   - codecov
