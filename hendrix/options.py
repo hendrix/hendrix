@@ -16,7 +16,7 @@ def cleanOptions(options):
         '--nocache', '--global_cache', '--quiet', '--loud'
     ]
     store_false = []
-    for key, value in options.iteritems():
+    for key, value in options.items():
         key = '--' + key
         if (key in store_true and value) or (key in store_false and not value):
             opts += [key, ]
@@ -196,5 +196,5 @@ def options(argv=[]):
     A helper function that returns a dictionary of the default key-values pairs
     """
     parser = HendrixOptionParser
-    parsed_arugs = parser.parse_args(argv)
-    return vars(parsed_arugs[0])
+    parsed_args = parser.parse_args(argv)
+    return vars(parsed_args[0])

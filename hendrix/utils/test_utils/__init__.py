@@ -1,11 +1,10 @@
-from twisted.logger import Logger
 from hendrix.experience import crosstown_traffic
-from hendrix.mechanics.async.decorators import ThroughToYou
+from hendrix.mechanics.async.decorators import _ThroughToYou
 
 
 def crosstownTaskListDecoratorFactory(list_to_populate):
 
-    class TaskListThroughToYou(ThroughToYou):
+    class TaskListThroughToYou(_ThroughToYou):
 
         def __init__(self, *args, **kwargs):
             self.crosstown_task_list = list_to_populate

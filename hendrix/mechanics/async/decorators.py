@@ -10,7 +10,7 @@ from hendrix.mechanics.async import get_response_for_thread
 from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
 
 
-class ThroughToYou(object):
+class _ThroughToYou(object):
 
     log = Logger()
 
@@ -61,18 +61,11 @@ class ThroughToYou(object):
     def run(self, threadpool=None):
         if self.no_go:
             return
-
-
-        #self.process_pool.apply_async(self.crosstown_task)
-        #return
-
-
-        if not threadpool:
-            threadpool = self.threadpool or reactor.getThreadPool()
-
         if self.same_thread:
             self.crosstown_task()
         else:
+            if not threadpool:
+                threadpool = self.threadpool or reactor.getThreadPool()
             if self.always_spawn_worker:
                 threadpool.startAWorker()
 

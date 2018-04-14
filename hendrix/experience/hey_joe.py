@@ -1,89 +1,145 @@
-import uuid
-
-from autobahn.twisted.websocket import WebSocketServerProtocol, \
-    WebSocketServerFactory
-from autobahn.websocket.protocol import WebSocketProtocol
 import json
+from collections import defaultdict
+from itertools import chain
 
-from hendrix.contrib.async.messaging import hxdispatcher
+from autobahn.twisted import WebSocketServerFactory
+from autobahn.twisted.websocket import WebSocketServerProtocol
+from twisted.logger import Logger
 
 
-class MyServerProtocol(WebSocketServerProtocol):
+class _ParticipantRegistry(object):
+    """
+    A basic registry for our PubSub pattern - tracks topics and the participants who wish to receive messages for them.
+    """
+    log = Logger()
 
-    dispatcher = hxdispatcher
+    def __init__(self):
+        self._participants_by_topic = defaultdict(set)
 
-    def __init__(self, *args, **kwargs):
-        self.state = WebSocketProtocol.STATE_CLOSED
-        super().__init__(*args, **kwargs)
+    def _send(self, payload, participant):
+        return participant.sendMessage(json.dumps(payload).encode())
 
-    def onConnect(self, request):
-        print("Client connecting: {0}".format(request.peer))
+    def _send_to_multiple_participants(self, payload, participants):
+        # TODO: Optionally do this concurrently?
+        for participant in participants:
+            self._send(payload, participant)
 
-    def onOpen(self):
-        print("WebSocket connection open.")
+    def send_to_topic(self, payload, topic):
+        if type(topic) == list:
+            recipients = chain(self._participants_by_topic[rec] for rec in topic)
+        else:
+            recipients = self._participants_by_topic[topic]
+        payload_with_topic = (topic, payload)
+        if not recipients:
+            self.log.info("Nobody is subscribed to {}.")
+        else:
+            return self._send_to_multiple_participants(payload_with_topic, recipients)
 
-    def connectionMade(self, *args, **kwargs):
-        """
-        establish the address of this new connection and add it to the list of
-        sockets managed by the dispatcher
+    def send_to_participant(self, payload, participant):
+        payload_for_you = ("YOU", payload)
+        self._send(payload_for_you, participant)
 
-        reply to the transport with a "setup_connection" notice
-        containing the recipient's address for use by the client as a return
-        address for future communications
-        """
-        super().connectionMade(*args, **kwargs)
-        self.transport.uid = str(uuid.uuid1())
-
-        self.guid = self.dispatcher.add(self.transport)
-        self.dispatcher.send(self.guid.encode(), {'setup_connection': self.guid})
-
-    def _____dataReceived(self, data):
-
-        """
-            Takes "data" which we assume is json encoded
-            If data has a subject_id attribute, we pass that to the dispatcher
-            as the subject_id so it will get carried through into any
-            return communications and be identifiable to the client
-
-            falls back to just passing the message along...
-
-        """
-
-    def onMessage(self, payload, isBinary):
-
+    def subscribe(self, transport, topic):
+        if topic in ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED"):
+            raise ValueError("""Can't subscribe to ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED") - these are reserved names.""")
         try:
-            address = self.guid
-            json_payload = json.loads(payload.decode())
-            # threads.deferToThread(send_signal, self.dispatcher, data)
+            # Typically, the protocol is wrapped (as with TLS)
+            participant = transport.wrappedProtocol
+        except AttributeError:
+            participant = transport.protocol
+            # It's also possible to use a naked protocol.
+        self._participants_by_topic[topic].add(participant)
 
-            if 'hx_subscribe' in json_payload:
-                return self.dispatcher.subscribe(self.transport, json_payload)
+        self.send_to_participant("Subscribed to {}".format(topic), participant)
 
-            if 'address' in json_payload:
-                address = json_payload['address']
+    def broadcast(self, payload):
+        payload = ("BROADCAST", payload)
+        self._send_to_multiple_participants(payload, self._all_participants())
+
+    def _all_participants(self):
+        return chain(*self._participants_by_topic.values())
+
+    def remove(self, participant):
+        """
+        Unsubscribe this participant from all topic to which it is subscribed.
+        """
+        for topic, participants in list(self._participants_by_topic.items()):
+            self.unsubscribe(participant, topic)
+            # It's possible that we just nixe the last subscriber.
+            if not participants:  # IE, nobody is still listening at this topic.
+                del self._participants_by_topic[topic]
+
+    def unsubscribe(self, participant, topic):
+        return self._participants_by_topic[topic].discard(participant)
+
+
+class _WayDownSouth(WebSocketServerProtocol):
+
+    def __init__(self, allow_free_redirect=False, subscription_message=None, registry=None, *args, **kwargs):
+        self.subscription_message = subscription_message or "hx_subscribe"
+        self.allow_free_redirect = allow_free_redirect
+        self._registry = registry or _internal_registry
+        super(_WayDownSouth, self).__init__(*args, **kwargs)
+
+    def onMessage(self, payload_as_json, isBinary):
+
+        payload = json.loads(payload_as_json.decode())
+
+        subscription_topic = payload.get(self.subscription_message)
+        if subscription_topic:
+            self._registry.subscribe(self.transport, subscription_topic)
+
+        if self.allow_free_redirect:
+            if 'address' in payload:
+                address = payload['address']
             else:
                 address = self.guid
 
-            self.dispatcher.send(address, json_payload)
-
-        except Exception as e:
-            raise
-            self.dispatcher.send(
-                self.guid,
-                {'message': json_payload, 'error': str(e)}
-            )
-
-
-
-
-        if isBinary:
-            print("Binary message received: {0} bytes".format(len(payload)))
-        else:
-            print("Text message received: {0}".format(payload.decode('utf8')))
-
-        # echo back message verbatim
-        self.sendMessage(payload, isBinary)
+            self._registry.send(address, payload)
 
     def onClose(self, wasClean, code, reason):
-        self.dispatcher.remove(self.transport)
+        super(_WayDownSouth, self).onClose(wasClean, code, reason)
+        self._registry.remove(self.transport)
         print("WebSocket connection closed: {0}".format(reason))
+
+
+class WebSocketService(WebSocketServerFactory):
+    prefix = "ws"
+
+    def __init__(self, host_address, port, *args, **kwargs):
+        # Note: You can pass a test reactor here a as a kwarg; the parent objects will respect it.
+        self._hey_joe_addr = "{}://{}:{}".format(self.prefix, host_address, port)
+        super(WebSocketService, self).__init__(self._hey_joe_addr, *args, **kwargs)
+        self.protocol = _WayDownSouth
+        self.server = "hendrix/Twisted/" + self.server
+
+
+class WSSWebSocketService(WebSocketService):
+    """
+    Websocket service that uses the Autobahn TLS behavior to create a WSS service.
+    """
+    prefix = "wss"
+
+    def __init__(self, host_address, port, allowedOrigins, *args, **kwargs):
+        super(WSSWebSocketService, self).__init__(host_address, port, *args, **kwargs)
+        self.setProtocolOptions(allowedOrigins=allowedOrigins)
+
+
+
+# The main singleton instance to use with the subsequent classes here.
+# (omg, did we just make a stateful HTTP service?  Nobody tell IETF.)
+_internal_registry = _ParticipantRegistry()
+
+
+def send(payload, topic=None, transport=None):
+    if (topic is None and transport is None) or (topic and transport):
+        raise ValueError("You must specify either a topic or a transport; not both.")
+    if topic is not None:
+        return _internal_registry.send_to_topic(payload, topic)
+    elif transport is not None:
+        return _internal_registry.send_to_transport(payload, transport)
+    assert False
+
+
+def broadcast(payload):
+    return _internal_registry.broadcast(payload)

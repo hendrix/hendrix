@@ -12,7 +12,8 @@ from twisted.python.threadpool import ThreadPool
 from hendrix import defaults
 from hendrix.options import options as hx_options
 from hendrix.facilities.gather import get_additional_resources, get_additional_services
-from hendrix.facilities.services import HendrixService, HendrixTCPService, HendrixTCPServiceWithTLS
+from hendrix.facilities.services import HendrixService, HendrixTCPService
+import autobahn
 from hendrix.utils import get_pid, import_string
 from hendrix.facilities.protocols import DeployServerProtocol
 from twisted.application.internet import TCPServer, SSLServer
@@ -315,3 +316,6 @@ class HendrixDeploy(object):
         _service = self.hendrix.getServiceNamed(name)
         _service.disownServiceParent()
         return _service.factory
+
+    def add_non_tls_websocket_service(self, websocket_factory):
+        autobahn.twisted.websocket.listenWS(websocket_factory)

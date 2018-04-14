@@ -1,6 +1,6 @@
-from .ssl import HendrixDeploySSL
+from .tls import HendrixDeployTLS
 from .cache import HendrixDeployCache
 
 
-class HendrixDeployHybrid(HendrixDeploySSL, HendrixDeployCache):
+class HendrixDeployHybrid(HendrixDeployTLS, HendrixDeployCache):
     pass

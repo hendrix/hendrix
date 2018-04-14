@@ -39,10 +39,10 @@ def application(environ, start_response):
         tasks = nameSpace.first_response.crosstown_tasks
 
         # We have one task to run after the response.
-        nameSpace.test_case.assertEqual(len(tasks), 1)
+        assert len(tasks) == 1
 
         # The async task flag is still false (ie, the task hasn't run.)
-        nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
+        assert not nameSpace.async_task_was_run
 
         # Clear second cycle to begin.
         nameSpace.ready_to_proceed_with_second_cycle.put(True)
@@ -51,10 +51,10 @@ def application(environ, start_response):
         nameSpace.second_cycle_complete.get(True, 3)
 
         # Second cycle has completed, yet it didn't steal our crosstown_traffic
-        nameSpace.test_case.assertEqual(len(tasks), 1)
+        assert len(tasks) == 1
 
         # ...and again, the async task still hasn't been run yet.
-        nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
+        assert not nameSpace.async_task_was_run
 
         return [b'The first sync response']
 
@@ -64,7 +64,7 @@ def application(environ, start_response):
         second_response_tasks = get_tasks_to_follow_current_response()
 
         # We didn't set any tasks during the second response.
-        nameSpace.test_case.assertFalse(second_response_tasks)
+        assert not second_response_tasks
 
         # However, the single task assigned during the first response is still
         # milling about.
@@ -72,15 +72,12 @@ def application(environ, start_response):
 
         # And The async task flag is *still* false (ie, the task still has not
         # run, but it will once the first request finishes.)
-        nameSpace.test_case.assertFalse(nameSpace.async_task_was_run)
+        assert not nameSpace.async_task_was_run
 
-        nameSpace.test_case.assertEqual(len(first_response_tasks), 1)
+        assert len(first_response_tasks) == 1
 
         # ...and it's the one defined above.
-        nameSpace.test_case.assertEqual(
-            first_response_tasks[0].crosstown_task.__name__,
-            'delayed_callable'
-        )
+        assert  first_response_tasks[0].crosstown_task.__name__ == 'delayed_callable'
 
         nameSpace.second_cycle_complete.put(True)
         return [b'The second sync request.']

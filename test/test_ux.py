@@ -1,6 +1,6 @@
 import os
 import sys
-from . import HendrixTestCase, TEST_SETTINGS
+from .utils import HendrixTestCase, TEST_SETTINGS
 from hendrix.contrib import SettingsError
 from hendrix.options import options as hx_options
 from hendrix.deploy.base import HendrixDeploy
@@ -54,7 +54,7 @@ class TestMain(HendrixTestCase):
             self.assertEqual(options['settings'], user_settings)
 
     def test_wsgi_correct_wsgi_path_works(self):
-        wsgi_dot_path = 'hendrix.test.wsgi'
+        wsgi_dot_path = 'test.wsgi'
         options = self.DEFAULTS
         options.update({'wsgi': wsgi_dot_path})
         options = ux.djangoVsWsgi(options)

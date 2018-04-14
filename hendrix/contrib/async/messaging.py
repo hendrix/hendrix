@@ -3,6 +3,10 @@ import json
 import uuid
 
 
+import warnings
+warnings.warn("hendrix.contrib.async.messaging is being deprecated.  Use hendrix.experience.hey_joe instead.", DeprecationWarning)
+
+
 class RecipientManager(object):
     """
         This class manages all the transports addressable by a single address.
