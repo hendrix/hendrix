@@ -43,20 +43,20 @@ setup(
     version=__version__,
     description="Pure python web server, based on Twisted, providing the One Obvious Way to do async and offbeat network traffic with django and other WSGI apps.",
 
-    author="hangarunderground",
+    author="hendrix",
     author_email="justin@justinholmes.com",
 
     packages=find_packages(),
 
-    url="https://github.com/hangarunderground/hendrix",
+    url="https://github.com/hendrix/hendrix",
     download_url=(
-        "https://github.com/hangarunderground/hendrix/tarball/"
+        "https://github.com/hendrix/hendrix/tarball/"
         "v" + __version__
     ),
 
     long_description=read('README.md'),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',

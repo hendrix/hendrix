@@ -1,0 +1,48 @@
+===========================
+hendrix 3.0.0 release notes
+===========================
+
+*June 16, 2018*
+
+Major Release
+-------------
+
+Python 3
+========
+
+**The biggest impetus for this release is Python 3 compatibility.**
+
+Python 3 support for hendrix is provided finally today.  Python 2 is only formally supported for
+another year and a half, and it's not clear whether the hendrix dependencies will even hold out that long
+
+This build, for example, fails today on Python 2.7 because cryptography now uses some Python 3
+functionality in its certificate logic:
+
+https://travis-ci.org/hendrix/hendrix/jobs/392207420
+
+There's no particular guarantee of the matter of how long hendrix will work on python 2, but there's
+no reason to believe that it won't work at least for now by using python 2-compatible versions of the dependencies.
+
+
+Other major changes
+===================
+
+* The test suite now uses pytest.
+* New TLS functionality
+** Moved hendrix.deploy.ssl to hendrix.deploy.tls
+** Allow ECC curve to be specified by user.
+** New option, "https_only"
+** Support for TLS websockets via WSS.
+* Native websockets
+* New websocket dispatcher interface, hey_joe
+
+
+Minor changes
+=============
+
+* Some crosstown_traffic internals are now private.
+* Launch messages are now different for TLS vs non-TLS.
+* JSON messages sent via websocket are now casted to bytes
+* New async demo (from django-nyc talk at buzzfeed)
+* Example TLS server provided, with new TLS features
+* We no longer print FDs in use during deploy; users need to log these if they want them.
