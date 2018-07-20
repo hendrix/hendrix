@@ -1,10 +1,9 @@
 import threading
 
-from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
+from hendrix.mechanics.concurrency.exceptions import ThreadHasNoResponse
 
 
 def get_response_for_thread(thread=None):
-
     if not thread:
         thread = threading.current_thread()
 
@@ -12,7 +11,6 @@ def get_response_for_thread(thread=None):
         response = thread.response_object
     except AttributeError:
         raise ThreadHasNoResponse('thread %s has no associated response object.' % thread)
-
 
     return response
 
