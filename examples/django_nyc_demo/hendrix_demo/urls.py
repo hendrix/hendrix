@@ -1,4 +1,5 @@
 from noodles.views import my_noodles
+
 """hendrix_demo URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:

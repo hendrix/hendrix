@@ -1,12 +1,11 @@
 """
 local memory cache backend
 """
-from . import CacheBackend
 from hendrix.contrib.cache import CachedResource
+from . import CacheBackend
 
 
 class MemoryCacheBackend(CacheBackend):
-
     _cache = {}
 
     @property

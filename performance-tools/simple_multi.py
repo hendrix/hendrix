@@ -2,6 +2,8 @@ import multiprocessing
 
 
 def thing():
-    print "yay!"
+    print
+    "yay!"
+
 
 multiprocessing.Process(target=thing).start()

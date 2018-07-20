@@ -1,8 +1,9 @@
+import os
+import sys
+import time
 
-import os, sys
 from pyramid.config import Configurator
 from pyramid.response import Response
-import time
 from twisted.internet import reactor
 from twisted.python.threadpool import ThreadPool
 
@@ -23,9 +24,11 @@ import threading
 
 def delay(request):
     delay_time = float(request.matchdict['seconds'])
-    print "Thread %s sleeping for %s seconds" % (threading.current_thread(), delay_time)
+    print
+    "Thread %s sleeping for %s seconds" % (threading.current_thread(), delay_time)
     time.sleep(delay_time)
     return Response('')
+
 
 if __name__ == '__main__':
     config = Configurator()

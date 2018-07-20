@@ -1,5 +1,5 @@
-from .base import HendrixDeploy
 from hendrix.contrib.services.cache import CacheService
+from .base import HendrixDeploy
 
 
 class HendrixDeployCache(HendrixDeploy):

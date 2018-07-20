@@ -19,7 +19,7 @@ from watchdog.observers import Observer
 from hendrix.contrib import SettingsError
 from hendrix.deploy import base, cache
 from hendrix.logger import hendrixObserver
-from hendrix.mechanics.async.exceptions import RedisException
+from hendrix.mechanics.concurrency.exceptions import RedisException
 from hendrix.options import cleanOptions
 from .options import HendrixOptionParser
 

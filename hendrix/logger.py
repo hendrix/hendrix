@@ -1,11 +1,12 @@
-from .defaults import DEFAULT_LOG_FILE
+import io
+
 from twisted.logger import (
     ILogObserver, jsonFileLogObserver, FilteringLogObserver,
-    LogLevelFilterPredicate, LogLevel, globalLogPublisher
+    LogLevelFilterPredicate, LogLevel
 )
 from zope.interface import provider
 
-import io
+from .defaults import DEFAULT_LOG_FILE
 
 
 @provider(ILogObserver)
@@ -17,5 +18,3 @@ def hendrixObserver(path=DEFAULT_LOG_FILE, log_level=LogLevel.warn):
         json_observer,
         [LogLevelFilterPredicate(log_level), ]
     )
-
-

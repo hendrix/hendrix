@@ -1,15 +1,15 @@
 from __future__ import print_function
-from multiprocessing import Process, Queue
-from twisted.internet import reactor
-from httperfpy import Httperf
-from pprint import pprint
-from twisted.internet.threads import deferToThread
 
-from pyramid.response import Response
-from pyramid.config import Configurator
+import os
+import sys
 import time
+from multiprocessing import Process
 
-import os, sys
+from httperfpy import Httperf
+from pyramid.config import Configurator
+from pyramid.response import Response
+from twisted.internet import reactor
+from twisted.internet.threads import deferToThread
 
 # begin chdir armor
 up = os.path.dirname(os.path.abspath(__file__))
@@ -22,13 +22,11 @@ sys.path.insert(0, hendrix_package_dir)
 from hendrix.deploy.base import HendrixDeploy
 from hendrix.experience import crosstown_traffic
 
-
 ######
 # SETTINGS
 ######
 
 total_calls = 10
-
 
 
 class StateMachine(object):
@@ -37,11 +35,11 @@ class StateMachine(object):
         self.num_calls = 0
         self.num_async_complete = 0
 
+
 test_state = StateMachine()
 
 
 def stereotypical_view(request):
-
     @crosstown_traffic(no_go_status_codes=[])
     def long_thing():
         for i in range(6):
@@ -87,6 +85,7 @@ def http_battery_process():
 
 def analyze_results(results):
     print(results)
+
 
 d = deferToThread(http_battery_process)
 d.addCallback(analyze_results)

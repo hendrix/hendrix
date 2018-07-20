@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
+
 from hendrix.facilities.resources import DjangoStaticResource
 
 
@@ -65,9 +66,10 @@ except AttributeError:
 
 try:
     from django.contrib import admin
+
     admin_media_path = os.path.join(admin.__path__[0], 'static/admin/')
     DjangoAdminStaticResource = DjangoStaticResource(
-        admin_media_path, settings.STATIC_URL+'admin/'
+        admin_media_path, settings.STATIC_URL + 'admin/'
     )
 except:
     raise

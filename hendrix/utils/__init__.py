@@ -1,10 +1,9 @@
+import os
+import sys
 from importlib import import_module
 
 import chalk
-import os
 import six
-import sys
-
 
 HENDRIX_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -33,7 +32,7 @@ def responseInColor(request, status, headers, prefix='Response', opts=None):
         request.path,
         os.getpid()
     )
-    signal = int(code)/100
+    signal = int(code) / 100
     if signal == 2:
         chalk.green(message, opts=opts)
     elif signal == 3:

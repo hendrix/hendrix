@@ -1,11 +1,11 @@
-from django.shortcuts import render
 import time
+
+from django.shortcuts import render
 
 from hendrix.experience import crosstown_traffic, hey_joe
 
 
 def my_noodles(request):
-
     llama = "Another noodle"
 
     @crosstown_traffic()

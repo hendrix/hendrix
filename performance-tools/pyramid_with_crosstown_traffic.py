@@ -1,10 +1,12 @@
-from multiprocessing import Pool
-import sys, os
+import os
+import sys
 import threading
+import time
+from multiprocessing import Pool
+
+import requests
 from pyramid.config import Configurator
 from pyramid.response import Response
-import time
-import requests
 
 # begin chdir armor
 up = os.path.dirname(os.path.abspath(__file__))
@@ -16,19 +18,19 @@ sys.path.insert(0, hendrix_package_dir)
 # end chdir armor
 
 from hendrix.deploy.base import HendrixDeploy
-from hendrix.experience import crosstown_traffic
 from zope.interface import provider
 from twisted.logger import ILogObserver, formatEvent
+
 
 @provider(ILogObserver)
 def simpleObserver(event):
     print(formatEvent(event))
 
+
 # from twisted.logger import globalLogBeginner
 # globalLogBeginner.beginLoggingTo([simpleObserver], redirectStandardIO=False)
 
 def cpu_heavy(heft, label=None):
-
     count = 0
     previous_count = 0
     start = 1
@@ -49,7 +51,8 @@ def cpu_heavy(heft, label=None):
             time.sleep(0)
 
         if count == end:
-            print "%s done: %s" % (label, time.time() - timer_start))
+            print
+            "%s done: %s" % (label, time.time() - timer_start))
             return
 
 
@@ -57,6 +60,7 @@ global total_requests
 global avg_duration
 total_requests = 0
 avg_duration = 0
+
 
 def long():
     global total_requests
@@ -80,11 +84,9 @@ def long():
 
 
 class PerformanceTest(object):
-
     pool = Pool(20)
 
     def view(self, request):
-
         # option 1
         # @crosstown_traffic()
         # def wait():

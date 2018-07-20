@@ -2,8 +2,8 @@ try:
     import cStringIO
 except ImportError:
     from io import BytesIO as cStringIO
-from datetime import datetime
 import gzip
+from datetime import datetime
 
 try:
     import urlparse
@@ -21,7 +21,7 @@ def compressBuffer(buffer):
     """
     # http://jython.xhaus.com/http-compression-in-python-and-jython/
     zbuf = cStringIO.StringIO()
-    zfile = gzip.GzipFile(mode='wb',  fileobj=zbuf, compresslevel=9)
+    zfile = gzip.GzipFile(mode='wb', fileobj=zbuf, compresslevel=9)
     zfile.write(buffer)
     zfile.close()
     return zbuf.getvalue()
@@ -37,7 +37,6 @@ def decompressBuffer(buffer):
 
 
 class CachedResource(Resource):
-
     isLeaf = True
 
     def __init__(self, content=None, headers=None):

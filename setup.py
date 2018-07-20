@@ -1,8 +1,10 @@
-from hendrix import __version__
 import errno
 import os
 import sys
+
 from setuptools import setup, find_packages
+
+from hendrix import __version__
 
 
 def file_name(rel_path):
@@ -31,6 +33,7 @@ def mkdir_p(path):
         else:
             raise
 
+
 share_path = os.path.join(
     os.path.dirname(sys.executable),
     'share/hendrix'
@@ -50,8 +53,8 @@ setup(
 
     url="https://github.com/hendrix/hendrix",
     download_url=(
-        "https://github.com/hendrix/hendrix/tarball/"
-        "v" + __version__
+            "https://github.com/hendrix/hendrix/tarball/"
+            "v" + __version__
     ),
 
     long_description=read('README.md'),

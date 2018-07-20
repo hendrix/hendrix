@@ -13,7 +13,7 @@ from twisted.web.test.requesthelper import DummyRequest
 
 from hendrix.experience import crosstown_traffic
 from hendrix.facilities.resources import HendrixWSGIResource
-from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
+from hendrix.mechanics.concurrency.exceptions import ThreadHasNoResponse
 from test.resources import TestNameSpace, application as wsgi_application, \
     nameSpace
 
@@ -181,7 +181,6 @@ def test_typical_same_thread_operation():
 
 @pytest.mark.usefixtures("async_namespace")
 def test_no_go_causes_task_not_to_fire():
-
     some_task = lambda: None
 
     class FakeResponse(object):
@@ -232,7 +231,6 @@ def test_fail_without_response():
 @pytest.mark.usefixtures("async_namespace")
 @pytest_twisted.inlineCallbacks
 def test_contemporaneous_requests():
-
     '''
     We're going to create two request-response cycles here:
 

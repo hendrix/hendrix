@@ -1,20 +1,19 @@
 from multiprocessing import Queue
-import threading
 
 from twisted.logger import Logger
-from hendrix.experience import crosstown_traffic
-from hendrix.mechanics.async import get_response_for_thread, get_tasks_to_follow_current_response
 
+from hendrix.experience import crosstown_traffic
+from hendrix.mechanics.concurrency import get_response_for_thread, get_tasks_to_follow_current_response
 
 log = Logger()
 
 
 class TestNameSpace(object):
-
     async_task_was_done = Queue()
     async_task_was_run = False
     ready_to_proceed_with_second_cycle = Queue()
     second_cycle_complete = Queue()
+
 
 nameSpace = TestNameSpace()
 
@@ -23,7 +22,6 @@ def application(environ, start_response):
     start_response('200 OK', [('Content-type', 'text/plain')])
 
     if 'test_crosstown_traffic' in environ['QUERY_STRING'] or environ['PATH_INFO'] == '/r1':
-
         log.debug('Starting first cycle...')
 
         @crosstown_traffic()
@@ -77,7 +75,7 @@ def application(environ, start_response):
         assert len(first_response_tasks) == 1
 
         # ...and it's the one defined above.
-        assert  first_response_tasks[0].crosstown_task.__name__ == 'delayed_callable'
+        assert first_response_tasks[0].crosstown_task.__name__ == 'delayed_callable'
 
         nameSpace.second_cycle_complete.put(True)
         return [b'The second sync request.']

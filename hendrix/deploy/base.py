@@ -1,24 +1,23 @@
-import chalk
 import importlib
 import os
-import time
-
 import pickle
-
+import time
 from os import environ
 from socket import AF_INET
-from twisted.python.threadpool import ThreadPool
 
-from hendrix import defaults
-from hendrix.options import options as hx_options
-from hendrix.facilities.gather import get_additional_resources, get_additional_services
-from hendrix.facilities.services import HendrixService, HendrixTCPService
 import autobahn
-from hendrix.utils import get_pid, import_string
-from hendrix.facilities.protocols import DeployServerProtocol
+import chalk
 from twisted.application.internet import TCPServer, SSLServer
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredLock
+from twisted.python.threadpool import ThreadPool
+
+from hendrix import defaults
+from hendrix.facilities.gather import get_additional_resources, get_additional_services
+from hendrix.facilities.protocols import DeployServerProtocol
+from hendrix.facilities.services import HendrixService, HendrixTCPService
+from hendrix.options import options as hx_options
+from hendrix.utils import get_pid, import_string
 
 
 class HendrixDeploy(object):
@@ -77,7 +76,6 @@ class HendrixDeploy(object):
         self.servers = []
         self._lock = DeferredLock()
 
-
     @classmethod
     def importWSGI(cls, wsgi_dot_path):
         try:
@@ -129,7 +127,6 @@ class HendrixDeploy(object):
         """
         self.addHendrix()
 
-
     def addGlobalServices(self):
         """
         This is where we put service that we don't want to be duplicated on
@@ -137,13 +134,11 @@ class HendrixDeploy(object):
         """
         pass
 
-
     def getThreadPool(self):
         '''
         Case to match twisted.internet.reactor
         '''
         return self.threadpool
-
 
     def addHendrix(self):
         '''
@@ -213,7 +208,6 @@ class HendrixDeploy(object):
         if self.options['dev']:
             _args.append('--dev')
 
-
         if not self.use_settings:
             _args += ['--wsgi', self.options['wsgi']]
         return _args
@@ -244,7 +238,7 @@ class HendrixDeploy(object):
         Iterator for file descriptors.
         Seperated from launchworkers for clarity and readability.
         """
-        #0 corresponds to stdin, 1 to stdout, 2 to stderr
+        # 0 corresponds to stdin, 1 to stdout, 2 to stderr
         self.childFDs = {0: 0, 1: 1, 2: 2}
         self.fds = {}
         for name in self.servers:
@@ -263,10 +257,9 @@ class HendrixDeploy(object):
             time.sleep(0.05)
             transport = self.reactor.spawnProcess(
                 DeployServerProtocol(args), 'hx', args, childFDs=self.childFDs, env=environ
-                )
+            )
             transports.append(transport)
             pids.append(str(transport.pid))
-
 
     def openPidList(self, pids):
         with open(self.pid, 'w') as pid_file:

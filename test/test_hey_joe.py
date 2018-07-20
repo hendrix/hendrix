@@ -1,5 +1,6 @@
-from hendrix.experience import hey_joe
 from twisted.test.proto_helpers import StringTransportWithDisconnection
+
+from hendrix.experience import hey_joe
 
 
 def test_websocket_mechanics():
