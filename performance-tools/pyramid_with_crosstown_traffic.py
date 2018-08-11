@@ -51,8 +51,7 @@ def cpu_heavy(heft, label=None):
             time.sleep(0)
 
         if count == end:
-            print
-            "%s done: %s" % (label, time.time() - timer_start))
+            print("%s done: %s" % (label, time.time() - timer_start))
             return
 
 
