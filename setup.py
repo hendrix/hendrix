@@ -17,12 +17,6 @@ def read(rel_path):
         return f.read()
 
 
-def readlines(rel_path):
-    with open(file_name(rel_path)) as f:
-        ret = f.readlines()
-    return ret
-
-
 def mkdir_p(path):
     "recreate mkdir -p functionality"
     try:
@@ -40,6 +34,34 @@ share_path = os.path.join(
 )
 
 mkdir_p(share_path)
+
+
+INSTALL_REQUIRES = [
+    'twisted',
+    'cryptography',
+    'watchdog,'
+    'jinja2',
+    'pychalk',
+    'service-identity',
+    'six',
+    'autobahn'
+]
+
+EXTRAS = {
+    'tests': [
+        'pytest',
+        'pytest-cov',
+        'pytest-mock',
+        'pytest=twisted',
+        'gunicorn',
+        'django',
+        'flask',
+        'urllib3',
+        'requests',
+        'httpperfpy',
+        'coverage',
+    ]
+}
 
 setup(
     name="hendrix",
@@ -81,9 +103,6 @@ setup(
     data_files=[
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
-    install_requires=readlines('requirements.txt'),
-    extras_require={
-        'ssl': ['pyopenssl', ],
-        'dev': readlines('requirements_dev.txt'),
-    }
+    install_requires=INSTALL_REQUIRES,
+    extras_require={}
 )
