@@ -1,9 +1,0 @@
-twisted
-autobahn
-# txsockjs
-zope.interface
-watchdog
-jinja2
-pychalk==1.1.0
-service_identity
-six

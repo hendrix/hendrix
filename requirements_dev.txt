@@ -1,8 +1,0 @@
-django
-flask
-pyramid
-mock
-pyopenssl
-ipdb
-funcsigs
-coverage
