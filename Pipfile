@@ -31,7 +31,6 @@ flask = "*"
 #
 urllib3 = "*"
 requests = "*"
-httperfpy = "*"
 coverage = "*"
 codecov = "*"
 gunicorn = "*"

@@ -38,8 +38,8 @@ mkdir_p(share_path)
 
 INSTALL_REQUIRES = [
     'twisted',
-    'cryptography',
-    'watchdog,'
+    'cryptography>=2.3',
+    'watchdog',
     'jinja2',
     'pychalk',
     'service-identity',
@@ -52,14 +52,14 @@ EXTRAS = {
         'pytest',
         'pytest-cov',
         'pytest-mock',
-        'pytest=twisted',
-        'gunicorn',
+        'pytest-twisted',
         'django',
         'flask',
         'urllib3',
         'requests',
-        'httpperfpy',
-        'coverage',
+        'coverage'
+        'codecov',
+        'gunicorn'
     ]
 }
 
@@ -104,5 +104,5 @@ setup(
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
     install_requires=INSTALL_REQUIRES,
-    extras_require={}
+    extras_require=EXTRAS
 )
