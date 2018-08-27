@@ -1,17 +1,14 @@
 import threading
-from multiprocessing import Process, Pool
 
 from twisted.internet import reactor
-
-from twisted.logger import Logger
 from twisted.internet.threads import deferToThreadPool
+from twisted.logger import Logger
 
-from hendrix.mechanics.async import get_response_for_thread
-from hendrix.mechanics.async.exceptions import ThreadHasNoResponse
+from hendrix.mechanics.concurrency import get_response_for_thread
+from hendrix.mechanics.concurrency.exceptions import ThreadHasNoResponse
 
 
 class _ThroughToYou(object):
-
     log = Logger()
 
     def __init__(self,
@@ -51,9 +48,11 @@ class _ThroughToYou(object):
         self.crosstown_task = crosstown_task or self.crosstown_task
 
         if self.fail_without_response:
-            raise ThreadHasNoResponse("This crosstown decorator cannot proceed without a response.  To run the crosstown_task at this time, set fail_without_response = False.")
+            raise ThreadHasNoResponse(
+                "This crosstown decorator cannot proceed without a response.  To run the crosstown_task at this time, set fail_without_response = False.")
         else:
-            self.log.info("thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
+            self.log.info(
+                "thread %s has no response; running crosstown task now.  To supress this behavior, set fail_without_response == True." % threading.current_thread())
             # Since we have no response, we now want to run on the same thread if block_without_response is True.
             self.same_thread = self.block_without_response
             self.run()
@@ -91,7 +90,7 @@ class _ThroughToYou(object):
                 self.no_go_status_code_list.extend(range(begin, end))
 
             else:
-                 self.no_go_status_code_list.append(no_go_code)
+                self.no_go_status_code_list.append(no_go_code)
 
         self.log.debug("no_go_status_codes are %s" % self.no_go_status_code_list)
 

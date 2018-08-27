@@ -1,5 +1,5 @@
-from .tls import HendrixDeployTLS
 from .cache import HendrixDeployCache
+from .tls import HendrixDeployTLS
 
 
 class HendrixDeployHybrid(HendrixDeployTLS, HendrixDeployCache):

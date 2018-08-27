@@ -1,9 +1,8 @@
 from hendrix.experience import crosstown_traffic
-from hendrix.mechanics.async.decorators import _ThroughToYou
+from hendrix.mechanics.concurrency.decorators import _ThroughToYou
 
 
 def crosstownTaskListDecoratorFactory(list_to_populate):
-
     class TaskListThroughToYou(_ThroughToYou):
 
         def __init__(self, *args, **kwargs):
@@ -38,4 +37,5 @@ class AsyncTestMixin(object):
 
     def assertNumCrosstownTasks(self, num_tasks):
         if not num_tasks == len(self.recorded_tasks):
-            raise AssertionError("There were not %s recorded tasks.  The recorded tasks were: %s" % (num_tasks, self.recorded_tasks))
+            raise AssertionError(
+                "There were not %s recorded tasks.  The recorded tasks were: %s" % (num_tasks, self.recorded_tasks))

@@ -1,8 +1,10 @@
-from hendrix import __version__
 import errno
 import os
 import sys
+
 from setuptools import setup, find_packages
+
+from hendrix import __version__
 
 
 def file_name(rel_path):
@@ -15,12 +17,6 @@ def read(rel_path):
         return f.read()
 
 
-def readlines(rel_path):
-    with open(file_name(rel_path)) as f:
-        ret = f.readlines()
-    return ret
-
-
 def mkdir_p(path):
     "recreate mkdir -p functionality"
     try:
@@ -31,12 +27,41 @@ def mkdir_p(path):
         else:
             raise
 
+
 share_path = os.path.join(
     os.path.dirname(sys.executable),
     'share/hendrix'
 )
 
 mkdir_p(share_path)
+
+
+INSTALL_REQUIRES = [
+    'twisted',
+    'cryptography>=2.3',
+    'watchdog',
+    'jinja2',
+    'pychalk',
+    'service-identity',
+    'six',
+    'autobahn'
+]
+
+EXTRAS = {
+    'tests': [
+        'pytest',
+        'pytest-cov',
+        'pytest-mock',
+        'pytest-twisted',
+        'django',
+        'flask',
+        'urllib3',
+        'requests',
+        'coverage'
+        'codecov',
+        'gunicorn'
+    ]
+}
 
 setup(
     name="hendrix",
@@ -50,8 +75,8 @@ setup(
 
     url="https://github.com/hendrix/hendrix",
     download_url=(
-        "https://github.com/hendrix/hendrix/tarball/"
-        "v" + __version__
+            "https://github.com/hendrix/hendrix/tarball/"
+            "v" + __version__
     ),
 
     long_description=read('README.md'),
@@ -78,9 +103,6 @@ setup(
     data_files=[
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
-    install_requires=readlines('requirements.txt'),
-    extras_require={
-        'ssl': ['pyopenssl', ],
-        'dev': readlines('requirements_dev.txt'),
-    }
+    install_requires=INSTALL_REQUIRES,
+    extras_require=EXTRAS
 )

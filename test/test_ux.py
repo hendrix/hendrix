@@ -1,10 +1,11 @@
 import os
 import sys
-from .utils import HendrixTestCase, TEST_SETTINGS
-from hendrix.contrib import SettingsError
-from hendrix.options import options as hx_options
-from hendrix.deploy.base import HendrixDeploy
+
 from hendrix import ux
+from hendrix.contrib import SettingsError
+from hendrix.deploy.base import HendrixDeploy
+from hendrix.options import options as hx_options
+from .utils import HendrixTestCase
 
 try:
     from unittest.mock import patch

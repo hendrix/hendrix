@@ -6,11 +6,9 @@ parts of the service flow.
 '''
 
 from resources import application
-
-from hendrix.deploy.base import HendrixDeploy
-
 from twisted.internet import reactor
 
+from hendrix.deploy.base import HendrixDeploy
 
 if __name__ == "__main__":
     threadPool = reactor.getThreadPool()

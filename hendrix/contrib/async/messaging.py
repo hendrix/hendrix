@@ -2,9 +2,10 @@ import copy
 import json
 import uuid
 
-
 import warnings
-warnings.warn("hendrix.contrib.async.messaging is being deprecated.  Use hendrix.experience.hey_joe instead.", DeprecationWarning)
+
+warnings.warn("hendrix.contrib.concurrency.messaging is being deprecated.  Use hendrix.experience.hey_joe instead.",
+              DeprecationWarning)
 
 
 class RecipientManager(object):
@@ -42,7 +43,7 @@ class RecipientManager(object):
             removes a transport if a member of this group
         """
         if transport.uid in self.transports:
-            del(self.transports[transport.uid])
+            del (self.transports[transport.uid])
 
 
 class MessageDispatcher(object):
@@ -153,7 +154,6 @@ def send_callback_json_message(value, *args, **kwargs):
 
 
 def send_errback_json_message(error, *args, **kwargs):
-
     kwargs['error'] = error.getErrorMessage()
     send_json_message(args[0], args[1], **kwargs)
 

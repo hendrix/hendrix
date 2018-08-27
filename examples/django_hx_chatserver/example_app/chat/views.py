@@ -1,12 +1,12 @@
 from django.shortcuts import render
-from django import forms
+
 from .models import ChatMessage
+
 
 # Create your views here.
 
 
 def home(request, chat_channel_name=None):
-
     """
         if we have a chat_channel_name kwarg,
         have the response include that channel name

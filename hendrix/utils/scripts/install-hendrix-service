@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
 import argparse
-import sys
 import os
-from hendrix.utils.conf import generateInitd
+import sys
 
+from hendrix.utils.conf import generateInitd
 
 parser = argparse.ArgumentParser(
     description="Installs Hendrix as a service on Linux systems",
     usage="[sudo] install-hendrix-service hxconf.yml"
 )
 parser.add_argument('conf_path', help='Path to hendrix config file [yaml]', type=str)
+
 
 def main():
     if 'linux' not in sys.platform:
@@ -37,7 +38,8 @@ def main():
         'enjoy...\033[0m'
     )
 
-    print msg
+    print
+    msg
 
 
 if __name__ == "__main__":

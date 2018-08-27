@@ -1,9 +1,28 @@
-twisted
-autobahn
-# txsockjs
-zope.interface
-watchdog
-jinja2
-pychalk==1.1.0
-service_identity
-six
+-i https://pypi.python.org/simple
+argh==0.26.2
+asn1crypto==0.24.0
+attrs==18.1.0
+autobahn==18.8.1
+automat==0.7.0
+cffi==1.11.5
+constantly==15.1.0
+cryptography==2.3.1
+hyperlink==18.0.0
+idna==2.7
+incremental==17.5.0
+jinja2==2.10
+markupsafe==1.0
+pathtools==0.1.2
+pyasn1-modules==0.2.2
+pyasn1==0.4.4
+pychalk==2.0.0
+pycparser==2.18
+pyhamcrest==1.9.0; python_version != '3.3.*'
+pyopenssl==18.0.0
+pyyaml==4.2b4
+service-identity==17.0.0
+six==1.11.0
+twisted==18.7.0
+txaio==18.7.1
+watchdog==0.8.3
+zope.interface==4.5.0; python_version != '3.3.*'

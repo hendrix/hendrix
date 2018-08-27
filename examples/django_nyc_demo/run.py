@@ -1,7 +1,8 @@
-from hendrix.deploy.base import HendrixDeploy
-from hendrix.experience import hey_joe
 from twisted.conch.telnet import TelnetTransport, TelnetProtocol
 from twisted.internet.protocol import ServerFactory
+
+from hendrix.deploy.base import HendrixDeploy
+from hendrix.experience import hey_joe
 
 
 class TelnetToWebsocket(TelnetProtocol):

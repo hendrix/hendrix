@@ -1,15 +1,13 @@
-import os
 import io
-
-from twisted.logger import eventsFromJSONLogFile
 import unittest
 
-from hendrix.contrib import SettingsError
-from hendrix.deploy.base import HendrixDeploy
-from hendrix.defaults import *
-from hendrix.utils import get_pid
-
 from twisted.internet import reactor
+from twisted.logger import eventsFromJSONLogFile
+
+from hendrix.contrib import SettingsError
+from hendrix.defaults import *
+from hendrix.deploy.base import HendrixDeploy
+from hendrix.utils import get_pid
 
 TEST_SETTINGS = 'test.testproject.settings'
 

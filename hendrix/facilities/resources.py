@@ -1,16 +1,15 @@
 import sys
 
-
+import chalk
+from twisted.logger import Logger
 from twisted.web import resource, static
 from twisted.web.server import NOT_DONE_YET
-from twisted.web.wsgi import WSGIResource, _WSGIResponse
-import chalk
+from twisted.web.wsgi import WSGIResource
+
 from hendrix.facilities.response import HendrixWSGIResponse, LoudWSGIResponse
-from twisted.logger import Logger
 
 
 class HendrixWSGIResource(WSGIResource):
-
     ResponseClass = HendrixWSGIResponse
 
     def render(self, request):
@@ -21,7 +20,6 @@ class HendrixWSGIResource(WSGIResource):
 
 
 class DevWSGIResource(HendrixWSGIResource):
-
     ResponseClass = LoudWSGIResponse
 
 
@@ -101,9 +99,9 @@ class HendrixResource(resource.Resource):
             # raise an attribute error if the resource `res` doesn't contain
             # the attribute `namespace`
             msg = (
-                '%r improperly configured. additional_resources instances must'
-                ' have a namespace attribute'
-            ) % resource
+                      '%r improperly configured. additional_resources instances must'
+                      ' have a namespace attribute'
+                  ) % resource
             raise AttributeError(msg, None, sys.exc_info()[2])
 
 
@@ -121,6 +119,7 @@ class NamedResource(resource.Resource):
               ...,
             )
     """
+
     def __init__(self, namespace):
         resource.Resource.__init__(self)
         self.namespace = namespace
@@ -173,4 +172,3 @@ def DjangoStaticResource(path, rel_url='static'):
         "Adding media resource for URL '%s' at path '%s'" % (rel_url, path)
     )
     return StaticFilesResource
-

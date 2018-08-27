@@ -1,13 +1,13 @@
-from twisted.internet import ssl
+from OpenSSL import SSL
+from OpenSSL.crypto import get_elliptic_curve
 from twisted.application import internet, service
 from twisted.internet import reactor
+from twisted.internet import ssl
+from twisted.logger import Logger
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server
 
-from twisted.logger import Logger
 from hendrix.facilities.resources import HendrixResource
-from OpenSSL import SSL
-from OpenSSL.crypto import get_elliptic_curve
 
 
 class HendrixService(service.MultiService):
@@ -29,7 +29,7 @@ class HendrixService(service.MultiService):
             services=None,
             loud=False):
         service.MultiService.__init__(self)
- 
+
         # Create, start and add a thread pool service, which is made available
         # to our WSGIResource within HendrixResource
         if not threadpool:
@@ -82,6 +82,7 @@ class ThreadPoolService(service.Service):
     A simple class that defines a threadpool on init
     and provides for starting and stopping it.
     '''
+
     def __init__(self, pool):
         "self.pool returns the twisted.python.ThreadPool() instance."
         if not isinstance(pool, ThreadPool):
@@ -125,12 +126,10 @@ class SpecifiedCurveContextFactory(DefaultOpenSSLContextFactory):
 
 
 class ExistingKeyTLSContextFactory(SpecifiedCurveContextFactory):
-
     _context = None
 
     def __init__(self, private_key, cert, curve_name=None,
                  sslmethod=SSL.SSLv23_METHOD, _contextFactory=ContextWithECC):
-
         self._private_key = private_key
         self.curve_name = curve_name
         self.certificate = cert

@@ -1,6 +1,8 @@
-import jinja2
 import os
+
+import jinja2
 import yaml
+
 from . import SHARE_PATH
 
 

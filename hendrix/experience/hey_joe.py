@@ -41,7 +41,8 @@ class _ParticipantRegistry(object):
 
     def subscribe(self, transport, topic):
         if topic in ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED"):
-            raise ValueError("""Can't subscribe to ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED") - these are reserved names.""")
+            raise ValueError(
+                """Can't subscribe to ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED") - these are reserved names.""")
         try:
             # Typically, the protocol is wrapped (as with TLS)
             participant = transport.wrappedProtocol
@@ -123,7 +124,6 @@ class WSSWebSocketService(WebSocketService):
     def __init__(self, host_address, port, allowedOrigins, *args, **kwargs):
         super(WSSWebSocketService, self).__init__(host_address, port, *args, **kwargs)
         self.setProtocolOptions(allowedOrigins=allowedOrigins)
-
 
 
 # The main singleton instance to use with the subsequent classes here.

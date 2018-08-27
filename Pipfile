@@ -1,34 +1,40 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 name = "pypi"
 verify_ssl = true
 
-
 [packages]
-
 twisted = "*"
-"zope.interface" = "*"
+cryptography = ">=2.3"
 watchdog = "*"
-"jinja2" = "*"
+jinja2 = "*"
 pychalk = "*"
 service-identity = "*"
 six = "*"
-pytest-cov = "*"
 autobahn = "*"
 
-
 [dev-packages]
-
-django = "<2.0"
-flask = "*"
-cryptography = "*"
-ipython = "<6.0.0"
-"urllib3" = "*"
-requests = "*"
+bumpversion = "*"
+#
+# Pytest
+#
 pytest = "*"
-httperfpy = "*"
-pytest-twisted = "*"
+pytest-cov = "*"
 pytest-mock = "*"
+pytest-twisted = "*"
+#
+# Frameworks
+#
+django = "*"
+flask = "*"
+#
+# Other Dev
+#
+urllib3 = "*"
+requests = "*"
 coverage = "*"
 codecov = "*"
+gunicorn = "*"
+
+[pipenv]
+allow_prereleases = true

@@ -1,12 +1,13 @@
-from twisted.web.wsgi import _WSGIResponse
-from twisted.logger import Logger
 import threading
-from hendrix.utils import responseInColor
+
 from twisted.internet import reactor
+from twisted.logger import Logger
+from twisted.web.wsgi import _WSGIResponse
+
+from hendrix.utils import responseInColor
 
 
 class HendrixWSGIResponse(_WSGIResponse):
-
     log = Logger()
 
     def __init__(self, *args, **kwargs):
@@ -14,7 +15,6 @@ class HendrixWSGIResponse(_WSGIResponse):
         return super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
-
         r = reactor
         self.thread = threading.current_thread()
         # thread_list.append(self.thread)  # Debug
@@ -27,7 +27,6 @@ class HendrixWSGIResponse(_WSGIResponse):
         return ran
 
     def follow_response_tasks(self):
-
         for task in self.crosstown_tasks:
             self.log.info("Processing crosstown task: '%s'" % task.crosstown_task)
 

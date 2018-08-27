@@ -1,6 +1,7 @@
-from hendrix import defaults
-from optparse import make_option, OptionParser
 import os
+from optparse import make_option, OptionParser
+
+from hendrix import defaults
 
 
 def cleanOptions(options):
@@ -23,6 +24,7 @@ def cleanOptions(options):
         elif value:
             opts += [key, str(value)]
         return _reload, opts
+
 
 HX_OPTION_LIST = (
     make_option(
@@ -180,7 +182,6 @@ HX_OPTION_LIST = (
         )
     )
 )
-
 
 HendrixOptionParser = OptionParser(
     description=(

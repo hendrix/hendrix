@@ -8,7 +8,6 @@ except ImportError:
 
 from hendrix.contrib.cache import compressBuffer, decompressBuffer
 
-
 PREFIX = "/CACHE"
 
 
@@ -83,7 +82,7 @@ class CacheBackend(object):
         #     * if it was successful i.e. status of in the 200s
         #     * requested using GET
         #     * not busted
-        if request.method == "GET" and code/100 == 2 and not bust:
+        if request.method == "GET" and code / 100 == 2 and not bust:
             cache_control = response.headers.get('cache-control')
             if cache_control:
                 params = dict(urlparse.parse_qsl(cache_control))

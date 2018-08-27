@@ -1,11 +1,11 @@
 from .utils import HendrixTestCase
+
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
 from twisted.application import service
 from twisted.internet import tcp
-from django import apps
 
 from twisted.logger import Logger
 

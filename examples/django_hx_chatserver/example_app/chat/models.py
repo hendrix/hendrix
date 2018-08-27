@@ -1,8 +1,9 @@
 from django.db import models
-from django.utils import timezone
 from django.template import Context, loader
+from django.utils import timezone
+from hendrix.contrib.concurrency.signals import message_signal
 
-from hendrix.contrib.async.signals import message_signal
+
 # Create your models here.
 
 
@@ -18,7 +19,6 @@ class ChatMessage(models.Model):
 
 
 def save_chat_message(*args, **kwargs):
-
     """
     kwargs will always include:
     
@@ -29,13 +29,12 @@ def save_chat_message(*args, **kwargs):
      
      'dispatcher': 
         # the dispatcher that will allow for broadcasting a response
-      <hendrix.contrib.async.messaging.MessageDispatcher object at 0x10ddb1c10>,
+      <hendrix.contrib.concurrency.messaging.MessageDispatcher object at 0x10ddb1c10>,
     
     """
 
     data = kwargs.get('data')
     if data.get('message') and data.get('channel'):
-
         cm = ChatMessage.objects.create(
             sender=data.get('sender'),
             content=data.get('message'),
@@ -49,5 +48,6 @@ def save_chat_message(*args, **kwargs):
         kwargs.get('dispatcher').send(cm.channel, {
             'html': t.render(Context({'message': cm}))
         })
+
 
 message_signal.connect(save_chat_message)

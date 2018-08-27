@@ -8,14 +8,13 @@ try:
 except ImportError:
     from urllib.parse import urlparse
 
-from . import decompressBuffer, compressBuffer
-from .backends.memory_cache import MemoryCacheBackend
-
-from hendrix.utils import responseInColor
-
 from twisted.internet import reactor
 from twisted.web import proxy, client
 from twisted.web.server import NOT_DONE_YET
+
+from hendrix.utils import responseInColor
+from . import decompressBuffer
+from .backends.memory_cache import MemoryCacheBackend
 
 try:
     from urllib import quote as urlquote
@@ -106,15 +105,13 @@ class CacheClient(proxy.ProxyClient):
         """
         # http://jython.xhaus.com/http-compression-in-python-and-jython/
         zbuf = cStringIO.StringIO()
-        zfile = gzip.GzipFile(mode='wb',  fileobj=zbuf, compresslevel=9)
+        zfile = gzip.GzipFile(mode='wb', fileobj=zbuf, compresslevel=9)
         zfile.write(buffer)
         zfile.close()
         return zbuf.getvalue()
 
 
-
 class CacheClientFactory(proxy.ProxyClientFactory):
-
     protocol = CacheClient
 
     def __init__(self, command, rest, version, headers, data, father, resource):

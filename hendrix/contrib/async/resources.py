@@ -2,10 +2,9 @@ import json
 import uuid
 
 from twisted.internet import threads
-from twisted.internet.protocol import Factory, Protocol
+from twisted.internet.protocol import Protocol
 
 from hendrix.facilities.resources import NamedResource
-
 from .messaging import hxdispatcher
 from .signals import message_signal
 

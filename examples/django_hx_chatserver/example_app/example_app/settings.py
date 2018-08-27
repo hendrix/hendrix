@@ -10,8 +10,8 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -26,7 +26,6 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -39,7 +38,7 @@ INSTALLED_APPS = (
 )
 
 INSTALLED_APPS += (
-    'chat', # your app goes here.
+    'chat',  # your app goes here.
 )
 
 MIDDLEWARE_CLASSES = (
@@ -55,7 +54,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'example_app.urls'
 
 WSGI_APPLICATION = 'example_app.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
@@ -80,19 +78,16 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
 
-
 # THIS IS THE ONLY THING THAT NEEDS TO BE ADDED TO SETTINGS
 
 STATIC_ROOT = BASE_DIR + '/servedstatics'
 
-
 HENDRIX_CHILD_RESOURCES = (
-    'hendrix.contrib.async.resources.MessageResource',
+    'hendrix.contrib.concurrency.resources.MessageResource',
     'hendrix.contrib.resources.static.DjangoStaticsFinder'
 )
