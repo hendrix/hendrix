@@ -153,7 +153,9 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pipenv sync --three --dev
+          command: |
+            pipenv sync --three --dev
+            pipenv install twine --dev --skip-lock
       - run:
           name: verify git tag == version
           command: pipenv run python setup.py verify

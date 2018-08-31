@@ -3,6 +3,7 @@ import os
 import sys
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
 
 from hendrix import __version__
 
@@ -63,6 +64,21 @@ EXTRAS = {
     ]
 }
 
+
+class VerifyVersionCommand(install):
+    """Custom command to verify that the git tag matches our version"""
+    description = 'verify that the git tag matches our version'
+
+    def run(self):
+        tag = os.getenv('CIRCLE_TAG')
+
+        if tag != __version__:
+            info = "Git tag: {0} does not match the version of this app: {1}".format(
+                tag, __version__
+            )
+            sys.exit(info)
+
+
 setup(
     name="hendrix",
     version=__version__,
@@ -104,5 +120,7 @@ setup(
         (share_path, ['hendrix/utils/templates/init.d.j2', ]),
     ],
     install_requires=INSTALL_REQUIRES,
-    extras_require=EXTRAS
+    extras_require=EXTRAS,
+    cmdclass={'verify': VerifyVersionCommand}
+
 )
