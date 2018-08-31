@@ -1,0 +1,179 @@
+version: 2.0
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - bundle_dependencies-35:
+          filters:
+            tags:
+              only: /.*/
+      - bundle_dependencies-36:
+          filters:
+            tags:
+              only: /.*/
+      - bundle_dependencies-37:
+          filters:
+            tags:
+              only: /.*/
+      - run_tests-35:
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - bundle_dependencies-35
+      - run_tests-36:
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - bundle_dependencies-36
+      - run_tests-37:
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - bundle_dependencies-37
+      - deploy:
+          requires:
+              - run_tests-35
+              - run_tests-36
+              - run_tests-37
+          filters:
+            tags:
+              only: /v?[0-9]+.*/
+            branches:
+              ignore: /.*/
+
+python_35_base: &python_35_base
+    working_directory: ~/pyUmbral-35
+    docker:
+      - image: circleci/python:3.5
+
+python_36_base: &python_36_base
+    working_directory: ~/pyUmbral-36
+    docker:
+      - image: circleci/python:3.6
+
+python_37_base: &python_37_base
+    working_directory: ~/pyUmbral-37
+    docker:
+      - image: circleci/python:3.7
+
+jobs:
+  bundle_dependencies-35:
+    <<: *python_35_base
+    steps:
+      - checkout
+      - run:
+          name: Install Python dependencies with Pipenv
+          command: pipenv sync --three --dev
+      - run:
+          name: Check PEP 508 Requirements
+          command: pipenv check
+      - save_cache:
+          paths:
+            - "~/.local/share/virtualenvs/"
+          key: v1-deps-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ checksum "Pipfile.lock" }}-py35
+
+  bundle_dependencies-36:
+    <<: *python_36_base
+    steps:
+      - checkout
+      - run:
+          name: Install Python dependencies with Pipenv
+          command: pipenv sync --three --dev
+      - run:
+          name: Check PEP 508 Requirements
+          command: pipenv check
+      - save_cache:
+          paths:
+            - "~/.local/share/virtualenvs/"
+          key: v1-deps-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ checksum "Pipfile.lock" }}-py36
+
+  bundle_dependencies-37:
+    <<: *python_37_base
+    steps:
+      - checkout
+      - run:
+          name: Install Python dependencies with Pipenv
+          command: pipenv sync --three --dev
+      - run:
+          name: Check PEP 508 Requirements
+          command: pipenv check
+      - save_cache:
+          paths:
+            - "~/.local/share/virtualenvs/"
+          key: v1-deps-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ checksum "Pipfile.lock" }}-py37
+
+  run_tests-35:
+    <<: *python_35_base
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+              pipenv sync --three --dev
+              pipenv install --dev pytest
+      - run:
+          name: pyUmbral Tests (Python 3.5)
+          command: pipenv run pytest test --cov=. --cov-report=html  --junitxml=./reports/pytest/python35-results.xml
+      - store_test_results:
+          path: /reports/pytest
+      - store_artifacts:
+          path: ./htmlcov
+
+  run_tests-36:
+    <<: *python_36_base
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pipenv sync --three --dev
+      - run:
+          name: pyUmbral Tests (Python 3.6)
+          command: pipenv run pytest test --cov=. --cov-report=html --junitxml=./reports/pytest/python36-results.xml
+      - store_test_results:
+          path: /reports/pytest
+      - store_artifacts:
+          path: ./htmlcov
+
+  run_tests-37:
+    <<: *python_37_base
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pipenv sync --three --dev
+      - run:
+          name: pyUmbral Tests (Python 3.7)
+          command: pipenv run pytest test --cov=. --cov-report=html --junitxml=./reports/pytest/python37-results.xml
+      - store_test_results:
+          path: /reports/pytest
+      - store_artifacts:
+          path: ./htmlcov
+
+  deploy:
+    <<: *python_37_base
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pipenv sync --three --dev
+      - run:
+          name: verify git tag == version
+          command: pipenv run python setup.py verify
+      - run:
+          name: init .pypirc
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+      - run:
+          name: create packages
+          command: |
+            pipenv run python setup.py sdist
+            pipenv run python setup.py bdist_wheel
+      - run:
+          name: upload to pypi
+          command: pipenv run twine upload dist/*
