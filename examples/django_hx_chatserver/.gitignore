@@ -1,5 +1,2 @@
-bin
-lib
-include
-.Python
 */db.sqlite3
+servedstatics/

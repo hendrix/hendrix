@@ -1,10 +1,15 @@
 import json
+import uuid
+
 from collections import defaultdict
 from itertools import chain
 
+from twisted.internet import threads
 from autobahn.twisted import WebSocketServerFactory
 from autobahn.twisted.websocket import WebSocketServerProtocol
 from twisted.logger import Logger
+
+from ..contrib.concurrency.resources import send_signal
 
 
 class _ParticipantRegistry(object):
@@ -75,6 +80,7 @@ class _ParticipantRegistry(object):
 
 
 class _WayDownSouth(WebSocketServerProtocol):
+    guid = None
 
     def __init__(self, allow_free_redirect=False, subscription_message=None, registry=None, *args, **kwargs):
         self.subscription_message = subscription_message or "hx_subscribe"
@@ -83,8 +89,11 @@ class _WayDownSouth(WebSocketServerProtocol):
         super(_WayDownSouth, self).__init__(*args, **kwargs)
 
     def onMessage(self, payload_as_json, isBinary):
-
+        # Extract json data
         payload = json.loads(payload_as_json.decode())
+
+        # Signal Django
+        threads.deferToThread(send_signal, None, payload)
 
         subscription_topic = payload.get(self.subscription_message)
         if subscription_topic:
@@ -98,10 +107,12 @@ class _WayDownSouth(WebSocketServerProtocol):
 
             self._registry.send(address, payload)
 
+    def onOpen(self):
+        self.guid = str(uuid.uuid1())
+
     def onClose(self, wasClean, code, reason):
         super(_WayDownSouth, self).onClose(wasClean, code, reason)
         self._registry.remove(self.transport)
-        print("WebSocket connection closed: {0}".format(reason))
 
 
 class WebSocketService(WebSocketServerFactory):

@@ -26,4 +26,12 @@ def home(request, chat_channel_name=None):
         context['history'] = ChatMessage.objects.filter(
             channel=chat_channel_name)
 
+
+    # TODO add https 
+    websocket_prefix = "ws"
+    websocket_port = 9000
+
+    context['websocket_prefix'] = websocket_prefix
+    context['websocket_port'] = websocket_port
+
     return render(request, 'chat.html', context)
