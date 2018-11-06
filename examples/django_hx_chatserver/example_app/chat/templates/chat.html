@@ -100,16 +100,12 @@
 
 <script type="text/javascript">
 
-    {%
-        if address %}
-    SOCKET_ADDRESS = '{{address}}';
-    {% else %
-    }
-    SOCKET_ADDRESS = null;
-    {%
-        endif %
-    }
-
+    {% if address %}
+        SOCKET_ADDRESS = '{{address}}';
+    {% else %}
+        SOCKET_ADDRESS = null;
+    {% endif %}
+        
     var setup_chat = function (sock) {
 
         //this is
