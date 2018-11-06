@@ -93,22 +93,16 @@
 </body>
 
 <!-- JQUERY is not needed but lets just be nice to ourselves... -->
-<script src="{% static 'chat/js/jquery-1.11.0.js' %}"></script>
-<!-- sock.js is very highly recomended (required even!) for implementing websockets. -->
-<script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+<script src="{% static 'jquery.js' %}"></script>
 
 <script type="text/javascript">
 
-    {%
-        if address %}
-    SOCKET_ADDRESS = '{{address}}';
-    {% else %
-    }
-    SOCKET_ADDRESS = null;
-    {%
-        endif %
-    }
-
+    {% if address %}
+        SOCKET_ADDRESS = '{{address}}';
+    {% else %}
+        SOCKET_ADDRESS = null;
+    {% endif %}
+        
     var setup_chat = function (sock) {
 
         //this is
@@ -132,33 +126,42 @@
             }
         })
 
-        sock.onmessage = function (e) {
-            //
-
+        sock.onmessage = function (e) {            
             var data = JSON.parse(e.data);
-            if (data.html) {
-                $('#empty').remove();
-                $('#history').append($(data.html));
-                $("#history").animate({scrollTop: $('#history')[0].scrollHeight}, 1000);
+            // If we were also sent topic, need to extract from second element.
+            if (data.length > 1) {
+                if (data[1].html) {
+                    $('#empty').remove();
+                    $('#history').append($(data[1].html));
+                    $("#history").animate({scrollTop: $('#history')[0].scrollHeight}, 1000);
+                }
             }
+            else {
+                if (data.html) {
+                    $('#empty').remove();
+                    $('#history').append($(data.html));
+                    $("#history").animate({scrollTop: $('#history')[0].scrollHeight}, 1000);
+                }
+            }
+            
         }
     }
 
     $(function () {
 
-        var sock = new SockJS('/messages/main/');
-
+        // Create socket interface
+        const sock = new WebSocket('{{websocket_prefix}}://localhost:{{websocket_port}}');
+        sock.binaryType = 'arraybuffer';
+        
         sock.onopen = function () {
 
             // "hx_subscribe" is a keyword that tells hendrix to subscribe the
             // socket transport associated with this web browser session
             // with a given channel
-
             this.send(JSON.stringify({'hx_subscribe': SOCKET_ADDRESS}));
 
             // we need to wait until we have a socket connection established before
             // hooking up the events.
-
             setup_chat(this);
 
             $("#history").animate({scrollTop: $('#history')[0].scrollHeight}, 1000);
