@@ -68,7 +68,7 @@ jobs:
       - run:
           name: Install Python dependencies with Pipenv
           command: |
-            pipenv sync --three --dev
+            pipenv install --three --dev --skip-lock
             pipenv graph
       - run:
           name: Check PEP 508 Requirements
@@ -81,7 +81,7 @@ jobs:
       - run:
           name: Install Python dependencies with Pipenv
           command: |
-            pipenv sync --three --dev
+            pipenv install --three --dev --skip-lock
             pipenv graph
       - run:
           name: Check PEP 508 Requirements
@@ -94,7 +94,7 @@ jobs:
       - run:
           name: Install Python dependencies with Pipenv
           command: |
-            pipenv sync --three --dev
+            pipenv install --three --dev --skip-lock
             pipenv graph
       - run:
           name: Check PEP 508 Requirements
@@ -107,8 +107,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-              pipenv sync --three --dev
-              pipenv install --dev pytest
+              pipenv install --three --dev --skip-lock
+              pipenv install --skip-lock --dev pytest
       - run:
           name: Hendrix Tests (Python 3.5)
           command: pipenv run pytest test --cov=. --cov-report=html  --junitxml=./reports/pytest/python35-results.xml
@@ -123,7 +123,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pipenv sync --three --dev
+          command: pipenv install --three --dev --skip-lock
       - run:
           name: Hendrix Tests (Python 3.6)
           command: pipenv run pytest test --cov=. --cov-report=html --junitxml=./reports/pytest/python36-results.xml
@@ -138,7 +138,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pipenv sync --three --dev
+          command: pipenv install --three --dev --skip-lock
       - run:
           name: Hendrix Tests (Python 3.7)
           command: pipenv run pytest test --cov=. --cov-report=html --junitxml=./reports/pytest/python37-results.xml
@@ -154,7 +154,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pipenv sync --three --dev
+            pipenv install --skip-lock --three --dev
             pipenv install twine --dev --skip-lock
       - run:
           name: verify git tag == version
