@@ -36,7 +36,7 @@ class _ParticipantRegistry(object):
             recipients = self._participants_by_topic[topic]
         payload_with_topic = (topic, payload)
         if not recipients:
-            self.log.info("Nobody is subscribed to {}.")
+            self.log.info("Nobody is subscribed to {}.".format(topic))
         else:
             return self._send_to_multiple_participants(payload_with_topic, recipients)
 
