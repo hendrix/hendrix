@@ -55,8 +55,7 @@ class _ParticipantRegistry(object):
             participant = transport.protocol
             # It's also possible to use a naked protocol.
         self._participants_by_topic[topic].add(participant)
-
-        self.send_to_participant("Subscribed to {}".format(topic), participant)
+        return participant
 
     def broadcast(self, payload):
         payload = ("BROADCAST", payload)
@@ -81,6 +80,7 @@ class _ParticipantRegistry(object):
 
 class _WayDownSouth(WebSocketServerProtocol):
     guid = None
+    subscription_followups = {}
 
     def __init__(self, allow_free_redirect=False, subscription_message=None, registry=None, *args, **kwargs):
         self.subscription_message = subscription_message or "hx_subscribe"
@@ -99,7 +99,13 @@ class _WayDownSouth(WebSocketServerProtocol):
 
         subscription_topic = payload.get(self.subscription_message)
         if subscription_topic:
-            self._registry.subscribe(self.transport, subscription_topic)
+            try:
+                subscriber = self._registry.subscribe(self.transport, subscription_topic)
+            except ValueError as e:
+                # They tried to subscribe to a reserved word.
+                return
+            else:
+                self.follow_up_subcription(subscription_topic, subscriber)
 
         if self.allow_free_redirect:
             if 'address' in payload:
@@ -116,6 +122,14 @@ class _WayDownSouth(WebSocketServerProtocol):
         super(_WayDownSouth, self).onClose(wasClean, code, reason)
         self._registry.remove(self.transport)
 
+    def follow_up_subcription(self, topic, participant):
+        try:
+            followup = self.subscription_followups[topic]
+            followup(participant)
+        except KeyError:
+            # Default follow-up - just confirm their subscription.
+            self.sendMessage("Subscribed to {}".format(topic).encode())
+
 
 class WebSocketService(WebSocketServerFactory):
     prefix = "ws"
@@ -126,6 +140,9 @@ class WebSocketService(WebSocketServerFactory):
         super(WebSocketService, self).__init__(self._hey_joe_addr, *args, **kwargs)
         self.protocol = _WayDownSouth
         self.server = "hendrix/Twisted/" + self.server
+
+    def register_followup(self, topic, followup):
+        self.protocol.subscription_followups[topic] = followup
 
 
 class WSSWebSocketService(WebSocketService):
