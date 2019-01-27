@@ -9,7 +9,7 @@ from autobahn.twisted import WebSocketServerFactory
 from autobahn.twisted.websocket import WebSocketServerProtocol
 from twisted.logger import Logger
 
-from ..contrib.concurrency.resources import send_signal
+from hendrix.contrib.concurrency.signals import USE_DJANGO_SIGNALS
 
 
 class _ParticipantRegistry(object):
@@ -93,7 +93,9 @@ class _WayDownSouth(WebSocketServerProtocol):
         payload = json.loads(payload_as_json.decode())
 
         # Signal Django
-        threads.deferToThread(send_signal, None, payload)
+        if USE_DJANGO_SIGNALS:
+            from ..contrib.concurrency.resources import send_signal
+            threads.deferToThread(send_signal, None, payload)
 
         subscription_topic = payload.get(self.subscription_message)
         if subscription_topic:
