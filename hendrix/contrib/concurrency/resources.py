@@ -6,10 +6,10 @@ from twisted.internet.protocol import Protocol
 
 from hendrix.facilities.resources import NamedResource
 from .messaging import hxdispatcher
-from .signals import message_signal
 
 
-def send_signal(transport, data):
+def send_django_signal(transport, data):
+    from .signals import message_signal
     message_signal.send(None, dispatcher=transport, data=data)
 
 
