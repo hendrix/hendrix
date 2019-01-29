@@ -12,6 +12,7 @@ pychalk = "*"
 service-identity = "*"
 six = "*"
 autobahn = "*"
+pyopenssl = "*"
 
 [dev-packages]
 bumpversion = "*"
