@@ -1,10 +1,15 @@
 import json
+import uuid
+
 from collections import defaultdict
 from itertools import chain
 
+from twisted.internet import threads
 from autobahn.twisted import WebSocketServerFactory
 from autobahn.twisted.websocket import WebSocketServerProtocol
 from twisted.logger import Logger
+
+from hendrix.contrib.concurrency.signals import USE_DJANGO_SIGNALS
 
 
 class _ParticipantRegistry(object):
@@ -31,7 +36,7 @@ class _ParticipantRegistry(object):
             recipients = self._participants_by_topic[topic]
         payload_with_topic = (topic, payload)
         if not recipients:
-            self.log.info("Nobody is subscribed to {}.")
+            self.log.info("Nobody is subscribed to {}.".format(topic))
         else:
             return self._send_to_multiple_participants(payload_with_topic, recipients)
 
@@ -50,8 +55,7 @@ class _ParticipantRegistry(object):
             participant = transport.protocol
             # It's also possible to use a naked protocol.
         self._participants_by_topic[topic].add(participant)
-
-        self.send_to_participant("Subscribed to {}".format(topic), participant)
+        return participant
 
     def broadcast(self, payload):
         payload = ("BROADCAST", payload)
@@ -75,6 +79,8 @@ class _ParticipantRegistry(object):
 
 
 class _WayDownSouth(WebSocketServerProtocol):
+    guid = None
+    subscription_followups = {}
 
     def __init__(self, allow_free_redirect=False, subscription_message=None, registry=None, *args, **kwargs):
         self.subscription_message = subscription_message or "hx_subscribe"
@@ -83,12 +89,23 @@ class _WayDownSouth(WebSocketServerProtocol):
         super(_WayDownSouth, self).__init__(*args, **kwargs)
 
     def onMessage(self, payload_as_json, isBinary):
-
+        # Extract json data
         payload = json.loads(payload_as_json.decode())
+
+        # Signal Django
+        if USE_DJANGO_SIGNALS:
+            from ..contrib.concurrency.resources import send_signal
+            threads.deferToThread(send_signal, None, payload)
 
         subscription_topic = payload.get(self.subscription_message)
         if subscription_topic:
-            self._registry.subscribe(self.transport, subscription_topic)
+            try:
+                subscriber = self._registry.subscribe(self.transport, subscription_topic)
+            except ValueError as e:
+                # They tried to subscribe to a reserved word.
+                return
+            else:
+                self.follow_up_subcription(subscription_topic, subscriber)
 
         if self.allow_free_redirect:
             if 'address' in payload:
@@ -98,10 +115,20 @@ class _WayDownSouth(WebSocketServerProtocol):
 
             self._registry.send(address, payload)
 
+    def onOpen(self):
+        self.guid = str(uuid.uuid1())
+
     def onClose(self, wasClean, code, reason):
         super(_WayDownSouth, self).onClose(wasClean, code, reason)
         self._registry.remove(self.transport)
-        print("WebSocket connection closed: {0}".format(reason))
+
+    def follow_up_subcription(self, topic, participant):
+        try:
+            followup = self.subscription_followups[topic]
+            followup(participant)
+        except KeyError:
+            # Default follow-up - just confirm their subscription.
+            self.sendMessage("Subscribed to {}".format(topic).encode())
 
 
 class WebSocketService(WebSocketServerFactory):
@@ -113,6 +140,9 @@ class WebSocketService(WebSocketServerFactory):
         super(WebSocketService, self).__init__(self._hey_joe_addr, *args, **kwargs)
         self.protocol = _WayDownSouth
         self.server = "hendrix/Twisted/" + self.server
+
+    def register_followup(self, topic, followup):
+        self.protocol.subscription_followups[topic] = followup
 
 
 class WSSWebSocketService(WebSocketService):

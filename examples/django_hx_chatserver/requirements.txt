@@ -1,3 +1,0 @@
-hendrix
-django<1.9
-txsockjs
