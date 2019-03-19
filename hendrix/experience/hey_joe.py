@@ -94,8 +94,8 @@ class _WayDownSouth(WebSocketServerProtocol):
 
         # Signal Django
         if USE_DJANGO_SIGNALS:
-            from ..contrib.concurrency.resources import send_signal
-            threads.deferToThread(send_signal, None, payload)
+            from ..contrib.concurrency.resources import send_django_signal
+            threads.deferToThread(send_django_signal, None, payload)
 
         subscription_topic = payload.get(self.subscription_message)
         if subscription_topic:
