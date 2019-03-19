@@ -23,7 +23,7 @@ def cleanOptions(options):
             opts += [key, ]
         elif value:
             opts += [key, str(value)]
-        return _reload, opts
+    return _reload, opts
 
 
 HX_OPTION_LIST = (
