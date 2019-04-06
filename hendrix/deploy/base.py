@@ -1,6 +1,7 @@
 import importlib
 import os
 import pickle
+import shutil
 import time
 from os import environ
 from socket import AF_INET
@@ -17,7 +18,7 @@ from hendrix.facilities.gather import get_additional_resources, get_additional_s
 from hendrix.facilities.protocols import DeployServerProtocol
 from hendrix.facilities.services import HendrixService, HendrixTCPService
 from hendrix.options import options as hx_options
-from hendrix.utils import get_pid, import_string
+from hendrix.utils import get_pid, import_string, PID_DIR
 
 
 class HendrixDeploy(object):
@@ -179,7 +180,10 @@ class HendrixDeploy(object):
             ###########################
             # annnnd run the reactor! #
             ###########################
-            self.reactor.run()
+            try:
+                self.reactor.run()
+            finally:
+                shutil.rmtree(PID_DIR, ignore_errors=True)  # cleanup tmp PID dir
 
         elif action == 'restart':
             getattr(self, action)(fd=fd)

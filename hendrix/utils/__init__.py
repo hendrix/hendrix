@@ -1,11 +1,16 @@
 import os
 import sys
+import tempfile
 from importlib import import_module
 
 import chalk
 import six
 
 HENDRIX_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Default PID Directory
+PID_DIR = tempfile.mkdtemp(prefix='hendrix-')
+
 
 SHARE_PATH = os.path.join(
     os.path.dirname(sys.executable),
@@ -16,9 +21,7 @@ SHARE_PATH = os.path.join(
 def get_pid(options):
     """returns The default location of the pid file for process management"""
     namespace = options['settings'] if options['settings'] else options['wsgi']
-    return '%s/%s_%s.pid' % (
-        HENDRIX_DIR, options['http_port'], namespace.replace('.', '_')
-    )
+    return os.path.join('{}', '{}_{}.pid').format(PID_DIR, options['http_port'], namespace.replace('.', '_'))
 
 
 def responseInColor(request, status, headers, prefix='Response', opts=None):
