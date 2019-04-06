@@ -7,6 +7,13 @@ import six
 
 HENDRIX_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Default PID Directory
+PID_DIR = os.path.join('/', 'var', 'tmp', 'hendrix')
+if not os.path.isfile(PID_DIR):
+    os.mkdir(PID_DIR)
+    os.chown(PID_DIR, uid=os.getuid(), gid=os.getgid())
+
+
 SHARE_PATH = os.path.join(
     os.path.dirname(sys.executable),
     'share/hendrix'
@@ -17,7 +24,7 @@ def get_pid(options):
     """returns The default location of the pid file for process management"""
     namespace = options['settings'] if options['settings'] else options['wsgi']
     return '%s/%s_%s.pid' % (
-        HENDRIX_DIR, options['http_port'], namespace.replace('.', '_')
+        PID_DIR, options['http_port'], namespace.replace('.', '_')
     )
 
 
