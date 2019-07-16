@@ -41,6 +41,8 @@ class HendrixDeploy(object):
         self.use_settings = True
         # because running the management command overrides self.options['wsgi']
         if self.options['wsgi']:
+            self.services = self.options.get('services')
+            self.resources = self.options.get('resources')
             if hasattr(self.options['wsgi'], '__call__'):
                 # If it has a __call__, we assume that it is the application
                 # object itself.
