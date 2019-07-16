@@ -51,6 +51,11 @@ class HendrixResource(resource.Resource):
         the url, if it is incomplete then that incomplete url will be passed on
         to the child resource (in this case our wsgi application).
         """
+
+        path = name.decode('utf-8')
+        if path in self.children:
+            return self.children[path]
+
         request.prepath = []
         request.postpath.insert(0, name)
         # re-establishes request.postpath so to contain the entire path
