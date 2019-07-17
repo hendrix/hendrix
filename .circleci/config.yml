@@ -68,6 +68,7 @@ jobs:
       - run:
           name: Install Python dependencies with Pipenv
           command: |
+            sudo apt update -y && sudo apt install python3-dev -y
             pipenv install --three --dev --skip-lock
             pipenv graph
       - run:
@@ -81,6 +82,7 @@ jobs:
       - run:
           name: Install Python dependencies with Pipenv
           command: |
+            sudo apt update -y && sudo apt install python3-dev -y
             pipenv install --three --dev --skip-lock
             pipenv graph
       - run:
@@ -107,6 +109,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+              sudo apt update -y && sudo apt install python3-dev -y
               pipenv install --three --dev --skip-lock
               pipenv install --skip-lock --dev pytest
       - run:
@@ -123,7 +126,9 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pipenv install --three --dev --skip-lock
+          command: |
+              sudo apt update -y && sudo apt install python3-dev -y
+              pipenv install --three --dev --skip-lock
       - run:
           name: Hendrix Tests (Python 3.6)
           command: pipenv run pytest test --cov=. --cov-report=html --junitxml=./reports/pytest/python36-results.xml
