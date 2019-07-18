@@ -1,4 +1,4 @@
-*Mr. D. Reinhardt, with a pair of guitars and tatters of sheet music in the back seat, speeds his convertible westward over the mountains. The campfire carries on without the blessing of his gypsy jazz, but his morning return is as a fearsome, left-handed character – familiar but Twisted*`(.py)`
+*Mr. D. Reinhardt, with a pair of guitars and tatters of sheet music in the back seat, speeds his convertible westward over the mountains. The campfire carries on without the blessing of his gypsy jazz, but his morning return is as a fearsome, left-handed character – familiar but Twisted* `(.py)`
 
 ![hendrix](docs/_static/hendrix-logo.png)
 
