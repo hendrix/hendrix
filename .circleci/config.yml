@@ -34,16 +34,23 @@ workflows:
               only: /.*/
           requires:
             - bundle_dependencies-37
+      - validate_deploy:
+          requires:
+              - run_tests-35
+              - run_tests-36
+              - run_tests-37
       - deploy:
           requires:
               - run_tests-35
               - run_tests-36
               - run_tests-37
+              - validate_deploy
           filters:
             tags:
               only: /v?[0-9]+.*/
             branches:
               ignore: /.*/
+
 
 python_35_base: &python_35_base
     working_directory: ~/hendrix
@@ -178,3 +185,21 @@ jobs:
       - run:
           name: upload to pypi
           command: pipenv run twine upload dist/*
+
+  validate_deploy:
+    <<: *python_37_base
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            pipenv install --skip-lock --three --dev
+            pipenv install twine --dev --skip-lock
+      - run:
+          name: create packages
+          command: |
+            pipenv run python setup.py sdist
+            pipenv run python setup.py bdist_wheel
+      - run:
+          name: check pypi acceptance
+          command: pipenv run twine check dist/*
