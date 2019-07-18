@@ -102,6 +102,7 @@ setup(
     ),
 
     long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Framework :: Django',
