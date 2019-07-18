@@ -196,13 +196,10 @@ jobs:
             pipenv install --skip-lock --three --dev
             pipenv install twine --dev --skip-lock
       - run:
-          name: verify git tag == version
-          command: pipenv run python setup.py verify
-      - run:
           name: create packages
           command: |
             pipenv run python setup.py sdist
             pipenv run python setup.py bdist_wheel
       - run:
-          name: upload to pypi
+          name: check pypi acceptance
           command: pipenv run twine check dist/*
