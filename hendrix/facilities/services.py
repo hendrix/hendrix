@@ -20,8 +20,8 @@ def get_size_limiting_request(max_upload_bytes):
 
         def handleContentChunk(self, data):
             if self.content.tell() + len(data) > self.size_limit_on_post_data:
-                breakpoint()
-                raise TooMuchDataException("too much data nooooooo")
+                self.transport.write(b"HTTP/1.1 413 Request Entity too large\r\n\r\n")
+                self.transport.loseConnection()
 
             return super().handleContentChunk(data)
 

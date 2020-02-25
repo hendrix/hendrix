@@ -1,6 +1,6 @@
 -i https://pypi.python.org/simple
 atomicwrites==1.3.0
-attrs==19.1.0
+attrs==19.3.0
 bumpversion==0.5.3
 certifi==2019.6.16
 chardet==3.0.4

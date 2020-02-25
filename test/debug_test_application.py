@@ -13,6 +13,6 @@ from hendrix.deploy.base import HendrixDeploy
 if __name__ == "__main__":
     threadPool = reactor.getThreadPool()
     threadPool.adjustPoolsize(3, 5)
-    options = {'wsgi': application}
+    options = {'wsgi': application, 'max_upload_bytes': 1024}
     deployer = HendrixDeploy(options=options)
     deployer.run()
