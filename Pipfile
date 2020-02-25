@@ -13,6 +13,7 @@ service-identity = "*"
 six = "*"
 autobahn = "*"
 pyopenssl = "*"
+requirements-dev-txt = "*"
 
 [dev-packages]
 bumpversion = "*"

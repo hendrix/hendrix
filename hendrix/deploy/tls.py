@@ -62,7 +62,7 @@ class HendrixDeployTLS(HendrixDeploy):
         "adds a SSLService to the instaitated HendrixService"
         https_port = self.options['https_port']
         self.tls_service = HendrixTCPServiceWithTLS(https_port, self.hendrix.site, self.key, self.cert,
-                                                    self.context_factory, self.context_factory_kwargs)
+                                                    self.context_factory, self.context_factory_kwargs, self.options['max_upload_bytes'])
         self.tls_service.setServiceParent(self.hendrix)
 
     def addSubprocesses(self, fds, name, factory):

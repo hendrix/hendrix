@@ -156,7 +156,7 @@ class HendrixDeploy(object):
             loud=self.options['loud']
         )
         if self.options["https_only"] is not True:
-            self.hendrix.spawn_new_server(self.options['http_port'], HendrixTCPService)
+            self.hendrix.spawn_new_server(self.options['http_port'], HendrixTCPService, max_upload_bytes=self.options['max_upload_bytes'])
 
     def catalogServers(self, hendrix):
         "collects a list of service names serving on TCP or SSL"
@@ -275,7 +275,7 @@ class HendrixDeploy(object):
     def addSubprocess(self, fds, name, factory):
         """
         Public method for _addSubprocess.
-        Wraps reactor.adoptStreamConnection in 
+        Wraps reactor.adoptStreamConnection in
         a simple DeferredLock to guarantee
         workers play well together.
         """
