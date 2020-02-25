@@ -10,9 +10,6 @@ from twisted.web import server
 from hendrix.facilities.resources import HendrixResource
 
 
-class TooMuchDataException(BaseException):
-    pass
-
 def get_size_limiting_request(max_upload_bytes):
 
     class SizeLimitingRequest(server.Request):
