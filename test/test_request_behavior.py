@@ -38,5 +38,4 @@ def test_max_upload_bytes():
         assert 413 == response.status_code
         assert response.reason == "Request Entity Too Large"
 
-
     yield threads.deferToThread(reject_large_uploads)
