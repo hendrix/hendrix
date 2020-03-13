@@ -19,7 +19,7 @@ def test_max_upload_bytes():
 
     def reject_large_uploads():
 
-        # upload 50 bytes, we should be fine.
+        # uploading 50 bytes is fine.
         byte_count = 50
         ok_data = io.BytesIO(os.urandom(byte_count))
         response = requests.post(
