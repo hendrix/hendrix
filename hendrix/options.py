@@ -180,6 +180,13 @@ HX_OPTION_LIST = (
             'Overrides the use of django settings for use in testing. N.B. '
             'This option is not for use with hx or hx.py'
         )
+    ),
+    make_option(
+        '--client-max-body-size',
+        dest='max_upload_bytes',
+        type=int,
+        default=None,#1024*1024,
+        help=('equivalent to nginx client_max_body_size in integer bytes (1024==1k)')
     )
 )
 

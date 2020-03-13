@@ -10,6 +10,21 @@ from twisted.web import server
 from hendrix.facilities.resources import HendrixResource
 
 
+def get_size_limiting_request(max_upload_bytes):
+
+    class SizeLimitingRequest(server.Request):
+        size_limit_on_post_data = max_upload_bytes
+
+        def handleContentChunk(self, data):
+            if self.content.tell() + len(data) > self.size_limit_on_post_data:
+                self.transport.write(b"HTTP/1.1 413 Request Entity Too Large\r\n\r\n")
+                self.transport.loseConnection()
+
+            return super().handleContentChunk(data)
+
+    return SizeLimitingRequest
+
+
 class HendrixService(service.MultiService):
     """
     HendrixService is a constructor that facilitates the collection of services
@@ -150,13 +165,17 @@ class ExistingKeyTLSContextFactory(SpecifiedCurveContextFactory):
 class HendrixTCPService(internet.TCPServer):
 
     def __init__(self, port, site, *args, **kwargs):
+        max_upload_bytes = kwargs.pop('max_upload_bytes', None)
         internet.TCPServer.__init__(self, port, site, *args, **kwargs)
         self.site = site
+        if max_upload_bytes:
+            self.site.requestFactory = get_size_limiting_request(max_upload_bytes)
+
 
 
 class HendrixTCPServiceWithTLS(internet.SSLServer):
 
-    def __init__(self, port, site, private_key, cert, context_factory=None, context_factory_kwargs=None):
+    def __init__(self, port, site, private_key, cert, context_factory=None, context_factory_kwargs=None, max_upload_bytes=None):
         context_factory = context_factory or ssl.DefaultOpenSSLContextFactory
         context_factory_kwargs = context_factory_kwargs or {}
 
@@ -173,3 +192,7 @@ class HendrixTCPServiceWithTLS(internet.SSLServer):
         )
 
         self.site = site
+        if max_upload_bytes:
+            self.site.requestFactory = get_size_limiting_request(max_upload_bytes)
+
+

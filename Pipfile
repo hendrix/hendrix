@@ -13,6 +13,7 @@ service-identity = "*"
 six = "*"
 autobahn = "*"
 pyopenssl = "*"
+attrs = ">=19.3.0"
 
 [dev-packages]
 bumpversion = "*"

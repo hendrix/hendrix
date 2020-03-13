@@ -23,7 +23,7 @@ class TestHendrixResource(unittest.TestCase):
         with mock.patch('hendrix.facilities.resources.WSGIResource') as wsgi:
             request = DummyRequest(['path', 'to', 'child'])
             actual_res = getChildForRequest(self.hr, request)
-            self.assertEqual(self.res, actual_res)
+            self.assertEqual(actual_res, self.res)
 
     def test_putNamedChild_very_wrong_request(self):
         "check that requests outside of the children go to the WSGIResoure"
@@ -44,7 +44,7 @@ class TestHendrixResource(unittest.TestCase):
         with mock.patch('hendrix.facilities.resources.WSGIResource') as wsgi:
             request = DummyRequest(['path', 'to', 'child'])
             actual_res = getChildForRequest(self.hr, request)
-            self.assertEqual(self.res, actual_res)  # Before duplicate
+            self.assertEqual(actual_res, self.res)  # Before duplicate
 
             duplicate = NamedResource(self.res.namespace)
             self.hr.putNamedChild(duplicate)

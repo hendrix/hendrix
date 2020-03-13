@@ -1,7 +1,7 @@
 -i https://pypi.python.org/simple
 argh==0.26.2
 asn1crypto==0.24.0
-attrs==19.1.0
+attrs==19.3.0
 autobahn==19.7.1
 automat==0.7.0
 cffi==1.12.3

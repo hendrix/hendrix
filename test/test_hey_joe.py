@@ -1,4 +1,4 @@
-from twisted.test.proto_helpers import StringTransportWithDisconnection
+from twisted.internet.testing import StringTransportWithDisconnection
 
 from hendrix.experience import hey_joe
 
