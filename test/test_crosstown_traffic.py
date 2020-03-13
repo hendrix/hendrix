@@ -132,17 +132,19 @@ class SameOrDifferentThread(TestCase):
         d.addCallback(lambda _: request1.notifyFinish())
         return d
 
+    @pytest_twisted.inlineCallbacks
     def test_that_threads_are_the_same(self):
         self.use_same_thread = True
         d = self.request_same_or_different_thread_thread()
         d.addCallback(lambda _: self.assert_that_threads_are_the_same)
-        return pytest_twisted.blockon(d)
+        yield d
 
+    @pytest_twisted.inlineCallbacks
     def test_that_threads_are_different(self):
         self.use_same_thread = False
         d = self.request_same_or_different_thread_thread()
         d.addCallback(lambda _: self.assert_that_threads_are_different)
-        return pytest_twisted.blockon(d)
+        yield d
 
 
 @pytest.fixture
