@@ -65,7 +65,6 @@ class HendrixService(service.MultiService):
                         resource.putNamedChild(sub_res)
                 else:
                     resource.putNamedChild(res)
-
         self.site = server.Site(resource)
 
     def spawn_new_server(self, port, server_class, additional_services=None, *args, **kwargs):
