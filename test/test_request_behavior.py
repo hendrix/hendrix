@@ -70,4 +70,3 @@ def test_max_upload_bytes():
 
     yield threads.deferToThread(reject_large_uploads)
     yield threads.deferToThread(test_static_files)
-
