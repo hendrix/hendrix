@@ -146,6 +146,10 @@ class MediaResource(static.File):
     a static directory).
     '''
 
+    def __init__(self, *args, namespace=None, **kwargs):
+        self.namespace = namespace
+        super().__init__(*args, **kwargs)
+
     def directoryListing(self):
         # Override to forbid directory listing
         return resource.ForbiddenResource()
