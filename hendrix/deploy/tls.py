@@ -52,14 +52,14 @@ class HendrixDeployTLS(HendrixDeploy):
     def addServices(self):
         """
         a helper function used in HendrixDeploy.run
-        it instanstiates the HendrixService and adds child services
+        it instantiates the HendrixService and adds child services
         note that these services will also be run on all processes
         """
         super(HendrixDeployTLS, self).addServices()
         self.addSSLService()
 
     def addSSLService(self):
-        "adds a SSLService to the instaitated HendrixService"
+        "adds a SSLService to the instantiated HendrixService"
         https_port = self.options['https_port']
         self.tls_service = HendrixTCPServiceWithTLS(https_port, self.hendrix.site, self.key, self.cert,
                                                     self.context_factory, self.context_factory_kwargs, self.options['max_upload_bytes'])

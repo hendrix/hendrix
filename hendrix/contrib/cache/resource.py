@@ -92,7 +92,7 @@ class CacheClient(proxy.ProxyClient):
     def handleResponsePart(self, buffer):
         """
         Sends the content to the browser and keeps a local copy of it.
-        buffer is just a str of the content to be shown, father is the intial
+        buffer is just a str of the content to be shown, father is the initial
         request.
         """
         self.father.write(buffer)

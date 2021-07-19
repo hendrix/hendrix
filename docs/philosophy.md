@@ -38,5 +38,5 @@ A better first foray into asynchrony is the [crosstown_traffic](crosstown_traffi
 ### Drawbacks to hendrix
 
 * Because hendrix relies on parts of Twisted that are not compatible with Python 3, hendrix is not yet Python 3-ready for many use cases.
-* For many comparable situations - especially the simple synchornous/ blocking scenario, Hendrix likely uses more RAM and CPU than lighter-weight Python web servers such as uWSGI.
+* For many comparable situations - especially the simple synchronous/ blocking scenario, Hendrix likely uses more RAM and CPU than lighter-weight Python web servers such as uWSGI.
 

@@ -60,7 +60,7 @@ class MessageDispatcher(object):
     can leverage to execute the PubSub process.
     N.B. subscribing a client to an address opens that client to all data
         published to that address. As such it useful to think of addresses as
-        channels. To acheive a private channel an obsure address is required.
+        channels. To achieve a private channel an obscure address is required.
     """
 
     def __init__(self, *args, **kwargs):

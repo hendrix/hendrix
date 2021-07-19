@@ -22,7 +22,7 @@ class HendrixDeployCache(HendrixDeploy):
         )
 
     def addLocalCacheService(self):
-        "adds a CacheService to the instatiated HendrixService"
+        "adds a CacheService to the instantiated HendrixService"
         _cache = self.getCacheService()
         _cache.setName('cache_proxy')
         _cache.setServiceParent(self.hendrix)

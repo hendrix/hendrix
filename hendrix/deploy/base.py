@@ -125,7 +125,7 @@ class HendrixDeploy(object):
     def addServices(self):
         """
         a helper function used in HendrixDeploy.run
-        it instanstiates the HendrixService and adds child services
+        it instantiates the HendrixService and adds child services
         note that these services will also be run on all processes
         """
         self.addHendrix()
@@ -293,7 +293,7 @@ class HendrixDeploy(object):
                 try:
                     os.kill(int(pid), sig)
                 except OSError:
-                    # OSError raised when it trys to kill the child processes
+                    # OSError raised when it tries to kill the child processes
                     pass
         os.remove(self.pid)
         chalk.green('Stopping Hendrix...')
@@ -308,7 +308,7 @@ class HendrixDeploy(object):
 
     def disownService(self, name):
         """
-        disowns a service on hendirix by name
+        disowns a service on hendrix by name
         returns a factory for use in the adoptStreamPort part of setting up
         multiple processes
         """
