@@ -5,7 +5,7 @@ bumpversion==0.5.3
 certifi==2019.6.16
 chardet==3.0.4
 click==7.0
-codecov==2.0.15
+codecov==2.0.16
 coverage==5.0a6
 decorator==4.4.0
 django==2.2.10
