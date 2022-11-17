@@ -76,7 +76,7 @@ class HendrixResource(resource.Resource):
         try:
             EmptyResource = resource.Resource
             namespace = res.namespace
-            parts = namespace.strip('/').split('/')
+            parts = namespace.strip(b'/').split(b'/')
 
             # initialise parent and children
             parent = self

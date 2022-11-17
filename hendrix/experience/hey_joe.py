@@ -1,12 +1,11 @@
 import json
 import uuid
-
 from collections import defaultdict
 from itertools import chain
 
-from twisted.internet import threads
 from autobahn.twisted import WebSocketServerFactory
 from autobahn.twisted.websocket import WebSocketServerProtocol
+from twisted.internet import threads
 from twisted.logger import Logger
 
 from hendrix.contrib.concurrency.signals import USE_DJANGO_SIGNALS

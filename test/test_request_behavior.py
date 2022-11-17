@@ -1,16 +1,14 @@
-import os
 import io
-from tempfile import TemporaryFile
-import requests
-from twisted.trial.unittest import TestCase
-from .resources import application
-from twisted.internet import reactor
-from hendrix.deploy.base import HendrixDeploy
-from twisted.internet import threads
-from twisted.internet.defer import ensureDeferred
-import pytest_twisted
+import os
 
+import pytest_twisted
+import requests
+from twisted.internet import threads
+
+from hendrix.deploy.base import HendrixDeploy
 from hendrix.facilities.resources import MediaResource
+from .resources import application
+
 
 @pytest_twisted.inlineCallbacks
 def test_max_upload_bytes():
@@ -22,7 +20,7 @@ def test_max_upload_bytes():
         'wsgi': application,
         'max_upload_bytes': 200,
         'http_port': 9876,
-        'resources': [MediaResource(statics_path, namespace='statics')]
+        'resources': [MediaResource(statics_path, namespace=b'statics')]
     }
     deployer = HendrixDeploy(options=options)
     deployer.addServices()

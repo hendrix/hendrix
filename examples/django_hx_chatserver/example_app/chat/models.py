@@ -1,8 +1,9 @@
 from django.db import models
-from django.template import Context, loader
+from django.template import loader
 from django.utils import timezone
-from hendrix.experience import hey_joe
+
 from hendrix.contrib.concurrency.signals import message_signal
+from hendrix.experience import hey_joe
 
 
 # Create your models here.
