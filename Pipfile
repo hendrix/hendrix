@@ -34,7 +34,7 @@ flask = "*"
 #
 urllib3 = "*"
 requests = "*"
-coverage = "*"
+coverage = "==6.5.0"
 codecov = "*"
 gunicorn = "*"
 
