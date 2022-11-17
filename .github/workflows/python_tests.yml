@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.7", "3.10" ]
+        python-version: [ "3.10" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -35,5 +35,4 @@ jobs:
       # Unit tests
       - name: Unit Tests (Coverage)
         if: matrix.python-version == '3.10'
-        run: python -m pytest
-
+        run: python -m pytest test
