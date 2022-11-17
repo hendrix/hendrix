@@ -1,33 +1,22 @@
+import datetime
 import os
-import io
-from tempfile import TemporaryFile
+from ipaddress import IPv4Address
 
-from OpenSSL.crypto import X509 as openssl_X509
-from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
+import pytest_twisted
+import requests
 from OpenSSL.SSL import TLSv1_2_METHOD
-
+from OpenSSL.crypto import X509 as openssl_X509
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
-
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
-
-from ipaddress import IPv4Address
-
-import datetime
-
-import requests
-from twisted.trial.unittest import TestCase
-from .resources import application
-from twisted.internet import reactor
-from hendrix.deploy.tls import HendrixDeployTLS
 from twisted.internet import threads
-from twisted.internet.defer import ensureDeferred
-import pytest_twisted
 
-from hendrix.facilities.services import ExistingKeyTLSContextFactory
+from hendrix.deploy.tls import HendrixDeployTLS
 from hendrix.facilities.resources import MediaResource
+from hendrix.facilities.services import ExistingKeyTLSContextFactory
+from .resources import application
 
 
 def get_certificate():
@@ -74,7 +63,7 @@ def test_ssl_request():
         'wsgi': application,
         'max_upload_bytes': 200,
         'https_port': port,
-        'resources': [MediaResource(statics_path, namespace='statics')],
+        'resources': [MediaResource(statics_path, namespace=b'statics')],
     }
     deployer = HendrixDeployTLS(
         key=pk,

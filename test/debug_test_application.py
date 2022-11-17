@@ -5,10 +5,10 @@ Useful for poking and prodding to discover how to cover those hard-to-reach
 parts of the service flow.
 '''
 
-from resources import application
 from twisted.internet import reactor
 
 from hendrix.deploy.base import HendrixDeploy
+from resources import application
 
 if __name__ == "__main__":
     threadPool = reactor.getThreadPool()

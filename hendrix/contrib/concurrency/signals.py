@@ -5,11 +5,11 @@
 try:
     from django import dispatch
 
-    short_task = dispatch.Signal(providing_args=["args", "kwargs"])
+    short_task = dispatch.Signal()
 
-    long_task = dispatch.Signal(providing_args=["args", "kwargs"])
+    long_task = dispatch.Signal()
 
-    message_signal = dispatch.Signal(providing_args=["data", "dispatcher"])
+    message_signal = dispatch.Signal()
 
     USE_DJANGO_SIGNALS = True
 
