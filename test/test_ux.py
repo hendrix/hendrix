@@ -78,7 +78,7 @@ class TestMain(HendrixTestCase):
         options = self.DEFAULTS
         test_path = os.path.join(
             os.path.dirname(os.getcwd()),
-            'test/testproject'
+            'hendrix/test/testproject'
         )
         options['pythonpath'] = test_path
         ux.exposeProject(options)
