@@ -31,4 +31,4 @@ setuptools==65.5.1; python_version >= '3.7'
 sqlparse==0.4.3; python_version >= '3.5'
 tomli==2.0.1; python_version < '3.11'
 urllib3==1.26.12
-werkzeug==2.2.2; python_version >= '3.7'
+werkzeug==2.2.3; python_version >= '3.7'
