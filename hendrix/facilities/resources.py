@@ -14,7 +14,8 @@ class HendrixWSGIResource(WSGIResource):
 
     def render(self, request):
         response = self.ResponseClass(
-            self._reactor, self._threadpool, self._application, request)
+            self._reactor, self._threadpool, self._application, request
+        )
         response.start()
         return NOT_DONE_YET
 
@@ -53,7 +54,7 @@ class HendrixResource(resource.Resource):
         """
         path = name
         if isinstance(path, bytes):
-            path = path.decode('utf-8')
+            path = path.decode("utf-8")
         if path in self.children:
             return self.children[path]
 
@@ -76,7 +77,7 @@ class HendrixResource(resource.Resource):
         try:
             EmptyResource = resource.Resource
             namespace = res.namespace
-            parts = namespace.strip(b'/').split(b'/')
+            parts = namespace.strip(b"/").split(b"/")
 
             # initialise parent and children
             parent = self
@@ -96,18 +97,18 @@ class HendrixResource(resource.Resource):
             name = parts[-1]  # get the path part that we care about
             if children.get(name):
                 self.logger.warn(
-                    'A resource already exists at this path. Check '
-                    'your resources list to ensure each path is '
-                    'unique. The previous resource will be overridden.'
+                    "A resource already exists at this path. Check "
+                    "your resources list to ensure each path is "
+                    "unique. The previous resource will be overridden."
                 )
             parent.putChild(name, res)
         except AttributeError:
             # raise an attribute error if the resource `res` doesn't contain
             # the attribute `namespace`
             msg = (
-                      '%r improperly configured. additional_resources instances must'
-                      ' have a namespace attribute'
-                  ) % resource
+                "%r improperly configured. additional_resources instances must"
+                " have a namespace attribute"
+            ) % resource
             raise AttributeError(msg, None, sys.exc_info()[2])
 
 
@@ -140,11 +141,11 @@ class NamedResource(resource.Resource):
 
 
 class MediaResource(static.File):
-    '''
+    """
     A simple static service with directory listing disabled
     (gives the client a 403 instead of letting them browse
     a static directory).
-    '''
+    """
 
     def __init__(self, *args, namespace=None, **kwargs):
         self.namespace = namespace
@@ -155,7 +156,7 @@ class MediaResource(static.File):
         return resource.ForbiddenResource()
 
 
-def DjangoStaticResource(path, rel_url='static'):
+def DjangoStaticResource(path, rel_url="static"):
     """
     takes an app level file dir to find the site root and servers static files
     from static
@@ -175,10 +176,8 @@ def DjangoStaticResource(path, rel_url='static'):
             ...
         )
     """
-    rel_url = rel_url.strip('/')
+    rel_url = rel_url.strip("/")
     StaticFilesResource = MediaResource(path)
     StaticFilesResource.namespace = rel_url
-    chalk.green(
-        "Adding media resource for URL '%s' at path '%s'" % (rel_url, path)
-    )
+    chalk.green("Adding media resource for URL '%s' at path '%s'" % (rel_url, path))
     return StaticFilesResource

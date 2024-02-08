@@ -7,4 +7,4 @@ HTTPS_PORT = 4430
 DEFAULT_MAX_AGE = 3600
 
 DEFAULT_LOG_PATH = os.path.dirname(__file__)
-DEFAULT_LOG_FILE = os.path.join(DEFAULT_LOG_PATH, 'default-hendrix.log')
+DEFAULT_LOG_FILE = os.path.join(DEFAULT_LOG_PATH, "default-hendrix.log")

@@ -15,6 +15,7 @@ class _ParticipantRegistry(object):
     """
     A basic registry for our PubSub pattern - tracks topics and the participants who wish to receive messages for them.
     """
+
     log = Logger()
 
     def __init__(self):
@@ -29,7 +30,7 @@ class _ParticipantRegistry(object):
             self._send(payload, participant)
 
     def send_to_topic(self, payload, topic):
-        if type(topic) == list:
+        if isinstance(topic, (list, tuple)):
             recipients = chain(self._participants_by_topic[rec] for rec in topic)
         else:
             recipients = self._participants_by_topic[topic]
@@ -46,7 +47,8 @@ class _ParticipantRegistry(object):
     def subscribe(self, transport, topic):
         if topic in ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED"):
             raise ValueError(
-                """Can't subscribe to ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED") - these are reserved names.""")
+                """Can't subscribe to ("YOU", "BROADCAST", "SUBSCRIBED", "UNSUBSCRIBED") - these are reserved names."""
+            )
         try:
             # Typically, the protocol is wrapped (as with TLS)
             participant = transport.wrappedProtocol
@@ -81,7 +83,14 @@ class _WayDownSouth(WebSocketServerProtocol):
     guid = None
     subscription_followups = {}
 
-    def __init__(self, allow_free_redirect=False, subscription_message=None, registry=None, *args, **kwargs):
+    def __init__(
+        self,
+        allow_free_redirect=False,
+        subscription_message=None,
+        registry=None,
+        *args,
+        **kwargs
+    ):
         self.subscription_message = subscription_message or "hx_subscribe"
         self.allow_free_redirect = allow_free_redirect
         self._registry = registry or _internal_registry
@@ -94,21 +103,24 @@ class _WayDownSouth(WebSocketServerProtocol):
         # Signal Django
         if USE_DJANGO_SIGNALS:
             from ..contrib.concurrency.resources import send_django_signal
+
             threads.deferToThread(send_django_signal, None, payload)
 
         subscription_topic = payload.get(self.subscription_message)
         if subscription_topic:
             try:
-                subscriber = self._registry.subscribe(self.transport, subscription_topic)
-            except ValueError as e:
+                subscriber = self._registry.subscribe(
+                    self.transport, subscription_topic
+                )
+            except ValueError:
                 # They tried to subscribe to a reserved word.
                 return
             else:
                 self.follow_up_subcription(subscription_topic, subscriber)
 
         if self.allow_free_redirect:
-            if 'address' in payload:
-                address = payload['address']
+            if "address" in payload:
+                address = payload["address"]
             else:
                 address = self.guid
 
@@ -148,6 +160,7 @@ class WSSWebSocketService(WebSocketService):
     """
     Websocket service that uses the Autobahn TLS behavior to create a WSS service.
     """
+
     prefix = "wss"
 
     def __init__(self, host_address, port, allowedOrigins, *args, **kwargs):

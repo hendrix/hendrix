@@ -22,20 +22,31 @@ class HendrixDeployTLS(HendrixDeploy):
     secured.
     """
 
-    def __init__(self, action='start', options={},
-                 reactor=reactor, threadpool=None,
-                 key=None, cert=None, context_factory=None,
-                 context_factory_kwargs=None,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        action="start",
+        options={},
+        reactor=reactor,
+        threadpool=None,
+        key=None,
+        cert=None,
+        context_factory=None,
+        context_factory_kwargs=None,
+        *args,
+        **kwargs
+    ):
 
-        super(HendrixDeployTLS, self).__init__(action, options, reactor, threadpool,
-                                               *args, **kwargs)
+        super(HendrixDeployTLS, self).__init__(
+            action, options, reactor, threadpool, *args, **kwargs
+        )
         if options.get("https_port") and not options.get("http_port"):
             self.options["https_only"] = True
-        key = key or self.options['key']
-        cert = cert or self.options['cert']
+        key = key or self.options["key"]
+        cert = cert or self.options["cert"]
         if not (key and cert):
-            raise ValueError("Can't launch with TLS unless you pass a valid key and cert.")
+            raise ValueError(
+                "Can't launch with TLS unless you pass a valid key and cert."
+            )
         self.key = key
         self.cert = cert
 
@@ -60,38 +71,52 @@ class HendrixDeployTLS(HendrixDeploy):
 
     def addSSLService(self):
         "adds a SSLService to the instaitated HendrixService"
-        https_port = self.options['https_port']
-        self.tls_service = HendrixTCPServiceWithTLS(https_port, self.hendrix.site, self.key, self.cert,
-                                                    self.context_factory, self.context_factory_kwargs, self.options['max_upload_bytes'])
+        https_port = self.options["https_port"]
+        self.tls_service = HendrixTCPServiceWithTLS(
+            https_port,
+            self.hendrix.site,
+            self.key,
+            self.cert,
+            self.context_factory,
+            self.context_factory_kwargs,
+            self.options["max_upload_bytes"],
+        )
         self.tls_service.setServiceParent(self.hendrix)
 
     def addSubprocesses(self, fds, name, factory):
         super(HendrixDeployTLS, self).addSubprocesses(fds, name, factory)
-        if name == 'main_web_ssl':
+        if name == "main_web_ssl":
             privateCert = PrivateCertificate.loadPEM(
-                open(self.options['cert']).read() + open(self.options['key']).read()
+                open(self.options["cert"]).read() + open(self.options["key"]).read()
             )
-            factory = TLSMemoryBIOFactory(
-                privateCert.options(), False, factory
-            )
+            factory = TLSMemoryBIOFactory(privateCert.options(), False, factory)
 
     def getSpawnArgs(self):
         args = super(HendrixDeployTLS, self).getSpawnArgs()
-        args += [
-            '--key', self.options.get('key'),
-            '--cert', self.options.get('cert')
-        ]
+        args += ["--key", self.options.get("key"), "--cert", self.options.get("cert")]
         return args
 
     def _listening_message(self):
-        message = "TLS listening on port {}".format(self.options['https_port'])
-        if self.options['https_only'] is not True:
-            message += " and non-TLS on port {}".format(self.options['http_port'])
+        message = "TLS listening on port {}".format(self.options["https_port"])
+        if self.options["https_only"] is not True:
+            message += " and non-TLS on port {}".format(self.options["http_port"])
         return message
 
-    def _add_tls_websocket_service_after_running(self, websocket_factory, *args, **kwargs):
+    def _add_tls_websocket_service_after_running(
+        self, websocket_factory, *args, **kwargs
+    ):
         chalk.blue("TLS websocket listener on port {}".format(websocket_factory.port))
-        listenWS(factory=websocket_factory, contextFactory=self.tls_service.tls_context, *args, **kwargs)
+        listenWS(
+            factory=websocket_factory,
+            contextFactory=self.tls_service.tls_context,
+            *args,
+            **kwargs
+        )
 
     def add_tls_websocket_service(self, websocket_factory, *args, **kwargs):
-        self.reactor.callWhenRunning(self._add_tls_websocket_service_after_running, websocket_factory, *args, **kwargs)
+        self.reactor.callWhenRunning(
+            self._add_tls_websocket_service_after_running,
+            websocket_factory,
+            *args,
+            **kwargs
+        )

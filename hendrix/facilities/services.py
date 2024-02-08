@@ -1,8 +1,11 @@
 from OpenSSL import SSL
+from OpenSSL import crypto
 from OpenSSL.crypto import get_elliptic_curve
+from cryptography.hazmat.primitives import serialization
 from twisted.application import internet, service
 from twisted.internet import reactor
 from twisted.internet import ssl
+from twisted.internet.ssl import DefaultOpenSSLContextFactory
 from twisted.logger import Logger
 from twisted.python.threadpool import ThreadPool
 from twisted.web import server
@@ -37,12 +40,8 @@ class HendrixService(service.MultiService):
     log = Logger()
 
     def __init__(
-            self,
-            application,
-            threadpool=None,
-            resources=None,
-            services=None,
-            loud=False):
+        self, application, threadpool=None, resources=None, services=None, loud=False
+    ):
         service.MultiService.__init__(self)
 
         # Create, start and add a thread pool service, which is made available
@@ -52,7 +51,7 @@ class HendrixService(service.MultiService):
         else:
             self.threadpool = threadpool
 
-        reactor.addSystemEventTrigger('after', 'shutdown', self.threadpool.stop)
+        reactor.addSystemEventTrigger("after", "shutdown", self.threadpool.stop)
         ThreadPoolService(self.threadpool).setServiceParent(self)
 
         # create the base resource and add any additional static resources
@@ -60,17 +59,19 @@ class HendrixService(service.MultiService):
         if resources:
             resources = sorted(resources, key=lambda r: r.namespace)
             for res in resources:
-                if hasattr(res, 'get_resources'):
+                if hasattr(res, "get_resources"):
                     for sub_res in res.get_resources():
                         resource.putNamedChild(sub_res)
                 else:
                     resource.putNamedChild(res)
         self.site = server.Site(resource)
 
-    def spawn_new_server(self, port, server_class, additional_services=None, *args, **kwargs):
+    def spawn_new_server(
+        self, port, server_class, additional_services=None, *args, **kwargs
+    ):
 
         main_web_tcp = server_class(port, self.site, *args, **kwargs)
-        main_web_tcp.setName('main_web_tcp')
+        main_web_tcp.setName("main_web_tcp")
 
         # to get this at runtime use
         # hedrix_service.getServiceNamed('main_web_tcp')
@@ -92,18 +93,16 @@ class HendrixService(service.MultiService):
 
 
 class ThreadPoolService(service.Service):
-    '''
+    """
     A simple class that defines a threadpool on init
     and provides for starting and stopping it.
-    '''
+    """
 
     def __init__(self, pool):
         "self.pool returns the twisted.python.ThreadPool() instance."
         if not isinstance(pool, ThreadPool):
-            msg = '%s must be initialised with a ThreadPool instance'
-            raise TypeError(
-                msg % self.__class__.__name__
-            )
+            msg = "%s must be initialised with a ThreadPool instance"
+            raise TypeError(msg % self.__class__.__name__)
         self.pool = pool
 
     def startService(self):
@@ -115,17 +114,29 @@ class ThreadPoolService(service.Service):
         self.pool.stop()
 
 
-from twisted.internet.ssl import DefaultOpenSSLContextFactory
-
-
 class ContextWithECC(SSL.Context):
+    def use_privatekey(self, private_key):
+        """
+        Set the private key for this context.
+        :param private_key: A cryptography ECPrivateKey object.
+        """
+        pem_key = self.serialize_private_key_to_pem(private_key)
+        pkey = self.load_pem_into_pkey(pem_key)
+        super().use_privatekey(pkey)
 
-    def use_privatekey(self, _private_key):
-        # At some point, we hope to use PyOpenSSL tooling to do this.  See #144.
-        from OpenSSL._util import lib as _OpenSSLlib
-        use_result = _OpenSSLlib.SSL_CTX_use_PrivateKey(self._context, _private_key._evp_pkey)
-        if not use_result:
-            self._raise_passphrase_exception()
+    @staticmethod
+    def serialize_private_key_to_pem(private_key):
+        pem_key = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        return pem_key
+
+    @staticmethod
+    def load_pem_into_pkey(pem_key):
+        pkey = crypto.load_privatekey(crypto.FILETYPE_PEM, pem_key)
+        return pkey
 
 
 class SpecifiedCurveContextFactory(DefaultOpenSSLContextFactory):
@@ -142,8 +153,14 @@ class SpecifiedCurveContextFactory(DefaultOpenSSLContextFactory):
 class ExistingKeyTLSContextFactory(SpecifiedCurveContextFactory):
     _context = None
 
-    def __init__(self, private_key, cert, curve_name=None,
-                 sslmethod=SSL.SSLv23_METHOD, _contextFactory=ContextWithECC):
+    def __init__(
+        self,
+        private_key,
+        cert,
+        curve_name=None,
+        sslmethod=SSL.SSLv23_METHOD,
+        _contextFactory=ContextWithECC,
+    ):
         self._private_key = private_key
         self.curve_name = curve_name
         self.certificate = cert
@@ -164,34 +181,36 @@ class ExistingKeyTLSContextFactory(SpecifiedCurveContextFactory):
 class HendrixTCPService(internet.TCPServer):
 
     def __init__(self, port, site, *args, **kwargs):
-        max_upload_bytes = kwargs.pop('max_upload_bytes', None)
+        max_upload_bytes = kwargs.pop("max_upload_bytes", None)
         internet.TCPServer.__init__(self, port, site, *args, **kwargs)
         self.site = site
         if max_upload_bytes:
             self.site.requestFactory = get_size_limiting_request(max_upload_bytes)
 
 
-
 class HendrixTCPServiceWithTLS(internet.SSLServer):
 
-    def __init__(self, port, site, private_key, cert, context_factory=None, context_factory_kwargs=None, max_upload_bytes=None):
+    def __init__(
+        self,
+        port,
+        site,
+        private_key,
+        cert,
+        context_factory=None,
+        context_factory_kwargs=None,
+        max_upload_bytes=None,
+    ):
         context_factory = context_factory or ssl.DefaultOpenSSLContextFactory
         context_factory_kwargs = context_factory_kwargs or {}
 
-        self.tls_context = context_factory(
-            private_key,
-            cert,
-            **context_factory_kwargs
-        )
+        self.tls_context = context_factory(private_key, cert, **context_factory_kwargs)
         internet.SSLServer.__init__(
             self,
             port,  # integer port
             site,  # our site object, see the web howto
-            contextFactory=self.tls_context
+            contextFactory=self.tls_context,
         )
 
         self.site = site
         if max_upload_bytes:
             self.site.requestFactory = get_size_limiting_request(max_upload_bytes)
-
-

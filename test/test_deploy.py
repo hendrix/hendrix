@@ -1,4 +1,4 @@
-from .utils import HendrixTestCase
+from test.utils import HendrixTestCase
 
 try:
     from unittest.mock import patch

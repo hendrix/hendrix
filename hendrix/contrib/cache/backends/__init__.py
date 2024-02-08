@@ -1,6 +1,7 @@
 """
 Fuck YEAH. enthusiasm.
 """
+
 try:
     import urlparse
 except ImportError:
@@ -22,7 +23,7 @@ class CacheBackend(object):
         """
         raise NotImplementedError(
             'You need to override the "cache" method before implementing'
-            'the cache backend'
+            "the cache backend"
         )
 
     def addResource(self, content, uri, headers):
@@ -32,7 +33,7 @@ class CacheBackend(object):
         """
         raise NotImplementedError(
             'You need to override the "addResource" method before implementing'
-            'the cache backend'
+            "the cache backend"
         )
 
     def getResource(self, uri):
@@ -42,7 +43,7 @@ class CacheBackend(object):
         """
         raise NotImplementedError(
             'You need to override the "addResource" method before implementing'
-            'the cache backend'
+            "the cache backend"
         )
 
     def resourceExists(self, uri):
@@ -54,7 +55,7 @@ class CacheBackend(object):
             'You need to override "resourceExists" to have your backend work..'
         )
 
-    def processURI(self, uri, prefix=''):
+    def processURI(self, uri, prefix=""):
         """
         helper function to return just the path (uri) and whether or not it's
         busted
@@ -64,7 +65,7 @@ class CacheBackend(object):
         bust = True
         bust &= bool(query)  # bust the cache if the query has stuff in it
         # bust the cache if the query key 'cache' isn't true
-        bust &= query.get('cache') != 'true'
+        bust &= query.get("cache") != "true"
         return prefix + components.path, bust
 
     def cacheContent(self, request, response, buffer):
@@ -83,10 +84,10 @@ class CacheBackend(object):
         #     * requested using GET
         #     * not busted
         if request.method == "GET" and code / 100 == 2 and not bust:
-            cache_control = response.headers.get('cache-control')
+            cache_control = response.headers.get("cache-control")
             if cache_control:
                 params = dict(urlparse.parse_qsl(cache_control))
-                if int(params.get('max-age', '0')) > 0:
+                if int(params.get("max-age", "0")) > 0:
                     cache_it = True
             if cache_it:
                 content = compressBuffer(content)
@@ -94,8 +95,7 @@ class CacheBackend(object):
         buffer.close()
 
     def getCachedResource(self, request):
-        """
-        """
+        """ """
         # start caching logic
         is_secure = request.isSecure()
         # the prefix namespaces these resources
@@ -110,13 +110,11 @@ class CacheBackend(object):
                 child = self.getResource(uri)
                 is_fresh = child.isFresh()
                 if is_fresh:
-                    encodings = request.getHeader('accept-encoding')
-                    if encodings and 'gzip' in encodings:
+                    encodings = request.getHeader("accept-encoding")
+                    if encodings and "gzip" in encodings:
+                        request.responseHeaders.addRawHeader("content-encoding", "gzip")
                         request.responseHeaders.addRawHeader(
-                            'content-encoding', 'gzip'
-                        )
-                        request.responseHeaders.addRawHeader(
-                            'content-length', len(child.content)
+                            "content-length", len(child.content)
                         )
                     else:
                         child = decompressBuffer(child.content)

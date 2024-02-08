@@ -4,13 +4,15 @@ import uuid
 
 import warnings
 
-warnings.warn("hendrix.contrib.concurrency.messaging is being deprecated.  Use hendrix.experience.hey_joe instead.",
-              DeprecationWarning)
+warnings.warn(
+    "hendrix.contrib.concurrency.messaging is being deprecated.  Use hendrix.experience.hey_joe instead.",
+    DeprecationWarning,
+)
 
 
 class RecipientManager(object):
     """
-        This class manages all the transports addressable by a single address.
+    This class manages all the transports addressable by a single address.
     """
 
     def __init__(self, transport, address):
@@ -21,29 +23,30 @@ class RecipientManager(object):
             self.add(transport)
 
     def __repr__(self):
-        return 'RecipientManager object at %s with %d recipients' % (
-            self.address, len(self.transports)
+        return "RecipientManager object at %s with %d recipients" % (
+            self.address,
+            len(self.transports),
         )
 
     def add(self, transport):
         """
-            add a transport
+        add a transport
         """
         self.transports[transport.uid] = transport
 
     def send(self, message):  # usually a json string...
         """
-            sends whatever it is to each transport
+        sends whatever it is to each transport
         """
         for transport in self.transports.values():
             transport.protocol.sendMessage(message)
 
     def remove(self, transport):
         """
-            removes a transport if a member of this group
+        removes a transport if a member of this group
         """
         if transport.uid in self.transports:
-            del (self.transports[transport.uid])
+            del self.transports[transport.uid]
 
 
 class MessageDispatcher(object):
@@ -68,8 +71,8 @@ class MessageDispatcher(object):
 
     def add(self, transport, address=None):
         """
-            add a new recipient to be addressable by this MessageDispatcher
-            generate a new uuid address if one is not specified
+        add a new recipient to be addressable by this MessageDispatcher
+        generate a new uuid address if one is not specified
         """
 
         if not address:
@@ -84,7 +87,7 @@ class MessageDispatcher(object):
 
     def remove(self, transport):
         """
-            removes a transport from all channels to which it belongs.
+        removes a transport from all channels to which it belongs.
         """
         recipients = copy.copy(self.recipients)
         for address, recManager in recipients.items():
@@ -93,13 +96,12 @@ class MessageDispatcher(object):
                 del self.recipients[address]
 
     def send(self, address, data_dict):
-
         """
-            address can either be a string or a list of strings
+        address can either be a string or a list of strings
 
-            data_dict gets sent along as is and could contain anything
+        data_dict gets sent along as is and could contain anything
         """
-        if type(address) == list:
+        if isinstance(address, list):
             recipients = [self.recipients.get(rec) for rec in address]
         else:
             recipients = [self.recipients.get(address)]
@@ -111,28 +113,25 @@ class MessageDispatcher(object):
 
     def subscribe(self, transport, data):
         """
-            adds a transport to a channel
+        adds a transport to a channel
         """
 
-        self.add(transport, address=data.get('hx_subscribe').encode())
+        self.add(transport, address=data.get("hx_subscribe").encode())
 
-        self.send(
-            data['hx_subscribe'],
-            {'message': "%r is listening" % transport}
-        )
+        self.send(data["hx_subscribe"], {"message": "%r is listening" % transport})
 
 
 def send_json_message(address, message, **kwargs):
     """
-        a shortcut for message sending
+    a shortcut for message sending
     """
 
     data = {
-        'message': message,
+        "message": message,
     }
 
-    if not kwargs.get('subject_id'):
-        data['subject_id'] = address
+    if not kwargs.get("subject_id"):
+        data["subject_id"] = address
 
     data.update(kwargs)
 
@@ -141,12 +140,12 @@ def send_json_message(address, message, **kwargs):
 
 def send_callback_json_message(value, *args, **kwargs):
     """
-        useful for sending messages from callbacks as it puts the
-        result of the callback in the dict for serialization
+    useful for sending messages from callbacks as it puts the
+    result of the callback in the dict for serialization
     """
 
     if value:
-        kwargs['result'] = value
+        kwargs["result"] = value
 
     send_json_message(args[0], args[1], **kwargs)
 
@@ -154,7 +153,7 @@ def send_callback_json_message(value, *args, **kwargs):
 
 
 def send_errback_json_message(error, *args, **kwargs):
-    kwargs['error'] = error.getErrorMessage()
+    kwargs["error"] = error.getErrorMessage()
     send_json_message(args[0], args[1], **kwargs)
 
     error.trap(RuntimeError)

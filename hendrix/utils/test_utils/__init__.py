@@ -23,7 +23,9 @@ class AsyncTestMixin(object):
 
     def sub_setUp(self):
         self.recorded_tasks = []
-        crosstown_traffic.decorator = crosstownTaskListDecoratorFactory(self.recorded_tasks)
+        crosstown_traffic.decorator = crosstownTaskListDecoratorFactory(
+            self.recorded_tasks
+        )
         crosstown_traffic()
         self.archived_tasks = []
 
@@ -38,4 +40,6 @@ class AsyncTestMixin(object):
     def assertNumCrosstownTasks(self, num_tasks):
         if not num_tasks == len(self.recorded_tasks):
             raise AssertionError(
-                "There were not %s recorded tasks.  The recorded tasks were: %s" % (num_tasks, self.recorded_tasks))
+                "There were not %s recorded tasks.  The recorded tasks were: %s"
+                % (num_tasks, self.recorded_tasks)
+            )

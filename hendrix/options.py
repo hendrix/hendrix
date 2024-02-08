@@ -10,17 +10,17 @@ def cleanOptions(options):
     the reload boolean, and the parsed list of cleaned options as would be
     expected to be passed to hx
     """
-    _reload = options.pop('reload')
-    dev = options.pop('dev')
+    _reload = options.pop("reload")
+    options.pop("dev")
     opts = []
-    store_true = [
-        '--nocache', '--global_cache', '--quiet', '--loud'
-    ]
+    store_true = ["--nocache", "--global_cache", "--quiet", "--loud"]
     store_false = []
     for key, value in options.items():
-        key = '--' + key
+        key = "--" + key
         if (key in store_true and value) or (key in store_false and not value):
-            opts += [key, ]
+            opts += [
+                key,
+            ]
         elif value:
             opts += [key, str(value)]
     return _reload, opts
@@ -28,174 +28,172 @@ def cleanOptions(options):
 
 HX_OPTION_LIST = (
     make_option(
-        '-v', '--verbosity',
-        action='store',
-        dest='verbosity',
-        default='1',
-        type='choice',
-        choices=['0', '1', '2', '3'],
+        "-v",
+        "--verbosity",
+        action="store",
+        dest="verbosity",
+        default="1",
+        type="choice",
+        choices=["0", "1", "2", "3"],
         help=(
-            'Verbosity level; 0=minimal output, 1=normal output, 2=verbose '
-            'output, 3=very verbose output'
-        )
+            "Verbosity level; 0=minimal output, 1=normal output, 2=verbose "
+            "output, 3=very verbose output"
+        ),
     ),
     make_option(
-        '--settings',
-        dest='settings',
+        "--settings",
+        dest="settings",
         type=str,
-        default='',
+        default="",
         help=(
             'The Python path to a settings module, e.g. "myproj.settings.x".'
-            ' If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment '
-            'variable will be used.'
-        )
+            " If this isn't provided, the DJANGO_SETTINGS_MODULE environment "
+            "variable will be used."
+        ),
     ),
     make_option(
-        '--log',
-        dest='log',
+        "--log",
+        dest="log",
         type=str,
-        default=os.path.join(defaults.DEFAULT_LOG_PATH, 'hendrix.log'),
+        default=os.path.join(defaults.DEFAULT_LOG_PATH, "hendrix.log"),
         help=(
-            'file path to where the log files should live '
-            '[default: $PYTHON_PATH/lib/.../hendrix/hendrix.log]'
-        )
+            "file path to where the log files should live "
+            "[default: $PYTHON_PATH/lib/.../hendrix/hendrix.log]"
+        ),
     ),
     make_option(
-        '--pythonpath',
+        "--pythonpath",
         help=(
-            'A directory to add to the Python path, e.g. '
+            "A directory to add to the Python path, e.g. "
             '"/home/djangoprojects/myproject".'
-        )
+        ),
     ),
     make_option(
-        '--reload',
-        action='store_true',
-        dest='reload',
+        "--reload",
+        action="store_true",
+        dest="reload",
         default=False,
         help=(
             "Flag that watchdog should restart the server when changes to the "
             "codebase occur. NOTE: Do NOT uset this flag with --daemonize "
             "because it will not daemonize."
-        )
+        ),
     ),
     make_option(
-        '-l', '--loud',
-        action='store_true',
-        dest='loud',
+        "-l",
+        "--loud",
+        action="store_true",
+        dest="loud",
         default=False,
-        help="Use the custom verbose WSGI handler that prints in color"
+        help="Use the custom verbose WSGI handler that prints in color",
     ),
     make_option(
-        '-q', '--quiet',
-        action='store_true',
-        dest='quiet',
+        "-q",
+        "--quiet",
+        action="store_true",
+        dest="quiet",
         default=False,
-        help="Supress all output."
+        help="Supress all output.",
     ),
     make_option(
-        '--http_port',
+        "--http_port",
         type=int,
-        dest='http_port',
+        dest="http_port",
         default=defaults.HTTP_PORT,
-        help='Enter a port number for the server to serve content.'
+        help="Enter a port number for the server to serve content.",
     ),
     make_option(
-        '--https_port',
+        "--https_port",
         type=int,
-        dest='https_port',
+        dest="https_port",
         default=defaults.HTTPS_PORT,
-        help='Enter an ssl port number for the server to serve secure content.'
+        help="Enter an ssl port number for the server to serve secure content.",
     ),
     make_option(
-        '--https_only',
-        dest='https_only',
+        "--https_only",
+        dest="https_only",
         default=False,
-        help='Declare whether to run only an https (not http) server.'
+        help="Declare whether to run only an https (not http) server.",
     ),
     make_option(
-        '--cache_port',
+        "--cache_port",
         type=int,
-        dest='cache_port',
+        dest="cache_port",
         default=defaults.CACHE_PORT,
-        help='Enter an cache port number to serve cached content.'
+        help="Enter an cache port number to serve cached content.",
     ),
     make_option(
-        '-g', '--global_cache',
-        dest='global_cache',
-        action='store_true',
+        "-g",
+        "--global_cache",
+        dest="global_cache",
+        action="store_true",
         default=False,
-        help='Make it so that there is only one cache server'
+        help="Make it so that there is only one cache server",
     ),
     make_option(
-        '-c', '--cache',
-        dest='cache',
-        action='store_true',
+        "-c",
+        "--cache",
+        dest="cache",
+        action="store_true",
         default=False,
-        help='Disable page cache'
+        help="Disable page cache",
     ),
     make_option(
-        '-w', '--workers',
+        "-w",
+        "--workers",
         type=int,
-        dest='workers',
+        dest="workers",
         default=0,
-        help='Number of processes to run'
+        help="Number of processes to run",
     ),
     make_option(
-        '--key',
+        "--key",
         type=str,
-        dest='key',
+        dest="key",
         default=None,
-        help='Absolute path to SSL private key'
+        help="Absolute path to SSL private key",
     ),
     make_option(
-        '--cert',
+        "--cert",
         type=str,
-        dest='cert',
+        dest="cert",
         default=None,
-        help='Absolute path to SSL public certificate'
+        help="Absolute path to SSL public certificate",
     ),
+    make_option("--fd", type=str, dest="fd", default=None, help="DO NOT SET THIS"),
     make_option(
-        '--fd',
-        type=str,
-        dest='fd',
-        default=None,
-        help='DO NOT SET THIS'
-    ),
-    make_option(
-        '--dev',
-        dest='dev',
-        action='store_true',
+        "--dev",
+        dest="dev",
+        action="store_true",
         default=False,
         help=(
-            'Runs in development mode. Meaning it uses the development wsgi '
-            'handler subclass'
-        )
+            "Runs in development mode. Meaning it uses the development wsgi "
+            "handler subclass"
+        ),
     ),
     make_option(
-        '--wsgi',
-        dest='wsgi',
+        "--wsgi",
+        dest="wsgi",
         type=str,
         default=None,
         help=(
-            'Overrides the use of django settings for use in testing. N.B. '
-            'This option is not for use with hx or hx.py'
-        )
+            "Overrides the use of django settings for use in testing. N.B. "
+            "This option is not for use with hx or hx.py"
+        ),
     ),
     make_option(
-        '--client-max-body-size',
-        dest='max_upload_bytes',
+        "--client-max-body-size",
+        dest="max_upload_bytes",
         type=int,
-        default=None,#1024*1024,
-        help=('equivalent to nginx client_max_body_size in integer bytes (1024==1k)')
-    )
+        default=None,  # 1024*1024,
+        help=("equivalent to nginx client_max_body_size in integer bytes (1024==1k)"),
+    ),
 )
 
 HendrixOptionParser = OptionParser(
-    description=(
-        'hx is the interface to hendrix, use to start and stop your server'
-    ),
-    usage='hx start|stop [options]',
-    option_list=HX_OPTION_LIST
+    description=("hx is the interface to hendrix, use to start and stop your server"),
+    usage="hx start|stop [options]",
+    option_list=HX_OPTION_LIST,
 )
 
 

@@ -1,6 +1,6 @@
 import sys
 
-if sys.platform == 'win32':
+if sys.platform == "win32":
     from twisted.internet.iocpreactor.tcp import Server
 else:
     from twisted.internet.unix import Server

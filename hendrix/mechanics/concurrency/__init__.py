@@ -10,7 +10,9 @@ def get_response_for_thread(thread=None):
     try:
         response = thread.response_object
     except AttributeError:
-        raise ThreadHasNoResponse('thread %s has no associated response object.' % thread)
+        raise ThreadHasNoResponse(
+            "thread %s has no associated response object." % thread
+        )
 
     return response
 

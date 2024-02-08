@@ -5,7 +5,7 @@ from hendrix import ux
 from hendrix.contrib import SettingsError
 from hendrix.deploy.base import HendrixDeploy
 from hendrix.options import options as hx_options
-from .utils import HendrixTestCase
+from test.utils import HendrixTestCase
 
 try:
     from unittest.mock import patch

@@ -21,7 +21,7 @@ def compressBuffer(buffer):
     """
     # http://jython.xhaus.com/http-compression-in-python-and-jython/
     zbuf = cStringIO.StringIO()
-    zfile = gzip.GzipFile(mode='wb', fileobj=zbuf, compresslevel=9)
+    zfile = gzip.GzipFile(mode="wb", fileobj=zbuf, compresslevel=9)
     zfile.write(buffer)
     zfile.close()
     return zbuf.getvalue()
@@ -51,10 +51,10 @@ class CachedResource(Resource):
     def getMaxAge(self):
         "get the max-age in seconds from the saved headers data"
         max_age = 0
-        cache_control = self.headers.get('cache-control')
+        cache_control = self.headers.get("cache-control")
         if cache_control:
             params = dict(urlparse.parse_qsl(cache_control))
-            max_age = int(params.get('max-age', '0'))
+            max_age = int(params.get("max-age", "0"))
         return max_age
 
     def convertTimeString(self, timestr):
@@ -62,19 +62,19 @@ class CachedResource(Resource):
         Returns a datetime instance from a str formatted as follows
             e.g. 'Mon, 03 Mar 2014 12:12:12 GMT'
         """
-        time_struc = strptime(timestr, '%a, %d %b %Y %H:%M:%S GMT')
+        time_struc = strptime(timestr, "%a, %d %b %Y %H:%M:%S GMT")
         return datetime(*time_struc[:6])
 
     def getLastModified(self):
         "returns the GMT last-modified datetime or None"
-        last_modified = self.headers.get('last-modified')
+        last_modified = self.headers.get("last-modified")
         if last_modified:
             last_modified = self.convertTimeString(last_modified)
         return last_modified
 
     def getDate(self):
         "returns the GMT response datetime or None"
-        date = self.headers.get('date')
+        date = self.headers.get("date")
         if date:
             date = self.convertTimeString(date)
         return date

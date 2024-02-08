@@ -1,6 +1,7 @@
 """
 local memory cache backend
 """
+
 from hendrix.contrib.cache import CachedResource
 from . import CacheBackend
 
