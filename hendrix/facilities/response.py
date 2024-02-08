@@ -1,6 +1,5 @@
 import threading
 
-from twisted.internet import reactor
 from twisted.logger import Logger
 from twisted.web.wsgi import _WSGIResponse
 
@@ -15,12 +14,11 @@ class HendrixWSGIResponse(_WSGIResponse):
         return super(HendrixWSGIResponse, self).__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
-        r = reactor
         self.thread = threading.current_thread()
         # thread_list.append(self.thread)  # Debug
         # logger.debug("Assigning %s as the current response for thread %s" % (self, self.thread))
         self.thread.response_object = self
-        self.request.setHeader('server', 'hendrix/Twisted')
+        self.request.setHeader("server", "hendrix/Twisted")
         ran = super(HendrixWSGIResponse, self).run(*args, **kwargs)
         self.follow_response_tasks()
         del self.thread.response_object
@@ -44,7 +42,5 @@ class LoudWSGIResponse(HendrixWSGIResponse):
         """
         self.status = status
         self.headers = headers
-        self.reactor.callInThread(
-            responseInColor, self.request, status, headers
-        )
+        self.reactor.callInThread(responseInColor, self.request, status, headers)
         return self.write

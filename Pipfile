@@ -17,21 +17,12 @@ attrs = ">=19.3.0"
 
 [dev-packages]
 bumpversion = "*"
-#
-# Pytest
-#
 pytest = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 pytest-twisted = "*"
-#
-# Frameworks
-#
 django = "*"
 flask = "*"
-#
-# Other Dev
-#
 urllib3 = "*"
 requests = "*"
 coverage = "==6.5.0"

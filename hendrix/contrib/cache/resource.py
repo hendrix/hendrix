@@ -1,3 +1,5 @@
+import gzip
+
 try:
     import cStringIO
 except ImportError:
@@ -28,9 +30,7 @@ class CacheClient(proxy.ProxyClient):
     """
 
     def __init__(self, command, rest, version, headers, data, father, resource):
-        proxy.ProxyClient.__init__(
-            self, command, rest, version, headers, data, father
-        )
+        proxy.ProxyClient.__init__(self, command, rest, version, headers, data, father)
         self.resource = resource
         self.buffer = cStringIO.StringIO()
         self._response = None
@@ -38,10 +38,10 @@ class CacheClient(proxy.ProxyClient):
     def handleHeader(self, key, value):
         "extends handleHeader to save headers to a local response object"
         key_lower = key.lower()
-        if key_lower == 'location':
+        if key_lower == "location":
             value = self.modLocationPort(value)
         self._response.headers[key_lower] = value
-        if key_lower != 'cache-control':
+        if key_lower != "cache-control":
             # This causes us to not pass on the 'cache-control' parameter
             # to the browser
             # TODO: we should have a means of giving the user the option to
@@ -64,9 +64,7 @@ class CacheClient(proxy.ProxyClient):
         reverse_proxy_host = self.father.getHost().host
         # returns an ordered dict of urlparse.ParseResult components
         _components = components._asdict()
-        _components['netloc'] = '%s:%d' % (
-            reverse_proxy_host, reverse_proxy_port
-        )
+        _components["netloc"] = "%s:%d" % (reverse_proxy_host, reverse_proxy_port)
         return urlparse.urlunparse(_components.values())
 
     def handleResponseEnd(self):
@@ -78,10 +76,7 @@ class CacheClient(proxy.ProxyClient):
         try:
             if not self._finished:
                 reactor.callInThread(
-                    self.resource.cacheContent,
-                    self.father,
-                    self._response,
-                    self.buffer
+                    self.resource.cacheContent, self.father, self._response, self.buffer
                 )
             proxy.ProxyClient.handleResponseEnd(self)
         except RuntimeError:
@@ -105,7 +100,7 @@ class CacheClient(proxy.ProxyClient):
         """
         # http://jython.xhaus.com/http-compression-in-python-and-jython/
         zbuf = cStringIO.StringIO()
-        zfile = gzip.GzipFile(mode='wb', fileobj=zbuf, compresslevel=9)
+        zfile = gzip.GzipFile(mode="wb", fileobj=zbuf, compresslevel=9)
         zfile.write(buffer)
         zfile.close()
         return zbuf.getvalue()
@@ -125,8 +120,13 @@ class CacheClientFactory(proxy.ProxyClientFactory):
 
     def buildProtocol(self, addr):
         return self.protocol(
-            self.command, self.rest, self.version,
-            self.headers, self.data, self.father, self.resource
+            self.command,
+            self.rest,
+            self.version,
+            self.headers,
+            self.data,
+            self.father,
+            self.resource,
         )
 
 
@@ -140,9 +140,7 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
         The 'to_port' arg points to the port of the server that we are sending
         a request to
         """
-        proxy.ReverseProxyResource.__init__(
-            self, host, to_port, path, reactor=reactor
-        )
+        proxy.ReverseProxyResource.__init__(self, host, to_port, path, reactor=reactor)
         self.proxyClientFactoryClass = CacheClientFactory
 
     def getChild(self, path, request):
@@ -151,8 +149,10 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
         proxy.ReverseProxyResource instead of CacheProxyResource
         """
         return CacheProxyResource(
-            self.host, self.port, self.path + '/' + urlquote(path, safe=""),
-            self.reactor
+            self.host,
+            self.port,
+            self.path + "/" + urlquote(path, safe=""),
+            self.reactor,
         )
 
     def getChildWithDefault(self, path, request):
@@ -164,10 +164,10 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
             reactor.callInThread(
                 responseInColor,
                 request,
-                '200 OK',
+                "200 OK",
                 cached_resource,
-                'Cached',
-                'underscore'
+                "Cached",
+                "underscore",
             )
             return cached_resource
         # original logic
@@ -184,20 +184,24 @@ class CacheProxyResource(proxy.ReverseProxyResource, MemoryCacheBackend):
             host = self.host
         else:
             host = "%s:%d" % (self.host, self.port)
-        request.requestHeaders.addRawHeader('host', host)
+        request.requestHeaders.addRawHeader("host", host)
         request.content.seek(0, 0)
         qs = urlparse.urlparse(request.uri)[4]
         if qs:
-            rest = self.path + '?' + qs
+            rest = self.path + "?" + qs
         else:
             rest = self.path
 
         global_self = self.getGlobalSelf()
 
         clientFactory = self.proxyClientFactoryClass(
-            request.method, rest, request.clientproto,
-            request.getAllHeaders(), request.content.read(), request,
-            global_self  # this is new
+            request.method,
+            rest,
+            request.clientproto,
+            request.getAllHeaders(),
+            request.content.read(),
+            request,
+            global_self,  # this is new
         )
         self.reactor.connectTCP(self.host, self.port, clientFactory)
 
