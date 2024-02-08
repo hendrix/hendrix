@@ -2,7 +2,7 @@
 
 ![hendrix](docs/_static/hendrix-logo.png)
 
-*v4.0.0*
+*v5.0.0*
 
 *A Python web server that makes async and offbeat network traffic easy, fun, and fast.*
 
